@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09131d">
+  <title>CyberGuard | Network Simulation Console</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-mark" aria-hidden="true">CG</div>
+      <div class="brand-copy">
+        <span class="eyebrow">SIMULATION CORE</span>
+        <h1>CyberGuard</h1>
+      </div>
+
+      <nav class="side-nav" aria-label="Simulation sections">
+        <a class="nav-item active" href="#overview"><span class="nav-icon">01</span>Overview</a>
+        <a class="nav-item" href="#topology"><span class="nav-icon">02</span>Topology</a>
+        <a class="nav-item" href="#firewall"><span class="nav-icon">03</span>Firewall rules</a>
+        <a class="nav-item" href="#events"><span class="nav-icon">04</span>Event stream</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div><strong>LOCAL SIMULATION</strong><small>No external traffic</small></div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">PHASE 2 / NETWORK SIMULATION</span>
+          <h2>Operations console</h2>
+        </div>
+        <div class="topbar-actions">
+          <span class="engine-pill"><span class="pulse-dot"></span>Engine online</span>
+          <button class="icon-button" id="resetButton" title="Reset simulation" aria-label="Reset simulation">↻</button>
+        </div>
+      </header>
+
+      <section class="hero-strip" aria-label="Simulation summary">
+        <div>
+          <p class="section-kicker">SIMULATION STATUS</p>
+          <h3>Internal network traffic, made visible.</h3>
+          <p class="hero-description">Route deterministic packets through the router and firewall, then inspect each result in real time.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="button button-primary" id="demoButton"><span>▶</span> Run demo sequence</button>
+          <button class="button button-quiet" id="pauseButton"><span>Ⅱ</span> Pause stream</button>
+        </div>
+      </section>
+
+      <section class="metrics-grid" aria-label="Network statistics">
+        <article class="metric-card accent-cyan"><span class="metric-label">DEVICES ONLINE</span><strong id="onlineMetric">5</strong><span class="metric-meta">of 5 registered</span></article>
+        <article class="metric-card accent-blue"><span class="metric-label">PACKETS CREATED</span><strong id="createdMetric">0</strong><span class="metric-meta">this session</span></article>
+        <article class="metric-card accent-green"><span class="metric-label">DELIVERED</span><strong id="deliveredMetric">0</strong><span class="metric-meta" id="deliveryMeta">Awaiting traffic</span></article>
+        <article class="metric-card accent-red"><span class="metric-label">BLOCKED</span><strong id="blockedMetric">0</strong><span class="metric-meta" id="blockedMeta">Firewall clear</span></article>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel topology-panel" id="topology">
+          <div class="panel-heading">
+            <div><span class="section-kicker">LIVE TOPOLOGY</span><h3>Simulated network</h3></div>
+            <span class="legend"><i class="legend-line"></i>packet path</span>
+          </div>
+          <div class="topology-canvas" id="topologyCanvas">
+            <div class="topology-line line-internet"></div>
+            <div class="topology-line line-router"></div>
+            <div class="topology-line line-firewall"></div>
+            <div class="topology-line line-server"></div>
+            <div class="topology-line line-pc1"></div>
+            <div class="topology-line line-pc2"></div>
+            <div class="node internet-node"><span class="node-glyph">◎</span><strong>INTERNET</strong><small>external boundary</small></div>
+            <div class="node router-node" data-node="Router"><span class="node-glyph">◇</span><strong>ROUTER</strong><small>10.0.0.1</small><em>ONLINE</em></div>
+            <div class="node firewall-node" data-node="Firewall"><span class="node-glyph">◈</span><strong>FIREWALL</strong><small>10.0.0.2</small><em>ONLINE</em></div>
+            <div class="node server-node" data-node="Server"><span class="node-glyph">▤</span><strong>SERVER</strong><small>10.0.0.10</small><em>ONLINE</em></div>
+            <div class="node pc1-node" data-node="PC-01"><span class="node-glyph">▣</span><strong>PC-01</strong><small>10.0.0.20</small><em>ONLINE</em></div>
+            <div class="node pc2-node" data-node="PC-02"><span class="node-glyph">▣</span><strong>PC-02</strong><small>10.0.0.21</small><em>ONLINE</em></div>
+            <div class="packet-orb" id="packetOrb" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <section class="panel send-panel">
+          <div class="panel-heading"><div><span class="section-kicker">MANUAL CONTROL</span><h3>Send a packet</h3></div><span class="sim-badge">SIMULATED</span></div>
+          <form id="packetForm">
+            <label>Source<select id="sourceSelect"><option value="PC-01">PC-01 · 10.0.0.20</option><option value="PC-02">PC-02 · 10.0.0.21</option></select></label>
+            <label>Destination<select id="destinationSelect"><option value="Server">Server · 10.0.0.10</option><option value="PC-01">PC-01 · 10.0.0.20</option><option value="PC-02">PC-02 · 10.0.0.21</option></select></label>
+            <div class="form-row"><label>Protocol<select id="protocolSelect"><option>TCP</option><option>UDP</option><option>ICMP</option></select></label><label>Port<input id="portInput" type="number" min="1" max="65535" value="80"></label></div>
+            <label>Payload size<input id="sizeInput" type="number" min="1" max="65535" value="512"></label>
+            <button class="button button-primary submit-button" type="submit"><span>↗</span> Route packet</button>
+          </form>
+          <p class="form-note"><span class="info-mark">i</span> Traffic stays inside this browser simulation.</p>
+        </section>
+      </div>
+
+      <div class="lower-grid">
+        <section class="panel firewall-panel" id="firewall">
+          <div class="panel-heading"><div><span class="section-kicker">POLICY CONTROL</span><h3>Firewall rules</h3></div><span class="rule-count" id="ruleCount">1 active</span></div>
+          <div class="rule-list" id="ruleList"></div>
+          <form class="rule-form" id="ruleForm">
+            <select id="ruleAction"><option value="BLOCK">BLOCK</option><option value="ALLOW">ALLOW</option></select>
+            <select id="ruleProtocol"><option>TCP</option><option>UDP</option><option>ICMP</option></select>
+            <input id="rulePort" type="number" min="1" max="65535" value="23" aria-label="Firewall port">
+            <button class="button button-outline" type="submit">+ Add rule</button>
+          </form>
+        </section>
+
+        <section class="panel events-panel" id="events">
+          <div class="panel-heading"><div><span class="section-kicker">OBSERVABILITY</span><h3>Event stream</h3></div><span class="live-label"><span class="pulse-dot"></span>LIVE</span></div>
+          <div class="event-list" id="eventList" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
