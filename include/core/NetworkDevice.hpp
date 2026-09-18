@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/Packet.hpp"
+
 #include <string>
 
 namespace cyberguard {
@@ -21,6 +23,8 @@ public:
     void setOnline(bool online) noexcept;
 
     [[nodiscard]] virtual std::string getType() const = 0;
+    [[nodiscard]] virtual bool receivePacket(Packet& packet) = 0;
+    [[nodiscard]] virtual std::string getStatus() const = 0;
 
 private:
     std::string name_;

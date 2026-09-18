@@ -10,6 +10,11 @@ option(CYBERGUARD_BUILD_TESTS "Build CyberGuard tests" ON)
 
 add_library(CyberGuardCore
     src/core/Network.cpp
+    src/core/Packet.cpp
+    src/devices/Firewall.cpp
+    src/devices/Router.cpp
+    src/devices/Server.cpp
+    src/devices/Workstation.cpp
 )
 
 target_include_directories(CyberGuardCore
@@ -28,6 +33,15 @@ target_link_libraries(CyberGuard PRIVATE CyberGuardCore)
 include(CTest)
 
 if(CYBERGUARD_BUILD_TESTS)
+    include(FetchContent)
+
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    )
+    FetchContent_MakeAvailable(googletest)
+
     add_executable(CyberGuardSmokeTest
         tests/SmokeTest.cpp
     )
@@ -35,4 +49,21 @@ if(CYBERGUARD_BUILD_TESTS)
     target_link_libraries(CyberGuardSmokeTest PRIVATE CyberGuardCore)
 
     add_test(NAME CyberGuardSmokeTest COMMAND CyberGuardSmokeTest)
+
+    add_executable(CyberGuardTests
+        tests/PacketTests.cpp
+        tests/RouterTests.cpp
+        tests/FirewallTests.cpp
+        tests/ServerTests.cpp
+        tests/NetworkTests.cpp
+    )
+
+    target_link_libraries(CyberGuardTests
+        PRIVATE
+            CyberGuardCore
+            GTest::gtest_main
+    )
+
+    include(GoogleTest)
+    gtest_discover_tests(CyberGuardTests)
 endif()
