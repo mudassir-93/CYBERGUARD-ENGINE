@@ -3,17 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#09131d">
+  <meta name="theme-color" content="#f2f5f2">
   <title>CyberGuard | Network Simulation Console</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand-mark" aria-hidden="true">CG</div>
-      <div class="brand-copy">
-        <span class="eyebrow">SIMULATION CORE</span>
-        <h1>CyberGuard</h1>
+      <div class="brand-header">
+        <div class="brand-mark" aria-hidden="true">CG</div>
+        <div class="brand-copy">
+          <span class="eyebrow">Simulation core</span>
+          <h1>CyberGuard</h1>
+        </div>
       </div>
 
       <nav class="side-nav" aria-label="Simulation sections">
@@ -24,15 +26,18 @@
       </nav>
 
       <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <div><strong>LOCAL SIMULATION</strong><small>No external traffic</small></div>
+        <span class="status-dot" aria-hidden="true"></span>
+        <div>
+          <strong>Local simulation</strong>
+          <small>No external traffic</small>
+        </div>
       </div>
     </aside>
 
     <main class="main-content" id="overview">
       <header class="topbar">
         <div>
-          <span class="eyebrow">PHASE 2 / NETWORK SIMULATION</span>
+          <span class="eyebrow">Phase 2 / network simulation</span>
           <h2>Operations console</h2>
         </div>
         <div class="topbar-actions">
@@ -42,79 +47,218 @@
       </header>
 
       <section class="hero-strip" aria-label="Simulation summary">
-        <div>
-          <p class="section-kicker">SIMULATION STATUS</p>
-          <h3>Internal network traffic, made visible.</h3>
-          <p class="hero-description">Route deterministic packets through the router and firewall, then inspect each result in real time.</p>
+        <div class="hero-copy">
+          <p class="section-kicker">Simulation status</p>
+          <h3>Threat response visibility in real time.</h3>
+          <p class="hero-description">Route deterministic packets across the internal mesh, inspect firewall decisions, and monitor live traffic patterns as they evolve.</p>
         </div>
+
+        <div class="hero-panel" aria-label="System signal">
+          <div class="hero-panel-header">
+            <span class="hero-tag">Live signal</span>
+            <span class="hero-badge">Secure</span>
+          </div>
+          <div class="hero-panel-body">
+            <div>
+              <span class="mini-label">Threat score</span>
+              <strong>Low</strong>
+            </div>
+            <div>
+              <span class="mini-label">Packet flow</span>
+              <strong>Stable</strong>
+            </div>
+          </div>
+        </div>
+
         <div class="hero-actions">
-          <button class="button button-primary" id="demoButton"><span>▶</span> Run demo sequence</button>
-          <button class="button button-quiet" id="pauseButton"><span>Ⅱ</span> Pause stream</button>
+          <button class="button button-primary" id="demoButton"><span>▶</span>Run demo sequence</button>
+          <button class="button button-quiet" id="pauseButton"><span>Ⅱ</span>Pause stream</button>
         </div>
       </section>
 
       <section class="metrics-grid" aria-label="Network statistics">
-        <article class="metric-card accent-cyan"><span class="metric-label">DEVICES ONLINE</span><strong id="onlineMetric">5</strong><span class="metric-meta">of 5 registered</span></article>
-        <article class="metric-card accent-blue"><span class="metric-label">PACKETS CREATED</span><strong id="createdMetric">0</strong><span class="metric-meta">this session</span></article>
-        <article class="metric-card accent-green"><span class="metric-label">DELIVERED</span><strong id="deliveredMetric">0</strong><span class="metric-meta" id="deliveryMeta">Awaiting traffic</span></article>
-        <article class="metric-card accent-red"><span class="metric-label">BLOCKED</span><strong id="blockedMetric">0</strong><span class="metric-meta" id="blockedMeta">Firewall clear</span></article>
+        <article class="metric-card accent-cyan">
+          <span class="metric-label">Devices online</span>
+          <strong id="onlineMetric">9</strong>
+          <span class="metric-meta">of 9 registered</span>
+        </article>
+        <article class="metric-card accent-blue">
+          <span class="metric-label">Packets created</span>
+          <strong id="createdMetric">0</strong>
+          <span class="metric-meta">this session</span>
+        </article>
+        <article class="metric-card accent-green">
+          <span class="metric-label">Delivered</span>
+          <strong id="deliveredMetric">0</strong>
+          <span class="metric-meta" id="deliveryMeta">Awaiting traffic</span>
+        </article>
+        <article class="metric-card accent-red">
+          <span class="metric-label">Blocked</span>
+          <strong id="blockedMetric">0</strong>
+          <span class="metric-meta" id="blockedMeta">Firewall clear</span>
+        </article>
       </section>
 
       <div class="workspace-grid">
         <section class="panel topology-panel" id="topology">
           <div class="panel-heading">
-            <div><span class="section-kicker">LIVE TOPOLOGY</span><h3>Simulated network</h3></div>
-            <span class="legend"><i class="legend-line"></i>packet path</span>
+            <div>
+              <span class="section-kicker">Live topology</span>
+              <h3>Simulated network</h3>
+            </div>
+            <span class="legend"><i class="legend-line"></i>Packet path</span>
           </div>
-          <div class="topology-canvas" id="topologyCanvas">
-            <div class="topology-line line-internet"></div>
-            <div class="topology-line line-router"></div>
-            <div class="topology-line line-firewall"></div>
-            <div class="topology-line line-server"></div>
-            <div class="topology-line line-pc1"></div>
-            <div class="topology-line line-pc2"></div>
-            <div class="node internet-node"><span class="node-glyph">◎</span><strong>INTERNET</strong><small>external boundary</small></div>
-            <div class="node router-node" data-node="Router"><span class="node-glyph">◇</span><strong>ROUTER</strong><small>10.0.0.1</small><em>ONLINE</em></div>
-            <div class="node firewall-node" data-node="Firewall"><span class="node-glyph">◈</span><strong>FIREWALL</strong><small>10.0.0.2</small><em>ONLINE</em></div>
-            <div class="node server-node" data-node="Server"><span class="node-glyph">▤</span><strong>SERVER</strong><small>10.0.0.10</small><em>ONLINE</em></div>
-            <div class="node pc1-node" data-node="PC-01"><span class="node-glyph">▣</span><strong>PC-01</strong><small>10.0.0.20</small><em>ONLINE</em></div>
-            <div class="node pc2-node" data-node="PC-02"><span class="node-glyph">▣</span><strong>PC-02</strong><small>10.0.0.21</small><em>ONLINE</em></div>
+
+          <div class="topology-canvas" id="topologyCanvas" aria-label="Simulated network diagram">
+            <div class="network-stage">
+              <div class="network-core" aria-label="External connection and security gateway">
+                <div class="node internet-node">
+                  <span class="node-glyph">◎</span>
+                  <div><strong>Internet</strong><small>203.0.113.1</small></div>
+                  <em>Inbound</em>
+                </div>
+                <span class="network-link" aria-hidden="true"></span>
+                <div class="node router-node" data-node="Router">
+                  <span class="node-glyph">◇</span>
+                  <div><strong>Router</strong><small>10.0.0.1</small></div>
+                  <em>Online</em>
+                </div>
+                <span class="network-link" aria-hidden="true"></span>
+                <div class="node firewall-node" data-node="Firewall">
+                  <span class="node-glyph">◈</span>
+                  <div><strong>Firewall</strong><small>10.0.0.2</small></div>
+                  <em>Online</em>
+                </div>
+              </div>
+
+              <div class="network-backbone"><span>Internal network · 10.0.0.0/24</span></div>
+
+              <div class="endpoint-grid" aria-label="Internal endpoints">
+                <div class="node endpoint-node server-node" data-node="Server">
+                  <span class="node-glyph">▤</span>
+                  <div><strong>Server</strong><small>10.0.0.10</small></div>
+                  <em>Online</em>
+                </div>
+                <div class="node endpoint-node" data-node="PC-01">
+                  <span class="node-glyph">▣</span>
+                  <div><strong>PC-01</strong><small>10.0.0.20</small></div>
+                  <em>Online</em>
+                </div>
+                <div class="node endpoint-node" data-node="PC-02">
+                  <span class="node-glyph">▣</span>
+                  <div><strong>PC-02</strong><small>10.0.0.21</small></div>
+                  <em>Online</em>
+                </div>
+                <div class="node endpoint-node" data-node="PC-03">
+                  <span class="node-glyph">▣</span>
+                  <div><strong>PC-03</strong><small>10.0.0.22</small></div>
+                  <em>Online</em>
+                </div>
+                <div class="node endpoint-node" data-node="PC-04">
+                  <span class="node-glyph">▣</span>
+                  <div><strong>PC-04</strong><small>10.0.0.23</small></div>
+                  <em>Online</em>
+                </div>
+                <div class="node endpoint-node" data-node="PC-05">
+                  <span class="node-glyph">▣</span>
+                  <div><strong>PC-05</strong><small>10.0.0.24</small></div>
+                  <em>Online</em>
+                </div>
+              </div>
+            </div>
             <div class="packet-orb" id="packetOrb" aria-hidden="true"></div>
           </div>
         </section>
 
         <section class="panel send-panel">
-          <div class="panel-heading"><div><span class="section-kicker">MANUAL CONTROL</span><h3>Send a packet</h3></div><span class="sim-badge">SIMULATED</span></div>
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">Manual control</span>
+              <h3>Send a packet</h3>
+            </div>
+            <span class="sim-badge">Simulated</span>
+          </div>
+
           <form id="packetForm">
-            <label>Source<select id="sourceSelect"><option value="PC-01">PC-01 · 10.0.0.20</option><option value="PC-02">PC-02 · 10.0.0.21</option></select></label>
-            <label>Destination<select id="destinationSelect"><option value="Server">Server · 10.0.0.10</option><option value="PC-01">PC-01 · 10.0.0.20</option><option value="PC-02">PC-02 · 10.0.0.21</option></select></label>
-            <div class="form-row"><label>Protocol<select id="protocolSelect"><option>TCP</option><option>UDP</option><option>ICMP</option></select></label><label>Port<input id="portInput" type="number" min="1" max="65535" value="80"></label></div>
-            <label>Payload size<input id="sizeInput" type="number" min="1" max="65535" value="512"></label>
-            <button class="button button-primary submit-button" type="submit"><span>↗</span> Route packet</button>
+            <label>
+              Source
+              <select id="sourceSelect"></select>
+            </label>
+
+            <label>
+              Destination
+              <select id="destinationSelect"></select>
+            </label>
+
+            <div class="form-row">
+              <label>
+                Protocol
+                <select id="protocolSelect">
+                  <option>TCP</option>
+                  <option>UDP</option>
+                  <option>ICMP</option>
+                </select>
+              </label>
+
+              <label>
+                Port
+                <input id="portInput" type="number" min="1" max="65535" value="80">
+              </label>
+            </div>
+
+            <label>
+              Payload size
+              <input id="sizeInput" type="number" min="1" max="65535" value="512">
+            </label>
+
+            <button class="button button-primary submit-button" type="submit"><span>↗</span>Route packet</button>
           </form>
-          <p class="form-note"><span class="info-mark">i</span> Traffic stays inside this browser simulation.</p>
+
+          <p class="form-note"><span class="info-mark">i</span>Traffic stays inside this browser simulation.</p>
         </section>
       </div>
 
       <div class="lower-grid">
         <section class="panel firewall-panel" id="firewall">
-          <div class="panel-heading"><div><span class="section-kicker">POLICY CONTROL</span><h3>Firewall rules</h3></div><span class="rule-count" id="ruleCount">1 active</span></div>
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">Policy control</span>
+              <h3>Firewall rules</h3>
+            </div>
+            <span class="rule-count" id="ruleCount">1 active</span>
+          </div>
+
           <div class="rule-list" id="ruleList"></div>
+
           <form class="rule-form" id="ruleForm">
-            <select id="ruleAction"><option value="BLOCK">BLOCK</option><option value="ALLOW">ALLOW</option></select>
-            <select id="ruleProtocol"><option>TCP</option><option>UDP</option><option>ICMP</option></select>
+            <select id="ruleAction">
+              <option value="BLOCK">BLOCK</option>
+              <option value="ALLOW">ALLOW</option>
+            </select>
+            <select id="ruleProtocol">
+              <option>TCP</option>
+              <option>UDP</option>
+              <option>ICMP</option>
+            </select>
             <input id="rulePort" type="number" min="1" max="65535" value="23" aria-label="Firewall port">
             <button class="button button-outline" type="submit">+ Add rule</button>
           </form>
         </section>
 
         <section class="panel events-panel" id="events">
-          <div class="panel-heading"><div><span class="section-kicker">OBSERVABILITY</span><h3>Event stream</h3></div><span class="live-label"><span class="pulse-dot"></span>LIVE</span></div>
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">Observability</span>
+              <h3>Event stream</h3>
+            </div>
+            <span class="live-label"><span class="pulse-dot"></span>Live</span>
+          </div>
           <div class="event-list" id="eventList" aria-live="polite"></div>
         </section>
       </div>
     </main>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
