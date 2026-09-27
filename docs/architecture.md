@@ -53,8 +53,8 @@ Network
 
 Packet lifecycle:
 CREATED -> ROUTING -> ALLOWED -> DELIVERED
-                    \\-> BLOCKED
-       \\-> DROPPED when a route or destination is unavailable
+                    \-> BLOCKED
+       \-> DROPPED when a route or destination is unavailable
 ```
 
 `Network` coordinates packet flow. It validates that source and destination
@@ -63,5 +63,5 @@ delivers them to the destination device. Devices retain only their own state
 and behavior.
 
 The `CyberGuardCore` library contains all Phase 2 logic. The console
-application and tests depend on the library; no graphical or network runtime
+application and tests depend on the core library; no graphical or network runtime
 dependency is involved.
