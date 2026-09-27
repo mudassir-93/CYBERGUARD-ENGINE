@@ -1,126 +1,121 @@
-# CyberGuard Development Process and Roadmap
+# CyberGuard Development and Verification
 
-This document records how CyberGuard has been developed, what is currently
-implemented, how changes are verified, and which roadmap work remains deferred.
-It supplements [architecture.md](architecture.md) and [oop.md](oop.md).
+This guide describes the source tree, completed scope, build and test commands,
+browser demo, and remaining roadmap based on the current repository.
 
-## Project Scope
+## Source Tree
 
-CyberGuard is an educational C++20 simulation. Packets, devices, firewall
-decisions, and browser events are simulated locally. The project does not
-generate real network traffic or perform real attacks.
+```text
+include/core/       Packet, network, and abstract device interfaces
+include/devices/    Router, firewall, server, and workstation interfaces
+src/core/           Packet and network implementation
+src/devices/        Device implementations
+src/main.cpp        Native console demonstration
+tests/              Smoke and GoogleTest coverage
+web/                Independent static browser simulator
+docs/               Architecture, OOP, and this project guide
+CMakeLists.txt      C++20 targets and test configuration
+```
 
-The current implementation covers the foundational network engine and a
-separately requested browser visualization. Threat generation, detection,
-incident response, SFML, Docker, and AI features are not implemented in this
-scope.
+## Implemented Scope
 
-## How Work Is Done
+| Work | Current state |
+| --- | --- |
+| C++20 project, core library, console executable | Implemented |
+| Packet value type and validation | Implemented |
+| Router, firewall, server, workstation | Implemented |
+| Network ownership, lookup, routing, counters | Implemented |
+| Unit and smoke tests | Implemented for the current core |
+| Static browser console | Implemented as an independent simulation |
+| Threat generation and threat detection | Not implemented |
+| Incident management and defensive response | Not implemented |
+| Simulation/scenario engine and stress runner | Not implemented |
+| SFML interface, Docker, GitHub Actions, AI | Not implemented |
 
-Each feature follows a small, verifiable loop:
+The first three development phases are represented by the implemented
+foundation, devices/network ownership, and packet/routing/firewall behavior.
+Testing and the browser console are cross-cutting additions, not completion of
+the planned GoogleTest or SFML phases in their entirety. No placeholder threat,
+detection, incident, response, Docker, or AI code is present.
 
-1. Confirm the requested scope and the phase boundary. Do not implement later
-   roadmap features without authorization.
-2. Inspect the existing classes, call sites, tests, and documentation.
-3. Describe the intended behavior and identify the owning abstraction.
-4. Update the smallest relevant public interface and implementation.
-5. Add or update tests for normal behavior, failure cases, and relevant edges.
-6. Build the affected targets and run the focused tests, then the full suite
-   when practical.
-7. Run the native demo and/or browser flow when the change affects those
-   surfaces.
-8. Review architecture, ownership, resource handling, and the final diff.
-9. Update documentation and publish only the requested, verified work.
+## Requirements
 
-Do not call a feature complete just because code was written. Completion
-requires working code, a successful build, passing relevant tests, a modular
-design, and documentation updates where behavior or usage changed. If a
-required check cannot run, state the blocker and do not report it as passed.
+- CMake 3.20 or newer
+- A compiler with C++20 support (the commands below use MinGW GCC and the
+  `MinGW Makefiles` generator)
+- Internet access when configuring tests for the first time; CMake fetches
+  GoogleTest 1.14.0 through `FetchContent`
+- Python 3 to serve the static browser files
 
-## Development History
+## Build and Run the Native Program
 
-### Phase 1: Project Foundation - Complete
-
-- Inspected the repository and established the CMake/C++20 project structure.
-- Added the core library target, a basic executable, initial network/device
-  abstractions, and a smoke test.
-- Verified the foundation before expanding the simulation.
-
-### Phase 2: Network Devices and Ownership - Complete
-
-- Implemented the abstract `NetworkDevice` contract and concrete `Router`,
-  `Firewall`, `Server`, and `Workstation` devices.
-- Implemented `Network` ownership, device lookup/removal, route setup, packet
-  orchestration, and network statistics.
-
-### Phase 3: Packets, Routing, and Firewall Rules - Complete
-
-- Implemented packet properties, IP/port validation, and packet lifecycle
-  statuses.
-- Added router forwarding, ordered firewall allow/block rules, server service
-  checks, and delivery/drop/block accounting.
-- Added tests for packet, router, firewall, server, and network behavior.
-
-### Browser Console: Requested Companion - Complete
-
-- Added a static browser interface for topology, manual packet routing,
-  firewall rule management, simulation controls, counters, and event history.
-- The browser implementation is an independent local simulation, not a web
-  frontend connected to the C++ executable and not a replacement for the
-  planned SFML interface.
-
-## Roadmap Status
-
-The numbered phases below follow the original project roadmap. Testing and the
-browser console were also delivered as cross-cutting work rather than being
-held until their original roadmap slots.
-
-| Phase | Scope | Status |
-| --- | --- | --- |
-| 1 | Project setup, CMake, Git, basic executable | Complete |
-| 2 | Network devices and network container | Complete |
-| 3 | Packet lifecycle, packet routing, firewall rules | Complete |
-| 4 | Simulated threat types | Deferred |
-| 5 | Detection engine, risk scoring, alerts | Deferred |
-| 6 | Incident management and defensive response | Deferred |
-| 7 | Simulation engine, event/scenario system, stress tests | Deferred |
-| 8 | SFML visualization | Deferred; browser console is a separate requested deliverable |
-| 9 | GoogleTest | Core tests implemented and passing; future features need their own tests |
-| 10 | Docker | Deferred |
-| 11 | GitHub Actions CI | Deferred |
-| 12 | Documentation and polish | In progress |
-
-Deferred means not part of the delivered implementation. It does not imply
-that a placeholder implementation exists. In particular, there is no threat
-generator, `DetectionEngine`, `IncidentManager`, `ResponseEngine`, SFML layer,
-Docker setup, or AI feature in the current scope.
-
-## Verification Record
-
-The verified native environment used CMake with MinGW GCC. The project
-configured and built, all 12 registered tests passed, and the console demo
-reported three packets created, two delivered, one blocked, and zero dropped.
-
-The browser demo was also opened and exercised in a local browser. Its
-deterministic sequence produced two delivered packets and one blocked packet.
-The browser view is served from the `web/` directory and sends no external
-traffic.
-
-## Reproduce the Checks
-
-From the repository root in PowerShell:
+Run these commands from the repository root in PowerShell:
 
 ```powershell
 cmake -S . -B build -G "MinGW Makefiles" -DCYBERGUARD_BUILD_TESTS=ON
 cmake --build build
-ctest --test-dir build --output-on-failure
 .\build\CyberGuard.exe
 ```
 
-To run the browser companion:
+The native demo creates a router, firewall, server, and two workstations. The
+server opens ports 80 and 443, and the firewall blocks TCP destination port 23.
+Its demonstration sends three packets: two are delivered and one is blocked.
+
+## Run Tests
+
+```powershell
+ctest --test-dir build --output-on-failure
+```
+
+The registered suite contains 12 tests: a smoke test plus GoogleTest cases
+covering packet properties and validation, router forwarding, first-match and
+disabled firewall rules, server service acceptance, and network routing,
+duplicate identifiers, removal, and online-device counts. The recorded
+verified run passed all 12 tests.
+
+## Run the Browser Simulator
+
+Start the static server from the repository root:
 
 ```powershell
 python -m http.server 5173 --directory web
 ```
 
-Then open `http://localhost:5173/`.
+Open `http://localhost:5173/`. The browser app provides manual packet controls,
+an editable block/allow rule list, a deterministic demo sequence, pause/resume,
+reset, summary counters, and an event list. The initial rule blocks TCP port
+23; the demo sends TCP packets to ports 80, 443, and 23.
+
+This UI executes its own JavaScript simulation. It shares neither state nor
+packet-routing calls with the C++ executable. The topology's Internet icon is a
+visual boundary, not a network device or an external connection.
+
+## Development Phases and Next Work
+
+| Phase | Scope from project roadmap | State in this repository |
+| --- | --- | --- |
+| 1 | Project foundation | Complete |
+| 2 | Network devices and ownership | Complete |
+| 3 | Packets, routing, firewall rules | Complete |
+| 4 | Simulated threat types | Not implemented |
+| 5 | Detection, risk scoring, alerts | Not implemented |
+| 6 | Incidents and response | Not implemented |
+| 7 | Simulation and scenario engine | Not implemented |
+| 8 | SFML visualization | Not implemented; browser UI is separate |
+| 9 | GoogleTest | Tests cover the current core; future features need tests |
+| 10 | Docker | Not implemented |
+| 11 | GitHub Actions | Not implemented |
+| 12 | Documentation and polish | Documentation is being maintained |
+
+The next feature phase should be selected explicitly before implementation.
+Keep all traffic and threat behavior simulated and internal to the application.
+For packet flow and class ownership, see [architecture.md](architecture.md)
+and [oop.md](oop.md).
+
+## Change and Verification Workflow
+
+For a code change, inspect its owning class and callers, make a narrow change,
+add or update tests, build the affected targets, and run the relevant tests.
+Run the complete CTest suite after changes to shared routing or device
+contracts. Update these documents when behavior, commands, or scope changes.
+Report checks that could not run instead of treating them as successful.
