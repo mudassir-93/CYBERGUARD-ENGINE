@@ -13,16 +13,22 @@ CyberGuard Engine is an educational C++20 project that simulates packet flow thr
 - GoogleTest coverage for packet, device, firewall, and network behavior
 - Browser console with network topology, manual packet controls, editable firewall rules, event stream, and deterministic demo sequence
 
-## Project layout
+## Project Layout
 
 ```text
 include/       Public core and device headers
 src/           C++ simulation implementation and console demo
 tests/         Smoke and GoogleTest suites
 web/           Static browser simulation
-docs/          Architecture and design documentation
+docs/          Architecture, OOP, and development-process documentation
 CMakeLists.txt CMake build configuration
 ```
+
+## Development Process and Roadmap
+
+The project is developed in small phases with scope boundaries, focused tests, and build verification. Phases 1-3, core tests, and the separately requested browser console are complete. Threat detection, incident response, SFML, Docker, and AI remain outside the current implementation scope.
+
+See [docs/development-process.md](docs/development-process.md) for the phase-by-phase history, remaining roadmap, feature workflow, definition of done, and verification record. Architecture and OOP details are in [docs/architecture.md](docs/architecture.md) and [docs/oop.md](docs/oop.md).
 
 ## Requirements
 
@@ -33,7 +39,7 @@ CMakeLists.txt CMake build configuration
 
 The build commands below use MinGW Makefiles and assume `cmake` and `g++` are available on `PATH`. Other CMake generators can be used with a compatible compiler.
 
-## Build, test, and run
+## Build, Test, and Run
 
 From the repository root in PowerShell:
 
@@ -46,7 +52,7 @@ ctest --test-dir build --output-on-failure
 
 The console demo creates three packets: two reach configured server services, while TCP destination port 23 is blocked by the firewall.
 
-## Browser simulation
+## Browser Simulation
 
 Start the static web server from the repository root:
 
@@ -56,7 +62,7 @@ python -m http.server 5173 --directory web
 
 Open [http://localhost:5173/](http://localhost:5173/). The interface supports manually routing packets, adding and toggling firewall rules, running the demo sequence, pausing the stream, and resetting the simulation. Its model runs entirely in the browser and is a visual companion to the native C++ implementation.
 
-## Verified result
+## Verified Result
 
 The project was built with CMake and MinGW GCC, all 12 registered tests passed, and the native demo produced:
 
