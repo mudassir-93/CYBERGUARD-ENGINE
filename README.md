@@ -20,7 +20,7 @@ include/       Public core and device headers
 src/           C++ simulation implementation and console demo
 tests/         Smoke and GoogleTest suites
 web/           Static browser simulation
- docs/         Architecture and design documentation
+docs/          Architecture and design documentation
 CMakeLists.txt CMake build configuration
 ```
 
