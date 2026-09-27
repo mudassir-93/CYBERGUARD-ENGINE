@@ -1,4 +1,3 @@
-the network and no raw owning pointers are used. `Packet` is passed by
 # CyberGuard Object-Oriented Design
 
 This document describes the classes and ownership relationships implemented
@@ -12,9 +11,9 @@ address string, and online flag, and declares virtual operations for type,
 packet reception, and status.
 
 ```text
-                                 NetworkDevice
-                         /       |        |       \
-                 Router   Firewall  Server  Workstation
+                 NetworkDevice
+             /       |        |       \
+         Router   Firewall  Server  Workstation
 ```
 
 The four concrete device classes are siblings. Each overrides the common
@@ -74,22 +73,22 @@ passing a `Packet&`; the network does not take ownership of packets.
 ## Encapsulation and Ownership
 
 - Device state such as rule lists, service ports, route entries, and counters
-    is private to its owning class.
+  is private to its owning class.
 - `Network` owns device lifetimes using `std::unique_ptr`; its `findDevice`
-    methods return non-owning observer pointers.
+  methods return non-owning observer pointers.
 - `Network` is non-copyable and movable, avoiding accidental duplicate
-    ownership of devices.
+  ownership of devices.
 - `Packet` is passed by reference during routing so status changes are visible
-    to the caller without transferring packet ownership.
+  to the caller without transferring packet ownership.
 - Read-only accessors expose collections and statistics where required by the
-    console and tests.
+  console and tests.
 
 ## Composition
 
 ```text
 Network
-    +-- vector<unique_ptr<NetworkDevice>>
-    +-- NetworkStatistics
+  +-- vector<unique_ptr<NetworkDevice>>
+  +-- NetworkStatistics
 
 Packet -- passed by reference to Network and device operations
 ```
