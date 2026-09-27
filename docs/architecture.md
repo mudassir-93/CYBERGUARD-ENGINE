@@ -52,16 +52,21 @@ accepting firewall; without a firewall, routing can proceed directly to the
 destination.
 
 ```text
-CREATED -> ROUTING -> [router forwards] -> [firewall allows] -> DELIVERED
-                 |                       +-> BLOCKED
-                 +-> DROPPED on missing endpoint or failed routing
-                                            destination rejection -> DROPPED
+CREATED
+  +-- missing source or destination --------------------------> DROPPED
+  +-- ROUTING
+       +-- router failure ------------------------------------> DROPPED
+       +-- firewall block ------------------------------------> BLOCKED
+       +-- destination rejects packet ------------------------> DROPPED
+       +-- destination accepts packet ------------------------> DELIVERED
 ```
 
 The network uses the first router and first firewall found in its device list.
-When devices are added, `Network` populates each router with direct entries
-whose next hop is the destination IP itself. This is a simple in-memory model,
-not a topology-aware routing protocol.
+When devices are added or removed, `Network` calls its route-refresh routine,
+which adds direct entries whose next hop is the destination IP itself. It does
+not clear entries for removed devices. Routing is a simple in-memory model,
+not a topology-aware routing protocol; `Network` separately rejects unknown
+destinations before consulting the router.
 
 ## Device Responsibilities
 
