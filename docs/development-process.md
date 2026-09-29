@@ -12,7 +12,9 @@ src/core/           Packet and network implementation
 src/devices/        Device implementations
 src/main.cpp        Native console demonstration
 tests/              Smoke and GoogleTest coverage
-web/                Independent static browser simulator
+backend/            Python server that hosts the browser app from the repo root
+index.html          Default browser dashboard entry point
+web/                Legacy static browser assets kept for reference; not the default route
 docs/               Architecture, OOP, and this project guide
 CMakeLists.txt      C++20 targets and test configuration
 ```
@@ -75,13 +77,13 @@ verified run passed all 12 tests.
 
 ## Run the Browser Simulator
 
-Start the static server from the repository root:
+Start the backend server from the repository root:
 
 ```powershell
-python -m http.server 5173 --directory web
+python backend/server.py
 ```
 
-Open `http://localhost:5173/`. The browser app provides manual packet controls,
+Open `http://localhost:8000/`. The browser app provides manual packet controls,
 an editable block/allow rule list, a deterministic demo sequence, pause/resume,
 reset, summary counters, and an event list. The initial rule blocks TCP port
 23; the demo sends TCP packets to ports 80, 443, and 23.

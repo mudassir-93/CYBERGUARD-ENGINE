@@ -23,7 +23,8 @@ CyberGuard executable (src/main.cpp)
                                +-- Workstation
 
 CyberGuardTests and CyberGuardSmokeTest also link to CyberGuardCore.
-web/ is an independent static browser application.
+The default browser app is served from the repository root via backend/server.py.
+Legacy files under web/ are kept as reference assets and are not the main entry route.
 ```
 
 `Network` owns devices in a `std::vector<std::unique_ptr<NetworkDevice>>`.
@@ -89,10 +90,13 @@ packet size. Port zero is representable by the C++ model.
 ## Boundaries and Limitations
 
 - No component sends, receives, or captures real network traffic.
-- The native C++ simulator and `web/` simulator maintain separate state and
+- The native C++ simulator and the browser simulator maintain separate state and
   separate logic; browser changes do not update the C++ process.
 - The browser topology is a presentation model. Its Internet symbol is not a
   registered C++ device.
+- The project serves the browser UI from the repository root on
+  `http://localhost:8000/` through the backend server, while the legacy `web/`
+  folder remains non-primary reference content.
 - The current project has no threat generator, detection engine, incident
   manager, response engine, scenario engine, SFML UI, Docker setup, or AI.
 
