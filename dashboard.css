@@ -216,3 +216,24 @@ button, select { cursor: pointer; }
 .incident-empty { grid-column:1/-1; margin:10px 0; color:var(--dim); font-size:11px; }
 @media(max-width:900px) { .incident-toolbar { align-items:flex-start; flex-direction:column; }.incident-list { grid-template-columns:1fr; } }
 @media(max-width:680px) { .incident-actions { width:100%; }.incident-actions select { flex:1 1 100%; }.incident-actions button { flex:1; }.incident-toolbar,.incident-list { padding-left:14px; padding-right:14px; }.incident-message { margin-left:14px; } }
+
+.live-monitor-panel { margin-top: 24px; }
+.live-capture-state { color: var(--muted, #87939a); font-size: 12px; font-weight: 700; }
+.live-capture-state.is-running { color: #178b70; }
+.live-monitor-layout { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(240px, .8fr); gap: 24px; align-items: start; }
+.live-monitor-controls label { display: block; margin-bottom: 8px; color: var(--muted, #87939a); font-size: 12px; font-weight: 700; }
+.live-monitor-controls select { width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--line, #dce4e2); border-radius: 9px; background: var(--surface, #fff); color: var(--text, #172b35); }
+.live-monitor-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.live-monitor-message, .live-monitor-note { color: var(--muted, #87939a); font-size: 12px; line-height: 1.6; }
+.live-monitor-message.error { color: #c34c4c; }
+.live-monitor-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.live-monitor-stats > div { min-width: 0; padding: 14px; border: 1px solid var(--line, #dce4e2); border-radius: 12px; background: var(--surface, #fff); }
+.live-monitor-stats span { display: block; color: var(--muted, #87939a); font-size: 11px; line-height: 1.4; }
+.live-monitor-stats strong { display: block; margin-top: 8px; color: var(--text, #172b35); font-size: 24px; font-variant-numeric: tabular-nums; }
+.live-monitor-note { margin: 16px 0 0; }
+@media (max-width: 760px) {
+  .live-monitor-layout { grid-template-columns: 1fr; }
+  .live-monitor-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .live-monitor-stats > div { padding: 10px; }
+  .live-monitor-stats strong { font-size: 20px; }
+}
