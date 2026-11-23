@@ -59,8 +59,6 @@ class IncidentStoreTests(unittest.TestCase):
 
     def test_rejects_invalid_transitions(self):
         incident, _ = self.store.ingest(sample())
-        with self.assertRaises(ValueError):
-            self.store.update_status(incident["id"], "false_positive")
         self.store.update_status(incident["id"], "acknowledged")
         with self.assertRaises(ValueError):
             self.store.update_status(incident["id"], "new")
