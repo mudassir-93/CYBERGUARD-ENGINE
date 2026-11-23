@@ -226,3 +226,138 @@ renderStats();
 renderRules();
 addEvent('<strong>Engine initialized</strong> · nine devices online');
 addEvent('<strong>Firewall ready</strong> · TCP destination port 23 blocked');
+
+
+const incidentElements = {
+  list: document.querySelector('#incidentList'),
+  summary: document.querySelector('#incidentSummary'),
+  filter: document.querySelector('#incidentStatusFilter'),
+  refresh: document.querySelector('#refreshIncidents'),
+  demo: document.querySelector('#generateIncidentDemo'),
+  message: document.querySelector('#incidentMessage')
+};
+
+function setIncidentMessage(message, isError = false) {
+  incidentElements.message.textContent = message;
+  incidentElements.message.classList.toggle('error', isError);
+}
+
+function makeIncidentNode(incident) {
+  const card = document.createElement('article');
+  card.className = 'incident-card';
+  const top = document.createElement('div');
+  top.className = 'incident-card-top';
+  const title = document.createElement('strong');
+  title.textContent = incident.title;
+  const severity = document.createElement('span');
+  severity.className = 'severity-pill severity-' + incident.severity;
+  severity.textContent = incident.severity;
+  top.append(title, severity);
+
+  const summary = document.createElement('p');
+  summary.className = 'incident-summary';
+  summary.textContent = incident.summary;
+  const meta = document.createElement('div');
+  meta.className = 'incident-meta';
+  meta.textContent = incident.source_ip + (incident.destination_ip ? ' → ' + incident.destination_ip : '') +
+    (incident.destination_port ? ' · port ' + incident.destination_port : '') +
+    ' · risk ' + incident.risk_score + '/100 · ' + incident.occurrence_count + ' signal(s)';
+
+  const controls = document.createElement('div');
+  controls.className = 'incident-controls';
+  const status = document.createElement('select');
+  status.setAttribute('aria-label', 'Update incident status');
+  ['new', 'acknowledged', 'investigating', 'resolved', 'false_positive'].forEach(value => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value.replace('_', ' ');
+    option.selected = value === incident.status;
+    status.append(option);
+  });
+  status.addEventListener('change', async () => {
+    try {
+      const response = await fetch('/api/incidents/' + encodeURIComponent(incident.id) + '/status', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status.value })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Status update failed');
+      setIncidentMessage('Incident ' + incident.id + ' updated.');
+      await loadIncidents();
+    } catch (error) {
+      setIncidentMessage(error.message, true);
+      status.value = incident.status;
+    }
+  });
+
+  const evidence = document.createElement('details');
+  evidence.className = 'incident-evidence';
+  const evidenceSummary = document.createElement('summary');
+  evidenceSummary.textContent = 'View evidence';
+  const evidenceBody = document.createElement('pre');
+  evidenceBody.textContent = JSON.stringify(incident.evidence, null, 2);
+  evidence.append(evidenceSummary, evidenceBody);
+  const inspect = document.createElement('button');
+  inspect.className = 'incident-inspect';
+  inspect.type = 'button';
+  inspect.textContent = 'Evidence';
+  inspect.addEventListener('click', () => { evidence.open = !evidence.open; });
+  controls.append(status, inspect);
+  card.append(top, summary, meta, controls, evidence);
+  return card;
+}
+
+async function loadIncidents() {
+  try {
+    const status = incidentElements.filter.value;
+    const response = await fetch('/api/incidents' + (status ? '?status=' + encodeURIComponent(status) : ''));
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to load incidents');
+    incidentElements.summary.textContent = result.summary.open + ' open · ' +
+      result.summary.critical + ' critical · ' + result.summary.total + ' total';
+    incidentElements.list.replaceChildren();
+    if (!result.incidents.length) {
+      const empty = document.createElement('p');
+      empty.className = 'incident-empty';
+      empty.textContent = 'No incidents match this view. Generate local demo detections to explore the workflow.';
+      incidentElements.list.append(empty);
+    } else {
+      result.incidents.forEach(incident => incidentElements.list.append(makeIncidentNode(incident)));
+    }
+    setIncidentMessage('SQLite incident store connected.');
+  } catch (error) {
+    incidentElements.summary.textContent = 'API unavailable';
+    incidentElements.list.replaceChildren();
+    setIncidentMessage(error.message + ' · Start with python backend/server.py.', true);
+  }
+}
+
+async function generateIncidentDemo() {
+  const samples = [
+    { type: 'port_scan', source_ip: '10.0.0.20', destination_ip: '10.0.0.10', destination_port: 443, protocol: 'TCP', summary: 'PC-01 contacted many service ports on the server', evidence: { distinct_ports: 12, threshold: 10, window_seconds: 60, source: 'local-demo' } },
+    { type: 'brute_force', source_ip: '10.0.0.21', destination_ip: '10.0.0.10', destination_port: 22, protocol: 'TCP', summary: 'Repeated failed connection attempts to SSH service', evidence: { failed_attempts: 8, threshold: 5, window_seconds: 60, source: 'local-demo' } },
+    { type: 'dos', source_ip: '10.0.0.22', destination_ip: '10.0.0.10', destination_port: 80, protocol: 'TCP', summary: 'High-volume packet burst against the web server', evidence: { packet_count: 180, threshold: 100, window_seconds: 10, source: 'local-demo' } },
+    { type: 'lateral_movement', source_ip: '10.0.0.23', destination_ip: '10.0.0.24', destination_port: 445, protocol: 'TCP', summary: 'Internal workstation contacted multiple private hosts', evidence: { distinct_internal_destinations: 5, threshold: 3, window_seconds: 60, source: 'local-demo' } }
+  ];
+  incidentElements.demo.disabled = true;
+  try {
+    for (const sample of samples) {
+      const response = await fetch('/api/detections', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sample)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Detection ingestion failed');
+    }
+    setIncidentMessage('Four local demo detections submitted and persisted in SQLite.');
+    await loadIncidents();
+  } catch (error) {
+    setIncidentMessage(error.message, true);
+  } finally {
+    incidentElements.demo.disabled = false;
+  }
+}
+
+incidentElements.refresh.addEventListener('click', loadIncidents);
+incidentElements.filter.addEventListener('change', loadIncidents);
+incidentElements.demo.addEventListener('click', generateIncidentDemo);
+loadIncidents();
