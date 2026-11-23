@@ -218,6 +218,28 @@
         </section>
       </div>
 
+
+      <section class="panel incidents-panel" id="incidents">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Investigation workspace</span><h3>Incident management</h3></div>
+          <span class="incident-summary-count" id="incidentSummary">Connecting to local API…</span>
+        </div>
+        <div class="incident-toolbar">
+          <p>Correlated detections, preserved evidence, and analyst-controlled status.</p>
+          <div class="incident-actions">
+            <select id="incidentStatusFilter" aria-label="Filter incidents by status">
+              <option value="">All statuses</option><option value="new">New</option>
+              <option value="acknowledged">Acknowledged</option><option value="investigating">Investigating</option>
+              <option value="resolved">Resolved</option><option value="false_positive">False positive</option>
+            </select>
+            <button class="button button-outline" id="refreshIncidents" type="button">Refresh</button>
+            <button class="button button-primary" id="generateIncidentDemo" type="button">Generate demo incidents</button>
+          </div>
+        </div>
+        <p class="incident-message" id="incidentMessage" role="status">Connecting…</p>
+        <div class="incident-list" id="incidentList" aria-live="polite"></div>
+      </section>
+
       <div class="lower-grid">
         <section class="panel firewall-panel" id="firewall">
           <div class="panel-heading">
