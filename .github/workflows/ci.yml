@@ -53,3 +53,8 @@ jobs:
 
       - name: Validate dashboard JavaScript syntax
         run: node --check app.js
+
+      - name: Run C++ to SQLite integration
+        run: python backend/run_simulation.py
+        env:
+          CYBERGUARD_DATA_DIR: ${{ runner.temp }}/cyberguard-integration-data
