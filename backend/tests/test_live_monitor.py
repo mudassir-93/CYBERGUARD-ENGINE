@@ -13,12 +13,12 @@ class LiveDetectionWindowTests(unittest.TestCase):
     def test_port_scan_requires_distinct_tcp_syn_ports_and_cooldown(self):
         engine = DetectionWindowEngine(port_scan_threshold=3)
         events = []
-        for port in (22, 80, 443):
+        for timestamp, port in enumerate((22, 80, 443)):
             events.extend(engine.process({
                 "source_ip": "192.168.1.10", "destination_ip": "192.168.1.20",
                 "protocol": "TCP", "destination_port": port, "tcp_syn": True,
                 "packet_bytes": 60,
-            }, now=port))
+            }, now=timestamp))
         self.assertEqual([item["type"] for item in events], ["port_scan"])
         self.assertEqual(events[0]["evidence"]["distinct_ports"], 3)
 
