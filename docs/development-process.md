@@ -40,8 +40,9 @@ CMakeLists.txt      C++20 targets and test configuration
 The first three development phases are represented by the implemented
 foundation, devices/network ownership, and packet/routing/firewall behavior.
 Testing and the browser console are cross-cutting additions, not completion of
-the planned GoogleTest or SFML phases in their entirety. No placeholder threat,
-detection, incident, response, Docker, or AI code is present.
+the planned GoogleTest or SFML phases in their entirety. Detection and incident
+management are implemented as local-first foundations; automated response and
+AI-driven analysis are not implemented.
 
 ## Requirements
 
