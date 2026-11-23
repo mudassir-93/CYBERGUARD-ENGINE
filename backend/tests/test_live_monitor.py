@@ -131,12 +131,13 @@ class LivePacketAdapterTests(unittest.TestCase):
             self.assertEqual(incidents[0]["type"], "lateral_movement")
 
     def test_invalid_interface_is_rejected_before_capture(self):
-        monitor = LiveTrafficMonitor(IncidentStore(":memory:"))
-        with patch("live_monitor.list_capture_interfaces", return_value=[{"name": "valid0", "description": "Valid"}]):
-            with patch("scapy.all.AsyncSniffer") as sniffer:
-                with self.assertRaises(ValueError):
-                    monitor.start("invalid0")
-                sniffer.assert_not_called()
+        with tempfile.TemporaryDirectory() as directory:
+            monitor = LiveTrafficMonitor(IncidentStore(Path(directory) / "test.sqlite3"))
+            with patch("live_monitor.list_capture_interfaces", return_value=[{"name": "valid0", "description": "Valid"}]):
+                with patch("scapy.all.AsyncSniffer") as sniffer:
+                    with self.assertRaises(ValueError):
+                        monitor.start("invalid0")
+                    sniffer.assert_not_called()
 
 
 if __name__ == "__main__":
