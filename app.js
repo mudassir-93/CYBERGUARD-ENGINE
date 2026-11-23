@@ -297,6 +297,17 @@ function makeIncidentNode(incident) {
   const evidenceBody = document.createElement('pre');
   evidenceBody.textContent = JSON.stringify(incident.evidence, null, 2);
   evidence.append(evidenceSummary, evidenceBody);
+  evidence.addEventListener('toggle', async () => {
+    if (!evidence.open) return;
+    try {
+      const response = await fetch('/api/incidents/' + encodeURIComponent(incident.id));
+      const detail = await response.json();
+      if (!response.ok) throw new Error(detail.error || 'Unable to load incident timeline');
+      evidenceBody.textContent = JSON.stringify({ evidence: detail.incident.evidence, timeline: detail.incident.timeline }, null, 2);
+    } catch (error) {
+      evidenceBody.textContent = error.message;
+    }
+  });
   const inspect = document.createElement('button');
   inspect.className = 'incident-inspect';
   inspect.type = 'button';
