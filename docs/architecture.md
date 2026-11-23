@@ -92,7 +92,7 @@ the same IPv4 validation. Port zero is representable by the C++ model.
 
 ## Boundaries and Limitations
 
-- No component sends, receives, or captures real network traffic.
+- The C++ simulator and browser demo do not send real network traffic. The optional Python live sensor passively captures packet metadata when explicitly started and supported by the host.
 - The native C++ simulator and the browser simulator maintain separate state and
   separate logic; browser changes do not update the C++ process.
 - The browser topology is a presentation model. Its Internet symbol is not a
