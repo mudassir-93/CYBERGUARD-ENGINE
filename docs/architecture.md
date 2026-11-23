@@ -103,8 +103,9 @@ the same IPv4 validation. Port zero is representable by the C++ model.
 - The project serves the browser UI from the repository root on
   `http://localhost:8000/` through the backend server, while the legacy `web/`
   folder remains non-primary reference content.
-- The current project has no threat generator, detection engine, incident
-  manager, response engine, scenario engine, SFML UI, Docker setup, or AI.
+- Detection rules and incident management are implemented as local-first
+  foundations; automated response, calibrated ML risk scoring, SFML, Docker,
+  and AI automation remain out of scope.
 
 See [oop.md](oop.md) for class design and ownership details, and
 [development-process.md](development-process.md) for build, test, and browser
