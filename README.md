@@ -198,14 +198,18 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The native validation run for the implemented core passed its recorded test set, and the console demo produced the expected local behavior:
+The latest completed cross-platform GitHub Actions milestone (commit `0f82a957`) passed on both Ubuntu and Windows:
 
-```text
-Packets Created:   3
-Delivered:         2
-Blocked:           1
-Dropped:           0
-```
+| Check | Ubuntu | Windows |
+| --- | ---: | ---: |
+| C++ automated tests | 32/32 | 32/32 |
+| Python backend tests | 30/30 | 30/30 |
+| C++ build and CTest | Passed | Passed |
+| Python syntax | Passed | Passed |
+| Dashboard JavaScript syntax | Passed | Passed |
+| C++ to SQLite integration | Passed | Passed |
+
+These are CI results, not a claim that physical packet capture has been verified on every user's network adapter. Real adapter capture still requires host-specific Npcap/libpcap and permission checks. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md).
 
 ## Screenshots
 
