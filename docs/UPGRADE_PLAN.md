@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Planning only — implementation has not started.  
+**Status:** Implementation in progress — baseline hardening completed; Traffic & Flow Engine v1 is now under development.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -299,12 +299,28 @@ Owner approval is still required before:
 - [x] Planning branch created from current `master`.
 - [x] Static baseline audit recorded in [docs/BASELINE_AUDIT.md](BASELINE_AUDIT.md).
 - [x] Cross-platform baseline CI workflow added at `.github/workflows/ci.yml`.
-- [ ] First hosted Linux and Windows CI run completed and reviewed.
-- [ ] Baseline build and tests confirmed green.
-- [ ] First implementation milestone completed and locally validated on Windows.
+- [x] Hosted Linux and Windows CI run completed and reviewed for the baseline-hardening batch.
+- [x] Baseline hardening batch passed hosted Linux and Windows CI (15 C++ tests plus Python/JavaScript syntax checks).
+- [x] First hardening milestone committed on the isolated implementation branch.
+- [ ] Traffic & Flow Engine v1 implementation and cross-platform CI validation.
 
 The owner has explicitly asked to start the work. The first implementation milestone is baseline hardening: add regression coverage and fix the existing simulator and local-development safety issues before introducing flow aggregation, ML, or AI.
 
 **Current CI run:** [CyberGuard CI run 1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45159669668) — pending completion at the time this document was updated.
 
 **Important:** The application source code and runtime behavior have not yet been changed. The upgrade branch currently contains planning/audit documentation and a CI workflow. No files have been deleted and `master` remains untouched.
+
+
+## 11. Traffic & Flow Engine v1 (in progress)
+
+The next milestone adds a standalone C++ flow aggregation layer without changing packet routing semantics.
+
+- Bidirectional five-tuple identity: protocol plus two canonical IPv4/port endpoints.
+- Aggregate packet/byte totals and canonical A-to-B / B-to-A counters.
+- Track first/last observed timestamps and calculate duration and rates.
+- Count delivered, blocked, and dropped packet outcomes.
+- Keep the flow manager independent of Network; callers observe packets after routing.
+- Document the version-1 feature contract in docs/FLOW_SCHEMA.md.
+- Defer flow expiry, TCP lifecycle tracking, payload parsing, and real packet capture.
+
+Acceptance: regression tests cover reverse-direction aggregation, port/protocol separation, outcome counts, out-of-order timestamps, zero-duration rates, and clear/reset behavior. Linux and Windows CI must pass before the milestone is marked complete.
