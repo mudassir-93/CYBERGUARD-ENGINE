@@ -12,10 +12,11 @@ This project is intended for learning, demonstration, and academic review. The s
 
 ## Overview
 
-CyberGuard combines two separate simulation layers:
+CyberGuard combines three local components:
 
-- A native C++ simulation for the actual network model, packet logic, and device behavior
-- A browser dashboard for a visual presentation of the simulated network, counters, firewall rules, and traffic flow
+- A native C++ simulation for the network model, packet logic, and device behavior
+- A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
+- An optional Python packet sensor for passive IPv4 metadata capture
 
 The browser dashboard is served by a local Python API. It can display persisted incidents, invoke the native C++ simulator through a structured local process bridge, and optionally capture passive packet metadata from a selected local interface.
 
@@ -249,10 +250,6 @@ For deeper technical details, use the docs folder:
 
 CyberGuard Engine is a clean, local-first simulation project for learning how routing, packet flow, and firewall decisions work in a basic network model. It is organized so a user can clone the repository, build the C++ engine, run tests, and open the browser visualization with minimal setup.
 
-
-## Live network monitoring foundation
-
-Optional passive IPv4 capture is available through the Live network monitoring dashboard panel. It detects TCP SYN port-scan patterns, high packet rates, and internal private-host fan-out using rolling windows. It deliberately does not infer failed logins from packet metadata. Install `requirements-live.txt` and follow [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for Npcap/libpcap and permissions.
 
 ## Live network monitoring foundation
 
