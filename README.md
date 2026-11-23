@@ -263,3 +263,10 @@ Optional passive IPv4 capture is available through the Live network monitoring d
 ## Incident management milestone
 
 CyberGuard includes a local SQLite-backed incident workspace. Start it with `python backend/server.py`, then open `http://127.0.0.1:8000`. The dashboard can generate local demo detections, correlate repeated signals, preserve evidence, filter incidents, and manage analyst statuses. See [docs/INCIDENT_MANAGEMENT.md](docs/INCIDENT_MANAGEMENT.md) for API contracts and limitations.
+
+
+## Threat intelligence and investigation
+
+The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. No external feed is fetched and no indicator triggers blocking. The dashboard includes a manual JSON import panel. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
+
+An optional dependency-free robust median/MAD anomaly baseline can be trained from trusted CSV telemetry with `python backend/ml_anomaly.py`. It produces explainable deviations, not calibrated probabilities or production verdicts.
