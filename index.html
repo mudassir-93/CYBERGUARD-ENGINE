@@ -242,6 +242,17 @@
         <div class="incident-list" id="incidentList" aria-live="polite"></div>
       </section>
 
+      <section class="panel threat-intel-panel" id="threat-intelligence">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Local intelligence</span><h3>Threat indicator catalog</h3></div>
+          <span class="incident-summary-count">Manual JSON import · no external calls</span>
+        </div>
+        <p>Import trusted IP, domain, MD5, SHA-1, or SHA-256 indicators. Matches enrich incident evidence; they never trigger automatic blocking.</p>
+        <label for="threatIntelInput">Indicator feed JSON</label>
+        <textarea id="threatIntelInput" rows="6" spellcheck="false" placeholder='{"indicators":[{"type":"ip","value":"203.0.113.77","source":"local-lab","confidence":80,"severity":"high"}]}'></textarea>
+        <div class="incident-actions"><button class="button button-primary" id="importThreatIntel" type="button">Import indicators</button><span id="threatIntelMessage" role="status"></span></div>
+      </section>
+
       <section class="panel live-monitor-panel" id="live-monitoring">
         <div class="panel-heading">
           <div><span class="section-kicker">Passive network sensor</span><h3>Live network monitoring</h3></div>
