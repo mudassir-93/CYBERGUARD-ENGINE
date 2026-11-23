@@ -389,3 +389,109 @@ incidentElements.simulate.addEventListener('click', async () => {
   }
 });
 loadIncidents();
+
+const liveElements = {
+  state: document.querySelector('#liveCaptureState'),
+  interface: document.querySelector('#liveInterfaceSelect'),
+  start: document.querySelector('#startLiveCapture'),
+  stop: document.querySelector('#stopLiveCapture'),
+  refresh: document.querySelector('#refreshLiveCapture'),
+  message: document.querySelector('#liveMonitorMessage'),
+  packets: document.querySelector('#livePacketsSeen'),
+  detections: document.querySelector('#liveDetectionsCreated'),
+  errors: document.querySelector('#liveCaptureErrors')
+};
+
+function liveMessage(message, isError = false) {
+  liveElements.message.textContent = message;
+  liveElements.message.classList.toggle('error', isError);
+}
+
+async function refreshLiveInterfaces() {
+  liveElements.refresh.disabled = true;
+  try {
+    const response = await fetch('/api/live/interfaces');
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Live capture is unavailable');
+    liveElements.interface.replaceChildren();
+    result.interfaces.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.name;
+      option.textContent = item.description === item.name ? item.name : item.description + ' · ' + item.name;
+      liveElements.interface.append(option);
+    });
+    liveElements.interface.disabled = result.interfaces.length === 0;
+    liveElements.start.disabled = result.interfaces.length === 0;
+    liveMessage(result.interfaces.length
+      ? 'Choose the interface connected to the network you are authorized to monitor.'
+      : 'No capture interfaces are available on this machine.');
+    if (!result.interfaces.length) liveElements.interface.innerHTML = '<option value="">No interfaces found</option>';
+  } catch (error) {
+    liveElements.interface.replaceChildren();
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Live capture unavailable';
+    liveElements.interface.append(option);
+    liveElements.interface.disabled = true;
+    liveElements.start.disabled = true;
+    liveMessage(error.message + ' · Install optional capture support and check Npcap/libpcap.', true);
+  } finally {
+    liveElements.refresh.disabled = false;
+    await refreshLiveStatus();
+  }
+}
+
+async function refreshLiveStatus() {
+  try {
+    const response = await fetch('/api/live/status');
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to read capture status');
+    liveElements.state.textContent = result.running ? 'Capture running' : (result.available ? 'Capture stopped' : 'Capture unavailable');
+    liveElements.state.classList.toggle('is-running', result.running);
+    liveElements.packets.textContent = String(result.packets_seen || 0);
+    liveElements.detections.textContent = String(result.detections_created || 0);
+    liveElements.errors.textContent = String(result.ingest_errors || 0);
+    liveElements.start.disabled = !result.available || result.running || !liveElements.interface.value;
+    liveElements.stop.disabled = !result.running;
+    if (result.last_error) liveMessage(result.last_error, true);
+  } catch (error) {
+    liveElements.state.textContent = 'API unavailable';
+    liveMessage(error.message, true);
+  }
+}
+
+liveElements.start.addEventListener('click', async () => {
+  liveElements.start.disabled = true;
+  liveMessage('Starting passive packet capture…');
+  try {
+    const response = await fetch('/api/live/start', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ interface: liveElements.interface.value })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to start packet capture');
+    liveMessage('Capture started on ' + result.interface + '. Incoming metadata will be analyzed locally.');
+    await refreshLiveStatus();
+  } catch (error) {
+    liveMessage(error.message, true);
+    await refreshLiveStatus();
+  }
+});
+
+liveElements.stop.addEventListener('click', async () => {
+  liveElements.stop.disabled = true;
+  try {
+    const response = await fetch('/api/live/stop', { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to stop packet capture');
+    liveMessage('Live packet capture stopped.');
+    await refreshLiveStatus();
+  } catch (error) {
+    liveMessage(error.message, true);
+    await refreshLiveStatus();
+  }
+});
+
+liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
+refreshLiveInterfaces();
+window.setInterval(refreshLiveStatus, 3000);
