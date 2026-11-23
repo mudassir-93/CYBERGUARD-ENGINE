@@ -6,10 +6,12 @@ from urllib.parse import parse_qs, urlsplit
 
 from incidents import default_store
 from simulation_bridge import run_simulation
+from live_monitor import LiveTrafficMonitor, list_capture_interfaces
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_BODY_BYTES = 1_000_000
 STORE = default_store()
+LIVE_MONITOR = LiveTrafficMonitor(STORE)
 
 
 class CyberGuardHandler(SimpleHTTPRequestHandler):
@@ -49,6 +51,13 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         parsed = urlsplit(self.path)
         if parsed.path == "/api/health":
             return self._json(200, {"status": "ok", "service": "cyberguard-local-api"})
+        if parsed.path == "/api/live/status":
+            return self._json(200, LIVE_MONITOR.status())
+        if parsed.path == "/api/live/interfaces":
+            try:
+                return self._json(200, {"available": True, "interfaces": list_capture_interfaces()})
+            except RuntimeError as error:
+                return self._json(503, {"available": False, "interfaces": [], "error": str(error)})
         if parsed.path == "/api/incidents":
             query = parse_qs(parsed.query)
             try:
@@ -77,6 +86,16 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(503, {"error": str(error)})
             except (RuntimeError, ValueError) as error:
                 return self._json(500, {"error": str(error)})
+        if path == "/api/live/start":
+            try:
+                payload = self._body()
+                return self._json(200, LIVE_MONITOR.start(payload.get("interface")))
+            except ValueError as error:
+                return self._json(400, {"error": str(error)})
+            except RuntimeError as error:
+                return self._json(503, {"error": str(error)})
+        if path == "/api/live/stop":
+            return self._json(200, LIVE_MONITOR.stop())
         if path != "/api/detections":
             return self._json(404, {"error": "Endpoint not found"})
         try:
