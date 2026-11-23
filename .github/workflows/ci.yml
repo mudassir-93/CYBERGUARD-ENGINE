@@ -46,7 +46,7 @@ jobs:
         run: ctest --test-dir build -C Release --output-on-failure
 
       - name: Validate Python backend syntax
-        run: python -m py_compile backend/incidents.py backend/server.py backend/simulation_bridge.py
+        run: python -m py_compile backend/incidents.py backend/server.py backend/simulation_bridge.py backend/live_monitor.py
 
       - name: Run Python backend tests
         run: python -m unittest discover -s backend/tests -v
