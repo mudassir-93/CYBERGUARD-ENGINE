@@ -35,6 +35,9 @@ def run_simulation(executable: str|None=None, store: IncidentStore|None=None)->d
  result=subprocess.run([str(binary),"--jsonl"],cwd=ROOT,capture_output=True,text=True,encoding="utf-8",errors="replace",timeout=60,check=False)
  if result.returncode: raise RuntimeError((result.stderr.strip() or f"Simulator exited with code {result.returncode}")[:2000])
  report=ingest_jsonl(result.stdout,store or default_store())
+ expected={"port_scan","brute_force","dos","lateral_movement"}
+ missing=expected-set(report["by_type"])
+ if missing: raise RuntimeError("Native simulator did not emit expected detection types: "+", ".join(sorted(missing)))
  report["executable"]=str(binary)
  return report
 
