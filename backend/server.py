@@ -1,4 +1,5 @@
 import json
+import ipaddress
 import os
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -29,6 +30,12 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
+
+    def _is_loopback_client(self):
+        try:
+            return ipaddress.ip_address(self.client_address[0]).is_loopback
+        except (ValueError, IndexError):
+            return False
 
     def _body(self):
         try:
@@ -86,6 +93,8 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(503, {"error": str(error)})
             except (RuntimeError, ValueError) as error:
                 return self._json(500, {"error": str(error)})
+        if path in {"/api/live/start", "/api/live/stop"} and not self._is_loopback_client():
+            return self._json(403, {"error": "Live capture controls are restricted to local clients"})
         if path == "/api/live/start":
             try:
                 payload = self._body()
