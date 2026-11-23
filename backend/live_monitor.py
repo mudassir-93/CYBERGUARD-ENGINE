@@ -40,8 +40,12 @@ def packet_observation(packet: Any) -> dict[str, Any] | None:
         tcp = packet[TCP]
         protocol, port = "TCP", int(tcp.dport)
         syn = bool(int(tcp.flags) & 0x02) and not bool(int(tcp.flags) & 0x10)
+        if not 1 <= port <= 65535:
+            port = None
     elif packet.haslayer(UDP):
         protocol, port = "UDP", int(packet[UDP].dport)
+        if not 1 <= port <= 65535:
+            port = None
     elif packet.haslayer(ICMP):
         protocol = "ICMP"
     return {
