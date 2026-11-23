@@ -1,6 +1,12 @@
 #include "core/ThreatDetector.hpp"
+#include "core/TrafficScenarioGenerator.hpp"
+#include "devices/Firewall.hpp"
+#include "devices/Router.hpp"
+#include "devices/Server.hpp"
+#include "devices/Workstation.hpp"
 #include <gtest/gtest.h>
 #include <stdexcept>
+#include <memory>
 
 namespace cyberguard {
 TEST(ThreatDetectionTests, DetectsRepeatedFailedConnectionsToOneService) {
@@ -54,5 +60,35 @@ TEST(ThreatDetectionTests, RejectsZeroThresholdsAndWindows) {
     EXPECT_THROW(ThreatDetector::detectBruteForce({},0,60),std::invalid_argument);
     EXPECT_THROW(ThreatDetector::detectDenialOfService({},100,0),std::invalid_argument);
     EXPECT_THROW(ThreatDetector::detectLateralMovement({},3,0),std::invalid_argument);
+}
+
+TEST(ThreatDetectionTests, EndToEndScenariosReachAllThreeDetectors) {
+    Network network;
+    network.addDevice(std::make_unique<Router>("Router","10.0.0.1"));
+    network.addDevice(std::make_unique<Firewall>("Firewall","10.0.0.2"));
+    network.addDevice(std::make_unique<Server>("Server","10.0.0.10"));
+    network.addDevice(std::make_unique<Workstation>("PC-01","10.0.0.20"));
+    auto* server=dynamic_cast<Server*>(network.findDevice("Server"));
+    ASSERT_NE(server,nullptr);
+    server->openService(80);
+
+    const auto brute=TrafficScenarioGenerator::runBruteForce(network,"10.0.0.20","10.0.0.10",22,6,1000,1);
+    EXPECT_EQ(brute.packetsSent,6U);
+    const auto dos=TrafficScenarioGenerator::runDenialOfService(network,"10.0.0.20","10.0.0.10",80,120,2000,20);
+    EXPECT_EQ(dos.packetsSent,120U);
+    const auto lateral=TrafficScenarioGenerator::runLateralMovement(
+        network,"10.0.0.20",{"10.0.0.10","10.0.0.11","10.0.0.12"},445,3000,40);
+    EXPECT_EQ(lateral.packetsSent,3U);
+
+    const auto flows=network.getFlowManager().getFlows();
+    EXPECT_EQ(ThreatDetector::detectBruteForce(flows,5,60).size(),1U);
+    EXPECT_EQ(ThreatDetector::detectDenialOfService(flows,100,10).size(),1U);
+    EXPECT_EQ(ThreatDetector::detectLateralMovement(flows,3,60).size(),1U);
+}
+TEST(ThreatDetectionTests, ScenarioGeneratorsRejectUnboundedOrInvalidInput) {
+    Network network;
+    EXPECT_THROW(TrafficScenarioGenerator::runBruteForce(network,"10.0.0.1","10.0.0.2",22,0,1,1),std::invalid_argument);
+    EXPECT_THROW(TrafficScenarioGenerator::runDenialOfService(network,"10.0.0.1","10.0.0.2",80,10001,1,1),std::invalid_argument);
+    EXPECT_THROW(TrafficScenarioGenerator::runLateralMovement(network,"10.0.0.1",{},445,1,1),std::invalid_argument);
 }
 } // namespace cyberguard
