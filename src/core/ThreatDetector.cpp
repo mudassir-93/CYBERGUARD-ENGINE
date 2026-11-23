@@ -101,7 +101,7 @@ std::vector<LateralMovementAlert> ThreatDetector::detectLateralMovement(
     std::vector<LateralMovementAlert> alerts;
     for (const auto& [source,item] : grouped)
         if (item.destinations.size()>=threshold && item.last>=item.first && item.last-item.first<=window)
-            alerts.push_back({source,{item.destinations.begin(),item.destinations.end()},item.first,item.last});
+            alerts.push_back({source,std::vector<std::string>(item.destinations.begin(),item.destinations.end()),item.first,item.last});
     return alerts;
 }
 } // namespace cyberguard
