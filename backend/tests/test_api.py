@@ -63,6 +63,15 @@ class IncidentApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(updated["incident"]["status"], "acknowledged")
 
+    def test_native_simulation_endpoint_returns_ingestion_summary(self):
+        from unittest.mock import patch
+        report = {"detections_received": 4, "incidents_created": 4, "detections_correlated": 0,
+                  "by_type": {"port_scan": 1, "brute_force": 1, "dos": 1, "lateral_movement": 1}}
+        with patch.object(api_server, "run_simulation", return_value=report):
+            status, body = self.request_json("/api/simulate", "POST", {})
+        self.assertEqual(status, 200)
+        self.assertEqual(body["detections_received"], 4)
+
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
             self.request_json("/api/detections", "POST", {"type": "not-a-rule"})
