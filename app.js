@@ -441,7 +441,7 @@ async function refreshLiveInterfaces() {
   }
 }
 
-async let lastLiveDetectionCount = -1;
+let lastLiveDetectionCount = -1;
 
 async function refreshLiveStatus() {
   try {
