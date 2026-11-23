@@ -45,8 +45,11 @@ jobs:
       - name: Run C++ tests
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Validate Python server syntax
-        run: python -m py_compile backend/server.py
+      - name: Validate Python backend syntax
+        run: python -m py_compile backend/incidents.py backend/server.py
+
+      - name: Run Python backend tests
+        run: python -m unittest discover -s backend/tests -v
 
       - name: Validate dashboard JavaScript syntax
         run: node --check app.js
