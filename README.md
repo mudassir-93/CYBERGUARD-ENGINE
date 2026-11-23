@@ -147,10 +147,11 @@ From the repository root:
 python backend/server.py
 ```
 
-The server binds to `127.0.0.1` by default so it is available only on this
-machine. To intentionally expose the demo to your local network, set
-`CYBERGUARD_HOST=0.0.0.0` before starting it. You can also change the port with
-`CYBERGUARD_PORT=8080` (use the port you choose in the browser URL).
+The server binds to `127.0.0.1` by default and should remain loopback-only:
+the API has no authentication and is not safe to expose to a LAN or the public
+internet. You can change the local port with `CYBERGUARD_PORT=8080` (use the
+port you choose in the browser URL). Do not set `CYBERGUARD_HOST=0.0.0.0` for
+normal use.
 
 Then open this in your browser:
 
