@@ -6,6 +6,7 @@ packet-capture dependencies or elevated privileges.
 from __future__ import annotations
 
 import ipaddress
+import importlib.util
 import threading
 import time
 from collections import defaultdict, deque
@@ -160,7 +161,10 @@ class LiveTrafficMonitor:
     def status(self) -> dict[str, Any]:
         with self._lock:
             running = bool(self._sniffer is not None and getattr(self._sniffer, "running", False))
-            return {"available": self._sniffer is not None or self._last_error is None,
+            sniffer_error = getattr(self._sniffer, "exception", None) if self._sniffer is not None else None
+            if sniffer_error is not None and self._last_error is None:
+                self._last_error = str(sniffer_error)[:500]
+            return {"available": importlib.util.find_spec("scapy") is not None,
                     "running": running, "interface": self._interface,
                     "packets_seen": self._packets_seen, "detections_created": self._detections,
                     "ingest_errors": self._ingest_errors, "last_error": self._last_error,
