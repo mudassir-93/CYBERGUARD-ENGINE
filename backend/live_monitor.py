@@ -235,7 +235,7 @@ class LiveTrafficMonitor:
         try:
             if getattr(sniffer, "running", False):
                 sniffer.stop()
-        except (OSError, RuntimeError) as error:
+        except Exception as error:
             with self._lock:
                 self._last_error = str(error)
         return self.status()
