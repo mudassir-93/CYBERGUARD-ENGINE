@@ -50,7 +50,7 @@ int main() {
         cyberguard::TrafficScenarioGenerator::runDenialOfService(network, "10.0.0.21", "10.0.0.10", 80, 120, 300, 40));
     printScenario("Simulated internal host sweep",
         cyberguard::TrafficScenarioGenerator::runLateralMovement(
-            network, "10.0.0.20", {"10.0.0.10", "10.0.0.11", "10.0.0.12"}, 445, 500, 60));
+            network, "10.0.0.20", {"10.0.0.10", "10.0.0.11", "10.0.0.12"}, 445, 500, 50));
 
     const auto flows = network.getFlowManager().getFlows();
     const auto scans = cyberguard::PortScanDetector(10, 60).detect(flows);
