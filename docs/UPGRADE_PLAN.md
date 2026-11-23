@@ -294,11 +294,17 @@ Owner approval is still required before:
 ## 10. Current execution status
 
 - [x] Repository metadata and default branch inspected.
-- [x] Existing top-level structure and primary documentation inspected.
-- [x] Existing C++/dashboard separation confirmed in project documentation.
+- [x] Existing source tree, CMake configuration, tests, and primary documentation inspected.
+- [x] Existing C++/dashboard separation confirmed from source and documentation.
 - [x] Planning branch created from current `master`.
-- [ ] Baseline build and tests independently rerun.
-- [ ] Detailed class-level audit completed.
-- [ ] First implementation milestone approved by owner.
+- [x] Static baseline audit recorded in [docs/BASELINE_AUDIT.md](BASELINE_AUDIT.md).
+- [x] Cross-platform baseline CI workflow added at `.github/workflows/ci.yml`.
+- [ ] First hosted Linux and Windows CI run completed and reviewed.
+- [ ] Baseline build and tests confirmed green.
+- [ ] First implementation milestone completed and locally validated on Windows.
 
-**Important:** This document is a plan, not a claim that the upgrade has been implemented. No application source code, runtime behavior, dependencies, or existing project files have been changed as part of this planning step.
+The owner has explicitly asked to start the work. The first implementation milestone is baseline hardening: add regression coverage and fix the existing simulator and local-development safety issues before introducing flow aggregation, ML, or AI.
+
+**Current CI run:** [CyberGuard CI run 1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45159669668) — pending completion at the time this document was updated.
+
+**Important:** The application source code and runtime behavior have not yet been changed. The upgrade branch currently contains planning/audit documentation and a CI workflow. No files have been deleted and `master` remains untouched.
