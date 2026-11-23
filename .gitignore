@@ -2,3 +2,22 @@
 .vs/
 *.user
 *.suo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local configuration and runtime data
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+
+# Local datasets and generated model artifacts
+/datasets/
+/artifacts/
+/models/
