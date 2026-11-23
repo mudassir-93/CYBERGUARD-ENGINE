@@ -304,7 +304,7 @@ function makeIncidentNode(incident) {
       const response = await fetch('/api/incidents/' + encodeURIComponent(incident.id));
       const detail = await response.json();
       if (!response.ok) throw new Error(detail.error || 'Unable to load incident timeline');
-      evidenceBody.textContent = JSON.stringify({ evidence: detail.incident.evidence, timeline: detail.incident.timeline }, null, 2);
+      evidenceBody.textContent = JSON.stringify({ evidence: detail.incident.evidence, timeline: detail.incident.timeline, threat_intel_matches: detail.incident.threat_intel_matches, analyst_notes: detail.incident.analyst_notes }, null, 2);
     } catch (error) {
       evidenceBody.textContent = error.message;
     }
@@ -314,8 +314,40 @@ function makeIncidentNode(incident) {
   inspect.type = 'button';
   inspect.textContent = 'Evidence';
   inspect.addEventListener('click', () => { evidence.open = !evidence.open; });
+  const noteForm = document.createElement('form');
+  noteForm.className = 'incident-note-form';
+  const noteInput = document.createElement('input');
+  noteInput.type = 'text';
+  noteInput.maxLength = 2000;
+  noteInput.placeholder = 'Add an investigation note…';
+  noteInput.setAttribute('aria-label', 'Investigation note');
+  const noteButton = document.createElement('button');
+  noteButton.type = 'submit';
+  noteButton.textContent = 'Add note';
+  noteForm.append(noteInput, noteButton);
+  noteForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!noteInput.value.trim()) return;
+    noteButton.disabled = true;
+    try {
+      const response = await fetch('/api/incidents/' + encodeURIComponent(incident.id) + '/notes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: noteInput.value.trim() })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Unable to save investigation note');
+      setIncidentMessage('Investigation note saved for ' + incident.id + '.');
+      noteInput.value = '';
+      evidence.open = true;
+      evidence.dispatchEvent(new Event('toggle'));
+    } catch (error) {
+      setIncidentMessage(error.message, true);
+    } finally {
+      noteButton.disabled = false;
+    }
+  });
   controls.append(status, inspect);
-  card.append(top, summary, meta, controls, evidence);
+  card.append(top, summary, meta, controls, noteForm, evidence);
   return card;
 }
 
