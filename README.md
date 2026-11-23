@@ -120,7 +120,17 @@ The native test suite covers packet behavior, routing, firewall decisions, flow 
 
 The console demo runs normal, port-scan, brute-force-pattern, DoS-like, and internal host-sweep scenarios. It aggregates packet outcomes into flows and prints explainable alerts. It never sends real network traffic.
 
-### 5. Open the browser dashboard
+### 5. Run the native-to-incident integration
+
+After building the C++ executable, run the simulator and automatically import its actual detection output into SQLite:
+
+```powershell
+python backend/run_simulation.py
+```
+
+The dashboard also provides a **Run C++ simulation** action. It executes the local native binary, receives structured JSON Lines detections, and persists incidents. Set `CYBERGUARD_EXECUTABLE` if the executable is outside the standard build folders.
+
+### 6. Open the browser dashboard
 
 From the repository root:
 
