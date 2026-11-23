@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from incidents import default_store
+from simulation_bridge import run_simulation
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_BODY_BYTES = 1_000_000
@@ -68,7 +69,15 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if urlsplit(self.path).path != "/api/detections":
+        path = urlsplit(self.path).path
+        if path == "/api/simulate":
+            try:
+                return self._json(200, run_simulation())
+            except FileNotFoundError as error:
+                return self._json(503, {"error": str(error)})
+            except (RuntimeError, ValueError) as error:
+                return self._json(500, {"error": str(error)})
+        if path != "/api/detections":
             return self._json(404, {"error": "Endpoint not found"})
         try:
             incident, correlated = STORE.ingest(self._body())
