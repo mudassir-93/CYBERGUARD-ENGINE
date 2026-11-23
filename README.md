@@ -191,7 +191,7 @@ This is the project’s core implementation layer.
 ## Important notes
 
 - The app is intended for local, educational use only.
-- No real network traffic is generated.
+- The C++ and browser simulators do not generate real network traffic. The optional live sensor passively observes metadata from an explicitly selected real network interface.
 - The browser simulation does not share packet-routing state with the C++ program. The optional live sensor is a separate passive Python capture path and stores only metadata-derived detections.
 - The project root URL is the default browser route.
 - The legacy [web](web) folder is kept as reference material and is not the main entry point.
