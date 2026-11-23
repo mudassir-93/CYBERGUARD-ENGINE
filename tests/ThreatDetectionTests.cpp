@@ -57,9 +57,9 @@ TEST(ThreatDetectionTests, DetectsOneHostContactingMultiplePrivateHosts) {
     EXPECT_EQ(alerts.front().internalDestinations.size(),3U);
 }
 TEST(ThreatDetectionTests, RejectsZeroThresholdsAndWindows) {
-    EXPECT_THROW(ThreatDetector::detectBruteForce({},0,60),std::invalid_argument);
-    EXPECT_THROW(ThreatDetector::detectDenialOfService({},100,0),std::invalid_argument);
-    EXPECT_THROW(ThreatDetector::detectLateralMovement({},3,0),std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(ThreatDetector::detectBruteForce({},0,60)),std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(ThreatDetector::detectDenialOfService({},100,0)),std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(ThreatDetector::detectLateralMovement({},3,0)),std::invalid_argument);
 }
 
 TEST(ThreatDetectionTests, EndToEndScenariosReachAllThreeDetectors) {
@@ -88,8 +88,8 @@ TEST(ThreatDetectionTests, EndToEndScenariosReachAllThreeDetectors) {
 }
 TEST(ThreatDetectionTests, ScenarioGeneratorsRejectUnboundedOrInvalidInput) {
     Network network;
-    EXPECT_THROW(TrafficScenarioGenerator::runBruteForce(network,"10.0.0.1","10.0.0.2",22,0,1,1),std::invalid_argument);
-    EXPECT_THROW(TrafficScenarioGenerator::runDenialOfService(network,"10.0.0.1","10.0.0.2",80,10001,1,1),std::invalid_argument);
-    EXPECT_THROW(TrafficScenarioGenerator::runLateralMovement(network,"10.0.0.1",{},445,1,1),std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(TrafficScenarioGenerator::runBruteForce(network,"10.0.0.1","10.0.0.2",22,0,1,1)),std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(TrafficScenarioGenerator::runDenialOfService(network,"10.0.0.1","10.0.0.2",80,10001,1,1)),std::invalid_argument);
+    EXPECT_THROW(static_cast<void>(TrafficScenarioGenerator::runLateralMovement(network,"10.0.0.1",{},445,1,1)),std::invalid_argument);
 }
 } // namespace cyberguard
