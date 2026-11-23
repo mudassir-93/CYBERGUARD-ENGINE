@@ -2,7 +2,7 @@
 import ipaddress,json,re,sqlite3
 from datetime import datetime,timezone
 from pathlib import Path
-DOMAIN=re.compile(r"(?=.{1,253}$)(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
+DOMAIN=re.compile(r"(?=.{1,253}$)(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
 HASH={"md5":32,"sha1":40,"sha256":64}
 def timestamp(v,name):
  if v in (None,""): return None
