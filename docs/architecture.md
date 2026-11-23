@@ -68,11 +68,11 @@ CREATED
 ```
 
 The network uses the first router and first firewall found in its device list.
-When devices are added or removed, `Network` calls its route-refresh routine,
-which adds direct entries whose next hop is the destination IP itself. It does
-not clear entries for removed devices. Routing is a simple in-memory model,
-not a topology-aware routing protocol; `Network` separately rejects unknown
-destinations before consulting the router.
+When devices are added or removed, `Network` refreshes router entries for
+currently registered destinations. Removing a device also removes its stale
+route from each router before refreshing the remaining entries. Routing is a
+simple in-memory model, not a topology-aware routing protocol; `Network`
+separately rejects unknown destinations before consulting the router.
 
 ## Device Responsibilities
 
