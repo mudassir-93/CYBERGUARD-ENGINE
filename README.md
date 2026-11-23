@@ -6,7 +6,7 @@
 [![Status](https://img.shields.io/badge/Status-Local%20Simulation-success.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 [![License](https://img.shields.io/badge/License-Project%20Educational-lightgrey.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 
-CyberGuard Engine is a small, educational network-security simulation project built in C++ and designed to model packet flow, routing decisions, and firewall rule enforcement in a safe, local-only environment.
+CyberGuard Engine is an educational, local-first network-security simulator built in C++20. It models packet routing and firewall enforcement, aggregates network flows, generates bounded threat scenarios, and runs explainable detection heuristics.
 
 This project is intended for learning, demonstration, and academic review. It does not send real traffic, it does not connect to external services, and it is designed to run fully on a local machine.
 
@@ -27,11 +27,11 @@ The browser app is independent from the C++ engine and is meant to behave like a
 - Tracks packet states such as created, routing, blocked, delivered, and dropped
 - Uses ordered firewall rules to allow or deny traffic based on protocol and port
 - Shows a live-style topology dashboard in the browser
-- Provides automated C++ tests for the implemented core logic
+- Aggregates packets into bidirectional five-tuple network flows\n- Generates local-only normal, port-scan, brute-force, DoS-like, and internal host-sweep scenarios\n- Detects port scans, repeated failed connections, high-volume traffic, and unusual internal host fan-out\n- Provides automated C++ tests for the implemented core logic
 
 ## Current project status
 
-The implemented scope covers the core foundation, device model, packet flow, firewall rules, and the browser dashboard.
+The implemented scope includes the C++ network simulator, flow aggregation, deterministic normal/suspicious traffic scenarios, first-generation detection rules, and the browser dashboard.
 
 Completed phases include:
 
@@ -51,7 +51,7 @@ Not implemented yet:
 - Docker deployment
 - AI-based automation
 
-Detailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
+Detection rules are starter heuristics, not proof of compromise. They do not inspect authentication events, packet payloads, TCP flags, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for thresholds and limitations.\n\nDetailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
 
 ## Repo structure
 
@@ -110,7 +110,7 @@ If you are using a different compiler or generator, replace the generator comman
 ctest --test-dir build --output-on-failure
 ```
 
-The native test suite covers packet behavior, routing, firewall decisions, flow aggregation, traffic scenarios, and port-scan detection.
+The native test suite covers packet behavior, routing, firewall decisions, flow aggregation, traffic scenarios, and all current detection heuristics.
 
 ### 4. Run the native demo
 
@@ -118,7 +118,7 @@ The native test suite covers packet behavior, routing, firewall decisions, flow 
 .\build\CyberGuard.exe
 ```
 
-The console demo runs normal and simulated port-scan traffic, aggregates packet outcomes into network flows, and reports port-scan alerts. It never sends real network traffic.
+The console demo runs normal, port-scan, brute-force-pattern, DoS-like, and internal host-sweep scenarios. It aggregates packet outcomes into flows and prints explainable alerts. It never sends real network traffic.
 
 ### 5. Open the browser dashboard
 
