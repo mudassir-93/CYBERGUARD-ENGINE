@@ -32,7 +32,12 @@ CMakeLists.txt      C++20 targets and test configuration
 | Simulated threat generation and heuristic detection | Implemented (starter rules) |
 | Optional passive IPv4 capture foundation | Implemented (Scapy adapter; host driver/permissions required) |
 | SQLite incident management workspace | Implemented (local-only) |
+| Local threat-intelligence catalog and incident IOC enrichment | Implemented (manual JSON import; exact matches) |
+| Analyst investigation notes and evidence timeline | Implemented (append-only local notes) |
+| Explainable anomaly baseline | Implemented (median/MAD statistical baseline; not calibrated ML) |
 | Automated defensive response / blocking | Not implemented |
+| Automated external threat-feed polling / TAXII | Not implemented |
+| Calibrated production ML risk scoring | Not implemented |
 | Simulation/scenario engine and stress runner | Not implemented |
 | SFML interface, Docker, AI | Not implemented |
 | GitHub Actions baseline CI | Added on the upgrade branch; Linux and Windows checks configured |
@@ -133,3 +138,7 @@ add or update tests, build the affected targets, and run the relevant tests.
 Run the complete CTest suite after changes to shared routing or device
 contracts. Update these documents when behavior, commands, or scope changes.
 Report checks that could not run instead of treating them as successful.
+
+## Threat Intelligence and Anomaly Baseline
+
+See [THREAT_INTELLIGENCE.md](THREAT_INTELLIGENCE.md) for the JSON IOC import contract, incident enrichment, analyst notes API, and robust anomaly baseline trainer. These features remain local-first and perform no automated response. The baseline requires representative trusted CSV data and is not a calibrated probability.
