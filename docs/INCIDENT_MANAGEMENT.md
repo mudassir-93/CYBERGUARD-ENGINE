@@ -26,5 +26,11 @@ Active incidents are correlated by type, source, destination, destination port, 
 
 No automated blocking or response action is performed.
 
+## Native simulator integration
+
+The native executable supports `--jsonl`, emitting one structured JSON detection per line. `backend/simulation_bridge.py` runs that executable and ingests the resulting events through the same validated SQLite incident store. The dashboard's **Run C++ simulation** action invokes this bridge through `POST /api/simulate`.
+
+The executable is discovered in common CMake build locations; set `CYBERGUARD_EXECUTABLE` or pass `--executable` to override it. The bridge uses a 60-second process timeout. The current native demo emits port-scan, brute-force-pattern, DoS-like, and lateral-movement events from deterministic in-memory scenarios. Simulator timestamps are relative ticks, so incident observation times are assigned at ingestion. This is a local process integration, not a live network sensor.
+
 ## Safety and limitations
-Request bodies are capped at 1 MB and evidence at 16 KB. IP, type, protocol, port, timestamp, and evidence shape are validated. Evidence is rendered as text in the dashboard. Do not expose this unauthenticated local API publicly without authentication, authorization, TLS, and deployment hardening. The dashboard demo sends normalized local sample detections. Native C++ detector output is not yet automatically bridged to the Python API. User/tenant isolation, RBAC, analyst identities, notifications, retention policies, and multi-user deployment are not included.
+Request bodies are capped at 1 MB and evidence at 16 KB. IP, type, protocol, port, timestamp, and evidence shape are validated. Evidence is rendered as text in the dashboard. Do not expose this unauthenticated local API publicly without authentication, authorization, TLS, and deployment hardening. The dashboard retains a separate normalized sample-detection demo for UI exploration. User/tenant isolation, RBAC, analyst identities, notifications, retention policies, and multi-user deployment are not included.
