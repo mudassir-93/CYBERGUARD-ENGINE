@@ -29,7 +29,7 @@ CMakeLists.txt      C++20 targets and test configuration
 | Network ownership, lookup, routing, counters | Implemented |
 | Unit and smoke tests | Implemented for the current core |
 | Static browser console | Implemented as an independent simulation |
-| Threat generation and threat detection | Not implemented |
+| Simulated threat generation and heuristic detection | Implemented (starter rules) |\n| Optional passive IPv4 capture foundation | Implemented (Scapy adapter; host driver/permissions required) |
 | Incident management and defensive response | Not implemented |
 | Simulation/scenario engine and stress runner | Not implemented |
 | SFML interface, Docker, AI | Not implemented |
