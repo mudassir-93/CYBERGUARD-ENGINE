@@ -43,7 +43,8 @@ Completed phases include:
 
 Not implemented yet:
 
-- threat generation and detection
+- deterministic normal and port-scan traffic scenarios in the native simulator
+- rule-based port-scan detection over aggregated bidirectional flows
 - incident response systems
 - scenario engine
 - SFML interface
@@ -109,7 +110,7 @@ If you are using a different compiler or generator, replace the generator comman
 ctest --test-dir build --output-on-failure
 ```
 
-This project currently verifies the native core logic through a test suite that covers packet behavior, routing, firewall decisions, and device handling.
+The native test suite covers packet behavior, routing, firewall decisions, flow aggregation, traffic scenarios, and port-scan detection.
 
 ### 4. Run the native demo
 
@@ -117,7 +118,7 @@ This project currently verifies the native core logic through a test suite that 
 .\build\CyberGuard.exe
 ```
 
-The console demo simulates packet routing and shows how traffic is either delivered or blocked by the firewall rule set.
+The console demo runs normal and simulated port-scan traffic, aggregates packet outcomes into network flows, and reports port-scan alerts. It never sends real network traffic.
 
 ### 5. Open the browser dashboard
 

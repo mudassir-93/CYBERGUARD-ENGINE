@@ -11,6 +11,8 @@ option(CYBERGUARD_BUILD_TESTS "Build CyberGuard tests" ON)
 add_library(CyberGuardCore
     src/core/Network.cpp
     src/core/FlowManager.cpp
+    src/core/PortScanDetector.cpp
+    src/core/TrafficScenarioGenerator.cpp
     src/core/Packet.cpp
     src/devices/Firewall.cpp
     src/devices/Router.cpp
@@ -58,6 +60,8 @@ if(CYBERGUARD_BUILD_TESTS)
         tests/ServerTests.cpp
         tests/NetworkTests.cpp
         tests/FlowTests.cpp
+        tests/DetectionTests.cpp
+        tests/TrafficScenarioTests.cpp
     )
 
     target_link_libraries(CyberGuardTests

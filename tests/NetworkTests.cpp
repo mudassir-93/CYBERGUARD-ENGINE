@@ -45,6 +45,21 @@ TEST_F(NetworkFixture, RoutesAllowedAndBlockedPackets) {
     EXPECT_EQ(network.getStatistics().packetsDropped, 0U);
 }
 
+TEST_F(NetworkFixture, ObservesFinalPacketOutcomesInNetworkFlows) {
+    auto* firewall = dynamic_cast<Firewall*>(network.findDevice("Firewall"));
+    ASSERT_NE(firewall, nullptr);
+    firewall->addRule({FirewallAction::BLOCK, std::nullopt, std::nullopt, Protocol::TCP, 23, true});
+    Packet delivered(10, "10.0.0.20", "10.0.0.10", 51000, 80, Protocol::TCP, 100, 10);
+    Packet blocked(11, "10.0.0.20", "10.0.0.10", 51001, 23, Protocol::TCP, 60, 11);
+    EXPECT_EQ(network.sendPacket(delivered), PacketStatus::DELIVERED);
+    EXPECT_EQ(network.sendPacket(blocked), PacketStatus::BLOCKED);
+    EXPECT_EQ(network.getFlowManager().getFlowCount(), 2U);
+    const auto* deliveredFlow = network.getFlowManager().findFlow(delivered);
+    const auto* blockedFlow = network.getFlowManager().findFlow(blocked);
+    ASSERT_NE(deliveredFlow, nullptr); ASSERT_NE(blockedFlow, nullptr);
+    EXPECT_EQ(deliveredFlow->deliveredPackets, 1U);
+    EXPECT_EQ(blockedFlow->blockedPackets, 1U);
+}
 TEST_F(NetworkFixture, DropsUnknownDestination) {
     Packet packet(1, "10.0.0.20", "10.0.0.99", 5000, 80,
                   Protocol::TCP, 64, 1);
