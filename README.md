@@ -17,7 +17,7 @@ CyberGuard combines two separate simulation layers:
 - A native C++ simulation for the actual network model, packet logic, and device behavior
 - A browser dashboard for a visual presentation of the simulated network, counters, firewall rules, and traffic flow
 
-The browser app is independent from the C++ engine and is meant to behave like a visual interface for the simulation, not a live network service.
+The browser dashboard is served by a local Python API. It can display persisted incidents and invoke the native C++ simulator through a structured local process bridge; it does not capture live network traffic.
 
 ## What the project does
 
@@ -43,10 +43,10 @@ Completed phases include:
 
 Not implemented yet:
 
-- deterministic normal and port-scan traffic scenarios in the native simulator
-- rule-based port-scan detection over aggregated bidirectional flows
-- incident response systems
-- scenario engine
+- live packet capture and production network telemetry
+- authentication, authorization, multi-tenant operations, and production deployment hardening
+- ML-based anomaly detection and calibrated risk scoring
+- automated response or blocking actions
 - SFML interface
 - Docker deployment
 - AI-based automation
