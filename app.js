@@ -15,7 +15,8 @@ const state = {
   paused: false,
   stats: { created: 0, delivered: 0, blocked: 0, dropped: 0 },
   rules: [{ action: 'BLOCK', protocol: 'TCP', port: 23, enabled: true }],
-  events: []
+  events: [],
+  demoTimers: []
 };
 
 const elements = {
@@ -142,7 +143,13 @@ function routePacket({ source, destination, protocol, port, size }, quiet = fals
   return result;
 }
 
+function cancelDemoSequence() {
+  state.demoTimers.forEach(timerId => clearTimeout(timerId));
+  state.demoTimers = [];
+}
+
 function seedDemoSequence() {
+  cancelDemoSequence();
   const sequence = [
     { source: 'PC-01', destination: 'Server', protocol: 'TCP', port: 80, size: 512 },
     { source: 'PC-03', destination: 'Server', protocol: 'UDP', port: 53, size: 384 },
@@ -151,9 +158,10 @@ function seedDemoSequence() {
     { source: 'PC-04', destination: 'PC-01', protocol: 'TCP', port: 443, size: 768 }
   ];
 
-  sequence.forEach((packet, index) => {
-    setTimeout(() => routePacket(packet, true), index * 650);
-  });
+  state.demoTimers = sequence.map((packet, index) => setTimeout(() => {
+    routePacket(packet, true);
+    if (index === sequence.length - 1) state.demoTimers = [];
+  }, index * 650));
 
   addEvent('<strong>Demo sequence started</strong> · traffic routed across five workstations');
 }
@@ -190,6 +198,7 @@ document.querySelector('#ruleForm').addEventListener('submit', event => {
 
 document.querySelector('#pauseButton').addEventListener('click', event => {
   state.paused = !state.paused;
+  if (state.paused) cancelDemoSequence();
   event.currentTarget.innerHTML = state.paused ? '<span>▶</span>Resume stream' : '<span>Ⅱ</span>Pause stream';
   addEvent(`<strong>Simulation ${state.paused ? 'paused' : 'resumed'}</strong> · manual controls remain available`);
 });
@@ -200,6 +209,7 @@ document.querySelector('#demoButton').addEventListener('click', () => {
 });
 
 document.querySelector('#resetButton').addEventListener('click', () => {
+  cancelDemoSequence();
   state.packetId = 0;
   state.stats = { created: 0, delivered: 0, blocked: 0, dropped: 0 };
   state.rules = [{ action: 'BLOCK', protocol: 'TCP', port: 23, enabled: true }];
