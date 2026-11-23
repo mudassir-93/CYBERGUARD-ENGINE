@@ -68,13 +68,14 @@ TEST(ThreatDetectionTests, EndToEndScenariosReachAllThreeDetectors) {
     network.addDevice(std::make_unique<Firewall>("Firewall","10.0.0.2"));
     network.addDevice(std::make_unique<Server>("Server","10.0.0.10"));
     network.addDevice(std::make_unique<Workstation>("PC-01","10.0.0.20"));
+    network.addDevice(std::make_unique<Workstation>("PC-02","10.0.0.21"));
     auto* server=dynamic_cast<Server*>(network.findDevice("Server"));
     ASSERT_NE(server,nullptr);
     server->openService(80);
 
     const auto brute=TrafficScenarioGenerator::runBruteForce(network,"10.0.0.20","10.0.0.10",22,6,1000,1);
     EXPECT_EQ(brute.packetsSent,6U);
-    const auto dos=TrafficScenarioGenerator::runDenialOfService(network,"10.0.0.20","10.0.0.10",80,120,2000,20);
+    const auto dos=TrafficScenarioGenerator::runDenialOfService(network,"10.0.0.21","10.0.0.10",80,120,2000,20);
     EXPECT_EQ(dos.packetsSent,120U);
     const auto lateral=TrafficScenarioGenerator::runLateralMovement(
         network,"10.0.0.20",{"10.0.0.10","10.0.0.11","10.0.0.12"},445,3000,40);
