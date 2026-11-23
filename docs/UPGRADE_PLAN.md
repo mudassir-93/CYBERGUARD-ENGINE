@@ -352,3 +352,13 @@ Added deterministic, explainable detection over the existing in-memory flow reco
 These are initial heuristics, not authentication-aware or payload-aware detection. They do not establish that an account or host is compromised. All scenarios remain in-memory simulator packets and open no sockets.
 
 **Latest implementation CI:** pending hosted Linux and Windows results for the multi-pattern detection batch. Master remains unchanged; all implementation commits remain on `research/cyberguard-upgrade-plan`.
+
+
+## 15. Incident management v1 implementation status
+- [x] SQLite incident repository and schema.
+- [x] Validated detection ingestion and exact-key correlation.
+- [x] Bounded evidence observations and audit history.
+- [x] Incident lifecycle and summary/filter APIs.
+- [x] Local dashboard incident queue, evidence/timeline inspection, demo detections, and status controls.
+- [x] Python unit and API integration tests added to CI.
+- [ ] Consolidated Linux/Windows CI verification for this milestone.
