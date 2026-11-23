@@ -1,5 +1,6 @@
 #include "core/ThreatDetector.hpp"
 #include <algorithm>
+#include <cstdio>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -63,16 +64,16 @@ std::vector<DenialOfServiceAlert> ThreatDetector::detectDenialOfService(
     struct Aggregate { std::size_t packets{0}; std::uint64_t bytes{0},first{0},last{0}; bool initialized{false}; };
     std::map<std::pair<std::string,std::string>,Aggregate> grouped;
     for (const auto& flow : flows) {
-        auto add = [&](const std::string& src,const std::string& dst,std::size_t count) {
+        auto add = [&](const std::string& src,const std::string& dst,std::size_t count,std::uint64_t bytes) {
             if (!count) return;
             auto& item=grouped[{src,dst}];
             item.packets+=count;
-            item.bytes+=flow.totalBytes;
+            item.bytes+=bytes;
             if (!item.initialized) { item.first=flow.firstSeen; item.last=flow.lastSeen; item.initialized=true; }
             else { item.first=std::min(item.first,flow.firstSeen); item.last=std::max(item.last,flow.lastSeen); }
         };
-        if (flow.aToBPackets) add(flow.endpointAIp,flow.endpointBIp,flow.aToBPackets);
-        if (flow.bToAPackets) add(flow.endpointBIp,flow.endpointAIp,flow.bToAPackets);
+        if (flow.aToBPackets) add(flow.endpointAIp,flow.endpointBIp,flow.aToBPackets,flow.aToBBytes);
+        if (flow.bToAPackets) add(flow.endpointBIp,flow.endpointAIp,flow.bToAPackets,flow.bToABytes);
     }
     std::vector<DenialOfServiceAlert> alerts;
     for (const auto& [endpoints,item] : grouped)
