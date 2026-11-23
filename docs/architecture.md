@@ -30,8 +30,9 @@ Legacy files under web/ are kept as reference assets and are not the main entry 
 `Network` owns devices in a `std::vector<std::unique_ptr<NetworkDevice>>`.
 Device identifiers are looked up by name or IP address. Adding a null device
 or a device with an identifier already present throws `std::invalid_argument`.
-Removal accepts either identifier and refreshes the router's synthetic route
-entries.
+Device IP addresses are validated as IPv4 when a device is constructed.
+Removal accepts either identifier, removes the removed device's route from each
+router, and refreshes the remaining router entries.
 
 ## Native Packet Flow
 
@@ -39,7 +40,8 @@ entries.
 
 1. Increment the network's created-packet counter.
 2. Find a source and destination by packet IP address. If either is missing,
-   mark the packet `DROPPED` and increment the dropped counter.
+   or the source device is offline, mark the packet `DROPPED` and increment
+   the dropped counter.
 3. Set the packet to `ROUTING`. If a router exists, call its receive and
    forwarding operations. A failed router step drops the packet.
 4. If a firewall exists, inspect the packet. A blocked packet increments the
@@ -84,8 +86,9 @@ destinations before consulting the router.
 
 `Packet` stores an ID, source/destination IPv4 addresses, source/destination
 ports, protocol (`TCP`, `UDP`, or `ICMP`), size, timestamp, and mutable status.
-Construction rejects malformed IPv4 addresses, ports above 65535, and a zero
-packet size. Port zero is representable by the C++ model.
+Construction rejects malformed IPv4 addresses (including empty trailing
+octets), ports above 65535, and a zero packet size. Device constructors use
+the same IPv4 validation. Port zero is representable by the C++ model.
 
 ## Boundaries and Limitations
 
