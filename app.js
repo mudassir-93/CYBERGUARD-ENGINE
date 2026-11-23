@@ -234,6 +234,7 @@ const incidentElements = {
   filter: document.querySelector('#incidentStatusFilter'),
   refresh: document.querySelector('#refreshIncidents'),
   demo: document.querySelector('#generateIncidentDemo'),
+  simulate: document.querySelector('#runCppSimulation'),
   message: document.querySelector('#incidentMessage')
 };
 
@@ -371,4 +372,20 @@ async function generateIncidentDemo() {
 incidentElements.refresh.addEventListener('click', loadIncidents);
 incidentElements.filter.addEventListener('change', loadIncidents);
 incidentElements.demo.addEventListener('click', generateIncidentDemo);
+incidentElements.simulate.addEventListener('click', async () => {
+  incidentElements.simulate.disabled = true;
+  setIncidentMessage('Running native C++ simulator and importing detections…');
+  try {
+    const response = await fetch('/api/simulate', { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Native simulation failed');
+    setIncidentMessage(result.detections_received + ' native detections imported · ' +
+      result.incidents_created + ' new incidents · ' + result.detections_correlated + ' correlated.');
+    await loadIncidents();
+  } catch (error) {
+    setIncidentMessage(error.message, true);
+  } finally {
+    incidentElements.simulate.disabled = false;
+  }
+});
 loadIncidents();
