@@ -21,3 +21,7 @@ venv/
 /datasets/
 /artifacts/
 /models/
+
+# Local SQLite incident data and journal files
+data/*.sqlite3
+data/*.sqlite3-*
