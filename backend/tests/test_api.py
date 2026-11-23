@@ -98,6 +98,14 @@ class IncidentApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertFalse(body["running"])
 
+
+    def test_live_capture_controls_reject_non_loopback_clients(self):
+        from unittest.mock import patch
+        with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/live/start", "POST", {"interface": "test0"})
+        self.assertEqual(caught.exception.code, 403)
+
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
             self.request_json("/api/detections", "POST", {"type": "not-a-rule"})
