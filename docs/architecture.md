@@ -2,8 +2,11 @@
 
 CyberGuard is a C++20 educational simulation. The native application models
 packets and devices in memory; it does not open sockets or send network traffic.
+Live capture is a separate optional Python component, not part of the C++ simulator.
 The browser console is a separate JavaScript simulation and does not call the
-C++ library.
+C++ library. The optional Python live sensor uses Scapy to passively observe IPv4
+packet metadata from one selected interface and sends heuristic detections to
+the same SQLite incident store.
 
 ## Components
 
