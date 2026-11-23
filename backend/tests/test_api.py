@@ -72,6 +72,32 @@ class IncidentApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(body["detections_received"], 4)
 
+    def test_live_monitor_status_endpoint(self):
+        from unittest.mock import patch
+        with patch.object(api_server.LIVE_MONITOR, "status", return_value={"available": False, "running": False}):
+            status, body = self.request_json("/api/live/status")
+        self.assertEqual(status, 200)
+        self.assertFalse(body["available"])
+
+    def test_live_interface_endpoint_reports_optional_dependency(self):
+        from unittest.mock import patch
+        with patch.object(api_server, "list_capture_interfaces", side_effect=RuntimeError("Scapy is missing")):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/live/interfaces")
+        self.assertEqual(caught.exception.code, 503)
+
+    def test_live_start_and_stop_endpoints(self):
+        from unittest.mock import patch
+        with patch.object(api_server.LIVE_MONITOR, "start", return_value={"running": True}) as start:
+            status, body = self.request_json("/api/live/start", "POST", {"interface": "test0"})
+        self.assertEqual(status, 200)
+        self.assertTrue(body["running"])
+        start.assert_called_once_with("test0")
+        with patch.object(api_server.LIVE_MONITOR, "stop", return_value={"running": False}):
+            status, body = self.request_json("/api/live/stop", "POST")
+        self.assertEqual(status, 200)
+        self.assertFalse(body["running"])
+
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
             self.request_json("/api/detections", "POST", {"type": "not-a-rule"})
