@@ -106,6 +106,38 @@ class IncidentApiTests(unittest.TestCase):
                 self.request_json("/api/live/start", "POST", {"interface": "test0"})
         self.assertEqual(caught.exception.code, 403)
 
+
+    def test_threat_intel_import_and_incident_enrichment_and_notes(self):
+        from unittest.mock import patch
+        detection = {"type": "port_scan", "source_ip": "203.0.113.88",
+                     "destination_ip": "10.0.0.10", "evidence": {"hostname": "ioc.example"}}
+        _, created = self.request_json("/api/detections", "POST", detection)
+        incident_id = created["incident"]["id"]
+        with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=True):
+            status, imported = self.request_json("/api/threat-intel/import", "POST", {
+                "indicators": [{"type": "ip", "value": "203.0.113.88", "source": "test-feed", "confidence": 90},
+                               {"type": "domain", "value": "ioc.example", "source": "test-feed"}]
+            })
+            self.assertEqual(status, 200)
+            self.assertEqual(imported["inserted"], 2)
+            status, note = self.request_json("/api/incidents/" + incident_id + "/notes", "POST",
+                                             {"note": "Matched a local test feed", "author": "tester"})
+        self.assertEqual(status, 201)
+        self.assertEqual(note["note"]["author"], "tester")
+        status, detail = self.request_json("/api/incidents/" + incident_id)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(detail["incident"]["threat_intel_matches"]), 2)
+        self.assertEqual(len(detail["incident"]["analyst_notes"]), 1)
+
+    def test_threat_intel_writes_reject_non_loopback_clients(self):
+        from unittest.mock import patch
+        with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/threat-intel/import", "POST", {
+                    "indicators": [{"type": "ip", "value": "203.0.113.1"}]
+                })
+        self.assertEqual(caught.exception.code, 403)
+
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
             self.request_json("/api/detections", "POST", {"type": "not-a-rule"})
