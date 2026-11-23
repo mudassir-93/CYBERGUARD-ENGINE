@@ -441,6 +441,8 @@ async function refreshLiveInterfaces() {
   }
 }
 
+async let lastLiveDetectionCount = -1;
+
 async function refreshLiveStatus() {
   try {
     const response = await fetch('/api/live/status');
@@ -451,6 +453,12 @@ async function refreshLiveStatus() {
     liveElements.packets.textContent = String(result.packets_seen || 0);
     liveElements.detections.textContent = String(result.detections_created || 0);
     liveElements.errors.textContent = String(result.ingest_errors || 0);
+    const detectionCount = Number(result.detections_created || 0);
+    if (lastLiveDetectionCount >= 0 && detectionCount > lastLiveDetectionCount) {
+      await loadIncidents();
+      setIncidentMessage('New live-monitoring detections were added to the incident list.');
+    }
+    lastLiveDetectionCount = detectionCount;
     liveElements.start.disabled = !result.available || result.running || !liveElements.interface.value;
     liveElements.stop.disabled = !result.running;
     if (result.last_error) liveMessage(result.last_error, true);
