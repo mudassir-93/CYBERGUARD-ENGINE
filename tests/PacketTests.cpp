@@ -32,6 +32,8 @@ TEST(PacketTests, RejectsInvalidAddressAndSize) {
                         Protocol::TCP, 64, 1), std::invalid_argument);
     EXPECT_THROW(Packet(1, "10.0.0.1", "300.0.0.2", 1, 80,
                         Protocol::TCP, 64, 1), std::invalid_argument);
+    EXPECT_THROW(Packet(1, "10.0.0.1.", "10.0.0.2", 1, 80,
+                        Protocol::TCP, 64, 1), std::invalid_argument);
     EXPECT_THROW(Packet(1, "10.0.0.1", "10.0.0.2", 70000, 80,
                         Protocol::TCP, 64, 1), std::invalid_argument);
     EXPECT_THROW(Packet(1, "10.0.0.1", "10.0.0.2", 1, 80,

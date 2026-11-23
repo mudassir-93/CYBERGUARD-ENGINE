@@ -1,4 +1,5 @@
 #include "core/Network.hpp"
+#include "core/Ipv4Address.hpp"
 
 #include "devices/Firewall.hpp"
 #include "devices/Router.hpp"
@@ -11,7 +12,9 @@
 namespace cyberguard {
 
 NetworkDevice::NetworkDevice(std::string name, std::string ipAddress)
-    : name_(std::move(name)), ipAddress_(std::move(ipAddress)) {}
+    : name_(std::move(name)), ipAddress_(std::move(ipAddress)) {
+    detail::validateIpv4Address(ipAddress_);
+}
 
 const std::string& NetworkDevice::getName() const noexcept {
     return name_;
@@ -54,6 +57,13 @@ bool Network::removeDevice(std::string_view identifier) {
         return false;
     }
 
+    const std::string removedIp = (*iterator)->getIpAddress();
+    for (const auto& device : devices_) {
+        if (auto* router = dynamic_cast<Router*>(device.get())) {
+            router->removeRoute(removedIp);
+        }
+    }
+
     devices_.erase(iterator);
     refreshRouterRoutes();
     return true;
@@ -84,7 +94,7 @@ PacketStatus Network::routePacket(Packet& packet) {
 
     const NetworkDevice* source = findDevice(packet.getSourceIp());
     NetworkDevice* destination = findDevice(packet.getDestinationIp());
-    if (source == nullptr || destination == nullptr) {
+    if (source == nullptr || destination == nullptr || !source->isOnline()) {
         packet.setStatus(PacketStatus::DROPPED);
         ++statistics_.packetsDropped;
         return packet.getStatus();

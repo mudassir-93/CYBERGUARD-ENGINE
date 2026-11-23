@@ -53,6 +53,29 @@ TEST_F(NetworkFixture, DropsUnknownDestination) {
     EXPECT_EQ(network.getStatistics().packetsDropped, 1U);
 }
 
+TEST_F(NetworkFixture, DropsPacketsFromOfflineSources) {
+    auto* source = dynamic_cast<Workstation*>(network.findDevice("PC-01"));
+    ASSERT_NE(source, nullptr);
+    source->setOnline(false);
+    Packet packet(1, "10.0.0.20", "10.0.0.10", 5000, 80, Protocol::TCP, 64, 1);
+    EXPECT_EQ(network.routePacket(packet), PacketStatus::DROPPED);
+    EXPECT_EQ(network.getStatistics().packetsDropped, 1U);
+    EXPECT_EQ(network.getStatistics().packetsDelivered, 0U);
+}
+
+TEST_F(NetworkFixture, RejectsInvalidDeviceIpAddresses) {
+    EXPECT_THROW(network.addDevice(std::make_unique<Server>("Bad-IP", "10.0.0.99.")), std::invalid_argument);
+}
+
+TEST(WorkstationTests, OfflineWorkstationMarksCreatedPacketDropped) {
+    Workstation workstation("PC-Offline", "10.0.0.30");
+    workstation.setOnline(false);
+    Packet packet = workstation.createPacket(1, "10.0.0.10", 80, Protocol::TCP, 64, 1);
+    EXPECT_EQ(packet.getStatus(), PacketStatus::DROPPED);
+    EXPECT_EQ(workstation.getPacketsSent(), 0U);
+    EXPECT_EQ(workstation.getPacketsDropped(), 1U);
+}
+
 TEST_F(NetworkFixture, RejectsDuplicateDeviceIdentifiers) {
     EXPECT_THROW(network.addDevice(std::make_unique<Server>("Server", "10.0.0.50")),
                  std::invalid_argument);
@@ -63,7 +86,11 @@ TEST_F(NetworkFixture, RejectsDuplicateDeviceIdentifiers) {
 TEST_F(NetworkFixture, RemovesDevicesAndReportsOnlineCount) {
     EXPECT_EQ(network.getDeviceCount(), 4U);
     EXPECT_EQ(network.getOnlineDeviceCount(), 4U);
+    auto* router = dynamic_cast<Router*>(network.findDevice("Router"));
+    ASSERT_NE(router, nullptr);
+    EXPECT_TRUE(router->hasRoute("10.0.0.20"));
     EXPECT_TRUE(network.removeDevice("PC-01"));
+    EXPECT_FALSE(router->hasRoute("10.0.0.20"));
     EXPECT_FALSE(network.removeDevice("missing"));
     EXPECT_EQ(network.getDeviceCount(), 3U);
 }
