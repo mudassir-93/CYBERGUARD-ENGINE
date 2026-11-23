@@ -535,3 +535,27 @@ liveElements.stop.addEventListener('click', async () => {
 liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
 refreshLiveInterfaces();
 window.setInterval(refreshLiveStatus, 3000);
+
+const threatIntelInput = document.querySelector('#threatIntelInput');
+const threatIntelImport = document.querySelector('#importThreatIntel');
+const threatIntelMessage = document.querySelector('#threatIntelMessage');
+if (threatIntelImport) {
+  threatIntelImport.addEventListener('click', async () => {
+    threatIntelImport.disabled = true;
+    try {
+      const payload = JSON.parse(threatIntelInput.value);
+      const response = await fetch('/api/threat-intel/import', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Threat-intelligence import failed');
+      threatIntelMessage.textContent = result.inserted + ' new · ' + result.updated + ' updated indicators.';
+      await loadIncidents();
+    } catch (error) {
+      threatIntelMessage.textContent = error instanceof SyntaxError ? 'Enter valid JSON before importing.' : error.message;
+    } finally {
+      threatIntelImport.disabled = false;
+    }
+  });
+}
