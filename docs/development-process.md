@@ -32,7 +32,8 @@ CMakeLists.txt      C++20 targets and test configuration
 | Threat generation and threat detection | Not implemented |
 | Incident management and defensive response | Not implemented |
 | Simulation/scenario engine and stress runner | Not implemented |
-| SFML interface, Docker, GitHub Actions, AI | Not implemented |
+| SFML interface, Docker, AI | Not implemented |
+| GitHub Actions baseline CI | Added on the upgrade branch; Linux and Windows checks configured |
 
 The first three development phases are represented by the implemented
 foundation, devices/network ownership, and packet/routing/firewall behavior.
@@ -69,11 +70,13 @@ Its demonstration sends three packets: two are delivered and one is blocked.
 ctest --test-dir build --output-on-failure
 ```
 
-The registered suite contains 12 tests: a smoke test plus GoogleTest cases
+The baseline suite contained 12 tests: a smoke test plus GoogleTest cases
 covering packet properties and validation, router forwarding, first-match and
 disabled firewall rules, server service acceptance, and network routing,
-duplicate identifiers, removal, and online-device counts. The recorded
-verified run passed all 12 tests.
+duplicate identifiers, removal, and online-device counts. The upgrade branch
+adds regression coverage for offline sources/workstations, device IP
+validation, and route cleanup. Check the latest GitHub Actions run for the
+current total and platform results.
 
 ## Run the Browser Simulator
 
@@ -85,7 +88,8 @@ python backend/server.py
 
 Open `http://localhost:8000/`. The browser app provides manual packet controls,
 an editable block/allow rule list, a deterministic demo sequence, pause/resume,
-reset, summary counters, and an event list. The initial rule blocks TCP port
+reset, summary counters, and an event list. Pausing or resetting cancels any
+remaining scheduled demo packets. The initial rule blocks TCP port
 23; the demo sends TCP packets to ports 80, 443, and 23.
 
 This UI executes its own JavaScript simulation. It shares neither state nor
@@ -106,11 +110,12 @@ visual boundary, not a network device or an external connection.
 | 8 | SFML visualization | Not implemented; browser UI is separate |
 | 9 | GoogleTest | Tests cover the current core; future features need tests |
 | 10 | Docker | Not implemented |
-| 11 | GitHub Actions | Not implemented |
+| 11 | GitHub Actions | Baseline Linux/Windows CI added on the upgrade branch |
 | 12 | Documentation and polish | Documentation is being maintained |
 
-The next feature phase should be selected explicitly before implementation.
-Keep all traffic and threat behavior simulated and internal to the application.
+The next feature phase is baseline hardening: keep all traffic and threat
+behavior simulated and internal to the application, and preserve the
+regression-tested network contract before adding flow aggregation.
 For packet flow and class ownership, see [architecture.md](architecture.md)
 and [oop.md](oop.md).
 
