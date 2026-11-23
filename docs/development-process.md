@@ -51,7 +51,8 @@ AI-driven analysis are not implemented.
   `MinGW Makefiles` generator)
 - Internet access when configuring tests for the first time; CMake fetches
   GoogleTest 1.14.0 through `FetchContent`
-- Python 3 to serve the static browser files
+- Python 3 to serve the dashboard and local incident API
+- Optional live capture: install `requirements-live.txt`, Npcap on Windows or libpcap on Linux, and suitable capture permissions
 
 ## Build and Run the Native Program
 
@@ -108,9 +109,9 @@ icon remains a visual boundary, not a network device or external connection.
 | 1 | Project foundation | Complete |
 | 2 | Network devices and ownership | Complete |
 | 3 | Packets, routing, firewall rules | Complete |
-| 4 | Simulated threat types | Not implemented |
-| 5 | Detection, risk scoring, alerts | Not implemented |
-| 6 | Incidents and response | Not implemented |
+| 4 | Simulated threat types | Implemented (bounded scenarios and starter heuristics) |
+| 5 | Detection and alerts | Implemented (starter rules; no calibrated ML risk scoring) |
+| 6 | Incident management | Implemented (local SQLite workflow; no automated response) |
 | 7 | Simulation and scenario engine | Not implemented |
 | 8 | SFML visualization | Not implemented; browser UI is separate |
 | 9 | GoogleTest | Tests cover the current core; future features need tests |
