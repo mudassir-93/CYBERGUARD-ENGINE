@@ -8,11 +8,13 @@ from urllib.parse import parse_qs, urlsplit
 from incidents import default_store
 from simulation_bridge import run_simulation
 from live_monitor import LiveTrafficMonitor, list_capture_interfaces
+from threat_intel import ThreatIntelStore
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_BODY_BYTES = 1_000_000
 STORE = default_store()
 LIVE_MONITOR = LiveTrafficMonitor(STORE)
+THREAT_INTEL = ThreatIntelStore(STORE.database_path)
 
 
 class CyberGuardHandler(SimpleHTTPRequestHandler):
@@ -65,6 +67,12 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(200, {"available": True, "interfaces": list_capture_interfaces()})
             except RuntimeError as error:
                 return self._json(503, {"available": False, "interfaces": [], "error": str(error)})
+        if parsed.path == "/api/threat-intel":
+            query = parse_qs(parsed.query)
+            try:
+                return self._json(200, {"indicators": THREAT_INTEL.list_indicators(query.get("type", [None])[0], int(query.get("limit", ["100"])[0]))})
+            except (ValueError, TypeError) as error:
+                return self._json(400, {"error": str(error)})
         if parsed.path == "/api/incidents":
             query = parse_qs(parsed.query)
             try:
@@ -81,11 +89,35 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
             incident = STORE.get_incident(incident_id)
             if incident is None:
                 return self._json(404, {"error": "Incident not found"})
+            incident["threat_intel_matches"] = THREAT_INTEL.match_incident(incident)
+            incident["analyst_notes"] = THREAT_INTEL.list_notes(incident_id)
             return self._json(200, {"incident": incident})
         return super().do_GET()
 
     def do_POST(self):
         path = urlsplit(self.path).path
+        if path == "/api/threat-intel/import":
+            if not self._is_loopback_client():
+                return self._json(403, {"error": "Threat-intelligence imports are restricted to local clients"})
+            try:
+                payload = self._body()
+                return self._json(200, THREAT_INTEL.import_indicators(payload.get("indicators")))
+            except ValueError as error:
+                return self._json(400, {"error": str(error)})
+        if path.startswith("/api/incidents/") and path.endswith("/notes"):
+            if not self._is_loopback_client():
+                return self._json(403, {"error": "Analyst note writes are restricted to local clients"})
+            incident_id = path[len("/api/incidents/"):-len("/notes")].strip("/")
+            if not incident_id or "/" in incident_id:
+                return self._json(404, {"error": "Incident not found"})
+            try:
+                payload = self._body()
+                note = THREAT_INTEL.add_note(incident_id, payload.get("note"), payload.get("author", "local-analyst"))
+                if note is None:
+                    return self._json(404, {"error": "Incident not found"})
+                return self._json(201, {"note": note})
+            except ValueError as error:
+                return self._json(400, {"error": str(error)})
         if path == "/api/simulate":
             try:
                 return self._json(200, run_simulation(store=STORE))
