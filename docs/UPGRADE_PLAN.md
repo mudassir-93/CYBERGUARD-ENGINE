@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Implementation in progress — baseline hardening completed; Traffic & Flow Engine v1 is now under development.  
+**Status:** Traffic & Flow Engine v1, simulator integration, deterministic scenarios, and first port-scan heuristic implemented; cross-platform CI verification in progress.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -324,3 +324,16 @@ The next milestone adds a standalone C++ flow aggregation layer without changing
 - Defer flow expiry, TCP lifecycle tracking, payload parsing, and real packet capture.
 
 Acceptance: regression tests cover reverse-direction aggregation, port/protocol separation, outcome counts, out-of-order timestamps, zero-duration rates, and clear/reset behavior. Linux and Windows CI must pass before the milestone is marked complete.
+
+
+## 12. Traffic monitoring and first detection milestone
+
+Implemented on the development branch:
+- Network records every routed packet in its FlowManager after the final outcome is known.
+- Added deterministic normal-traffic and sequential port-scan scenario generation.
+- Added configurable port-scan detection (default: 10 distinct destination ports within 60 timestamp-seconds).
+- Native CLI demo now runs both scenarios and prints flow totals and alerts.
+- Added integration, detector, scenario, and invalid-input regression tests.
+- Added docs/TRAFFIC_DETECTION.md and updated README usage/status.
+
+Acceptance is pending hosted Linux and Windows CI for commit df1794c and the follow-up verification commit. No real network capture or live traffic generation is enabled.
