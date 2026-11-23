@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Traffic & Flow Engine v1, simulator integration, deterministic scenarios, and first port-scan heuristic implemented; cross-platform CI verification in progress.  
+**Status:** Flow monitoring, port-scan detection, and first multi-pattern threat detection milestone implemented; hosted cross-platform CI verification pending for the latest batch.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -302,7 +302,7 @@ Owner approval is still required before:
 - [x] Hosted Linux and Windows CI run completed and reviewed for the baseline-hardening batch.
 - [x] Baseline hardening batch passed hosted Linux and Windows CI (15 C++ tests plus Python/JavaScript syntax checks).
 - [x] First hardening milestone committed on the isolated implementation branch.
-- [ ] Traffic & Flow Engine v1 implementation and cross-platform CI validation.
+- [x] Traffic & Flow Engine v1 implementation and cross-platform CI validation (Linux and Windows, 25/25 C++ tests each).
 
 The owner has explicitly asked to start the work. The first implementation milestone is baseline hardening: add regression coverage and fix the existing simulator and local-development safety issues before introducing flow aggregation, ML, or AI.
 
@@ -311,7 +311,7 @@ The owner has explicitly asked to start the work. The first implementation miles
 **Important:** The application source code and runtime behavior have not yet been changed. The upgrade branch currently contains planning/audit documentation and a CI workflow. No files have been deleted and `master` remains untouched.
 
 
-## 11. Traffic & Flow Engine v1 (in progress)
+## 11. Traffic & Flow Engine v1 (completed)
 
 The next milestone adds a standalone C++ flow aggregation layer without changing packet routing semantics.
 
@@ -336,4 +336,19 @@ Implemented on the development branch:
 - Added integration, detector, scenario, and invalid-input regression tests.
 - Added docs/TRAFFIC_DETECTION.md and updated README usage/status.
 
-Acceptance is pending hosted Linux and Windows CI for commit df1794c and the follow-up verification commit. No real network capture or live traffic generation is enabled.
+Acceptance passed hosted Linux and Windows CI: 25/25 C++ tests on each platform, plus Python and JavaScript syntax checks. No real network capture or live traffic generation is enabled.
+
+
+## 13. Multi-pattern threat detection milestone (implemented; latest CI pending)
+
+Added deterministic, explainable detection over the existing in-memory flow records:
+
+- Repeated failed-connection / brute-force pattern: default 5 failed or dropped attempts to one service within 60 timestamp-seconds.
+- DoS-like high-volume traffic: default 100 packets from one source to one destination within 10 timestamp-seconds.
+- Suspicious internal host fan-out: default 3 distinct RFC1918 private IPv4 destinations from one source within 60 timestamp-seconds.
+- Added bounded deterministic scenario generators for each pattern. Generators are limited to 10,000 packets/attempts and 100 lateral destinations.
+- Expanded native CLI demo, regression tests, and traffic-detection documentation.
+
+These are initial heuristics, not authentication-aware or payload-aware detection. They do not establish that an account or host is compromised. All scenarios remain in-memory simulator packets and open no sockets.
+
+**Latest implementation CI:** pending hosted Linux and Windows results for the multi-pattern detection batch. Master remains unchanged; all implementation commits remain on `research/cyberguard-upgrade-plan`.
