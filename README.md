@@ -6,9 +6,9 @@
 [![Status](https://img.shields.io/badge/Status-Local%20Simulation-success.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 [![License](https://img.shields.io/badge/License-Project%20Educational-lightgrey.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 
-CyberGuard Engine is an educational, local-first network-security simulator built in C++20. It models packet routing and firewall enforcement, aggregates network flows, generates bounded threat scenarios, and runs explainable detection heuristics.
+CyberGuard Engine is an educational, local-first network-security workspace built around a C++20 network simulator. It models packet routing and firewall enforcement, aggregates network flows, generates bounded threat scenarios, and runs explainable detection heuristics. An optional Python sensor can passively capture IPv4 packet metadata from a selected local interface.
 
-This project is intended for learning, demonstration, and academic review. It does not send real traffic, it does not connect to external services, and it is designed to run fully on a local machine.
+This project is intended for learning, demonstration, and academic review. The simulator does not send real traffic. Optional live monitoring passively reads packet metadata from a selected interface; it does not modify or block traffic. The application is designed to run locally.
 
 ## Overview
 
@@ -27,7 +27,7 @@ The browser dashboard is served by a local Python API. It can display persisted 
 - Tracks packet states such as created, routing, blocked, delivered, and dropped
 - Uses ordered firewall rules to allow or deny traffic based on protocol and port
 - Shows a live-style topology dashboard in the browser
-- Aggregates packets into bidirectional five-tuple network flows\n- Generates local-only normal, port-scan, brute-force, DoS-like, and internal host-sweep scenarios\n- Detects port scans, repeated failed connections, high-volume traffic, and unusual internal host fan-out\n- Provides automated C++ tests for the implemented core logic
+- Aggregates packets into bidirectional five-tuple network flows\n- Generates local-only normal, port-scan, brute-force, DoS-like, and internal host-sweep scenarios\n- Detects port scans, repeated failed connections, high-volume traffic, and unusual internal host fan-out\n- Optionally captures live IPv4 packet metadata and correlates conservative rolling-window detections into incidents\n- Provides automated C++ tests for the implemented core logic
 
 ## Current project status
 
@@ -43,7 +43,7 @@ Completed phases include:
 
 Not implemented yet:
 
-- live packet capture and production network telemetry
+- production-grade network telemetry, calibrated detections, and IPv6/VLAN coverage
 - authentication, authorization, multi-tenant operations, and production deployment hardening
 - ML-based anomaly detection and calibrated risk scoring
 - automated response or blocking actions
@@ -51,7 +51,7 @@ Not implemented yet:
 - Docker deployment
 - AI-based automation
 
-Detection rules are starter heuristics, not proof of compromise. They do not inspect authentication events, packet payloads, TCP flags, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for thresholds and limitations.\n\nDetailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
+Detection rules are starter heuristics, not proof of compromise. They do not inspect authentication events, packet payloads, TCP flags, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for simulator thresholds and [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for optional capture setup, detection limits, and permissions.\n\nDetailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
 
 ## Repo structure
 
@@ -149,7 +149,7 @@ Then open this in your browser:
 http://localhost:8000/
 ```
 
-The browser app shows a visual topology, statistics cards, rule controls, and a demo sequence. By default, it blocks TCP destination port 23.
+The browser app shows a visual topology, statistics cards, rule controls, a demo sequence, incident management, and optional live network monitoring. Live capture requires the optional Scapy dependency plus Npcap/libpcap and suitable permissions; see [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md). The browser's simulated firewall blocks TCP destination port 23 only inside the demo model.
 
 ## How to use the simulator
 
@@ -183,7 +183,7 @@ This is the project’s core implementation layer.
 
 - The app is intended for local, educational use only.
 - No real network traffic is generated.
-- The browser simulation does not share state with the C++ program.
+- The browser simulation does not share packet-routing state with the C++ program. The optional live sensor is a separate passive Python capture path and stores only metadata-derived detections.
 - The project root URL is the default browser route.
 - The legacy [web](web) folder is kept as reference material and is not the main entry point.
 
@@ -242,6 +242,6 @@ For deeper technical details, use the docs folder:
 CyberGuard Engine is a clean, local-first simulation project for learning how routing, packet flow, and firewall decisions work in a basic network model. It is organized so a user can clone the repository, build the C++ engine, run tests, and open the browser visualization with minimal setup.
 
 
-## Incident management milestone
+## Live network monitoring foundation\n\nOptional passive IPv4 capture is available through the Live network monitoring dashboard panel. It detects TCP SYN port-scan patterns, high packet rates, and internal private-host fan-out using rolling windows. It deliberately does not infer failed logins from packet metadata. Install `requirements-live.txt` and follow [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for Npcap/libpcap and permissions.\n\n## Incident management milestone
 
 CyberGuard includes a local SQLite-backed incident workspace. Start it with `python backend/server.py`, then open `http://127.0.0.1:8000`. The dashboard can generate local demo detections, correlate repeated signals, preserve evidence, filter incidents, and manage analyst statuses. See [docs/INCIDENT_MANAGEMENT.md](docs/INCIDENT_MANAGEMENT.md) for API contracts and limitations.
