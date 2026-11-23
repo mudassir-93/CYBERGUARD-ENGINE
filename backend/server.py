@@ -72,7 +72,7 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/api/simulate":
             try:
-                return self._json(200, run_simulation())
+                return self._json(200, run_simulation(store=STORE))
             except FileNotFoundError as error:
                 return self._json(503, {"error": str(error)})
             except (RuntimeError, ValueError) as error:
