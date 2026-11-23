@@ -74,13 +74,14 @@ Its demonstration sends three packets: two are delivered and one is blocked.
 ctest --test-dir build --output-on-failure
 ```
 
-The baseline suite contained 12 tests: a smoke test plus GoogleTest cases
-covering packet properties and validation, router forwarding, first-match and
-disabled firewall rules, server service acceptance, and network routing,
-duplicate identifiers, removal, and online-device counts. The upgrade branch
-adds regression coverage for offline sources/workstations, device IP
-validation, and route cleanup. Check the latest GitHub Actions run for the
-current total and platform results.
+The current upgrade-branch CI run records 32/32 C++ tests passing on both
+Ubuntu and Windows. Coverage includes packet validation, routing, firewall
+decisions, flow aggregation, scenario bounds, threat detection, and regression
+checks for offline devices, IP validation, and stale-route cleanup. The Python
+backend suite records 30/30 tests passing on both platforms. The workflow also
+checks Python syntax, dashboard JavaScript syntax, and the C++-to-SQLite
+integration. These counts describe the completed CI run for commit
+`0f82a957`; consult the latest Actions run for any later commit.
 
 ## Run the Browser Simulator
 
