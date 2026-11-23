@@ -57,7 +57,7 @@ port, TCP SYN flag, and packet length. Packet payloads are not persisted.
 - Internal host fan-out: one private source contacting at least 3 distinct
   private destinations in 60 seconds.
 
-These are explainable starter heuristics, not calibrated detections. A packet
+The live rules are implemented in the Python `DetectionWindowEngine`; the existing C++ flow detectors remain connected to the simulator path and are not invoked directly by packet capture. These are explainable starter heuristics, not calibrated detections. A packet
 capture cannot establish whether an application login succeeded or failed, so
 live brute-force alerts are deliberately not inferred. The existing simulated
 brute-force scenario remains simulation-only. NAT, asymmetric routing, packet
