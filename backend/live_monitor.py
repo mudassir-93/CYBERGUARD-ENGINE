@@ -89,7 +89,8 @@ class DetectionWindowEngine:
             cutoff = now - (2 * max(self.scan_window, self.dos_window, self.lateral_window))
             self._emitted = {key: seen for key, seen in self._emitted.items() if seen >= cutoff}
             if len(self._emitted) > 8192:
-                self._emitted.pop(min(self._emitted, key=self._emitted.get), None)
+                while len(self._emitted) > 8192:
+                    self._emitted.pop(min(self._emitted, key=self._emitted.get), None)
         src, dst = event["source_ip"], event["destination_ip"]
         protocol, port = event["protocol"], event.get("destination_port")
         size = max(1, int(event.get("packet_bytes", 1)))
@@ -99,6 +100,8 @@ class DetectionWindowEngine:
             key = (src, dst)
             samples = self._scans[key]
             samples.append((now, port))
+            while len(samples) > 2048:
+                samples.popleft()
             self._bound(self._scans, now)
             while samples and now - samples[0][0] > self.scan_window:
                 samples.popleft()
@@ -116,6 +119,8 @@ class DetectionWindowEngine:
         key = (src, dst)
         samples = self._dos[key]
         samples.append((now, size))
+        while len(samples) > 2048:
+            samples.popleft()
         self._bound(self._dos, now)
         while samples and now - samples[0][0] > self.dos_window:
             samples.popleft()
@@ -132,6 +137,8 @@ class DetectionWindowEngine:
         if _is_private(src) and _is_private(dst) and src != dst:
             samples = self._lateral[src]
             samples.append((now, dst))
+            while len(samples) > 2048:
+                samples.popleft()
             self._bound(self._lateral, now)
             while samples and now - samples[0][0] > self.lateral_window:
                 samples.popleft()
