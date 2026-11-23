@@ -15,9 +15,13 @@ from typing import Any
 from incidents import IncidentStore
 
 
+_RFC1918 = tuple(ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"))
+
+
 def _is_private(value: str) -> bool:
     try:
-        return ipaddress.ip_address(value).is_private
+        address = ipaddress.ip_address(value)
+        return address.version == 4 and any(address in network for network in _RFC1918)
     except ValueError:
         return False
 
@@ -63,6 +67,13 @@ class DetectionWindowEngine:
         self._dos: dict[tuple[str, str], deque] = defaultdict(deque)
         self._lateral: dict[str, deque] = defaultdict(deque)
         self._emitted: dict[tuple[str, str, str], float] = {}
+        self._event_count = 0
+
+    @staticmethod
+    def _bound(mapping: dict, now: float, limit: int = 4096) -> None:
+        if len(mapping) > limit:
+            oldest = min(mapping, key=lambda key: mapping[key][-1][0] if mapping[key] else now)
+            del mapping[oldest]
 
     def _cooldown(self, key: tuple[str, str, str], now: float, window: float) -> bool:
         previous = self._emitted.get(key)
@@ -73,6 +84,12 @@ class DetectionWindowEngine:
 
     def process(self, event: dict[str, Any], now: float | None = None) -> list[dict[str, Any]]:
         now = time.monotonic() if now is None else now
+        self._event_count += 1
+        if self._event_count % 256 == 0:
+            cutoff = now - (2 * max(self.scan_window, self.dos_window, self.lateral_window))
+            self._emitted = {key: seen for key, seen in self._emitted.items() if seen >= cutoff}
+            if len(self._emitted) > 8192:
+                self._emitted.pop(min(self._emitted, key=self._emitted.get), None)
         src, dst = event["source_ip"], event["destination_ip"]
         protocol, port = event["protocol"], event.get("destination_port")
         size = max(1, int(event.get("packet_bytes", 1)))
@@ -82,6 +99,7 @@ class DetectionWindowEngine:
             key = (src, dst)
             samples = self._scans[key]
             samples.append((now, port))
+            self._bound(self._scans, now)
             while samples and now - samples[0][0] > self.scan_window:
                 samples.popleft()
             ports = sorted({item[1] for item in samples})
@@ -98,6 +116,7 @@ class DetectionWindowEngine:
         key = (src, dst)
         samples = self._dos[key]
         samples.append((now, size))
+        self._bound(self._dos, now)
         while samples and now - samples[0][0] > self.dos_window:
             samples.popleft()
         if len(samples) >= self.dos_threshold and self._cooldown(("dos", src, dst), now, self.dos_window):
@@ -113,6 +132,7 @@ class DetectionWindowEngine:
         if _is_private(src) and _is_private(dst) and src != dst:
             samples = self._lateral[src]
             samples.append((now, dst))
+            self._bound(self._lateral, now)
             while samples and now - samples[0][0] > self.lateral_window:
                 samples.popleft()
             destinations = sorted({item[1] for item in samples})
@@ -191,7 +211,7 @@ class LiveTrafficMonitor:
             self._sniffer = AsyncSniffer(iface=interface, filter="ip", prn=self._on_packet, store=False)
             try:
                 self._sniffer.start()
-            except (OSError, RuntimeError, PermissionError) as error:
+            except Exception as error:
                 self._last_error = str(error)
                 self._sniffer = None
                 raise RuntimeError(
