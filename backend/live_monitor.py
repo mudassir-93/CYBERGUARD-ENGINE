@@ -155,7 +155,9 @@ class DetectionWindowEngine:
                     "destination_ip": dst, "protocol": protocol, "destination_port": port,
                     "summary": "Internal host contacted multiple private network destinations",
                     "evidence": {"distinct_internal_destinations": len(destinations),
-                                 "destinations": destinations, "threshold": self.lateral_threshold,
+                                 "destinations": destinations[:100],
+                                 "destinations_truncated": len(destinations) > 100,
+                                 "threshold": self.lateral_threshold,
                                  "window_seconds": self.lateral_window, "source": "live_packet_capture"},
                 })
         return detections
