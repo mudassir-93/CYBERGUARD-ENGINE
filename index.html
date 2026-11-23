@@ -28,8 +28,8 @@
       <div class="sidebar-footer">
         <span class="status-dot" aria-hidden="true"></span>
         <div>
-          <strong>Local simulation</strong>
-          <small>No external traffic</small>
+          <strong>Local security workspace</strong>
+          <small>Passive capture is optional</small>
         </div>
       </div>
     </aside>
@@ -239,6 +239,33 @@
         </div>
         <p class="incident-message" id="incidentMessage" role="status">Connecting…</p>
         <div class="incident-list" id="incidentList" aria-live="polite"></div>
+      </section>
+
+      <section class="panel live-monitor-panel" id="live-monitoring">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Passive network sensor</span><h3>Live network monitoring</h3></div>
+          <span class="live-capture-state" id="liveCaptureState">Checking capture support…</span>
+        </div>
+        <div class="live-monitor-layout">
+          <div class="live-monitor-controls">
+            <label for="liveInterfaceSelect">Network interface</label>
+            <select id="liveInterfaceSelect" disabled>
+              <option value="">Checking available interfaces…</option>
+            </select>
+            <div class="live-monitor-actions">
+              <button class="button button-primary" id="startLiveCapture" type="button" disabled>Start capture</button>
+              <button class="button button-outline" id="stopLiveCapture" type="button" disabled>Stop capture</button>
+              <button class="button button-quiet" id="refreshLiveCapture" type="button">Refresh</button>
+            </div>
+            <p class="live-monitor-message" id="liveMonitorMessage" role="status">Live capture is optional and requires Scapy plus a supported capture driver.</p>
+          </div>
+          <div class="live-monitor-stats" aria-live="polite">
+            <div><span>Packets observed</span><strong id="livePacketsSeen">0</strong></div>
+            <div><span>Detections stored</span><strong id="liveDetectionsCreated">0</strong></div>
+            <div><span>Capture errors</span><strong id="liveCaptureErrors">0</strong></div>
+          </div>
+        </div>
+        <p class="live-monitor-note">Metadata only: IPv4 addresses, protocol, ports, TCP SYN flag, and packet size. No payload storage, automatic blocking, or live brute-force inference.</p>
       </section>
 
       <div class="lower-grid">
