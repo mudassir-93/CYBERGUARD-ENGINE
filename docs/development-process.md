@@ -29,8 +29,10 @@ CMakeLists.txt      C++20 targets and test configuration
 | Network ownership, lookup, routing, counters | Implemented |
 | Unit and smoke tests | Implemented for the current core |
 | Static browser console | Implemented as an independent simulation |
-| Simulated threat generation and heuristic detection | Implemented (starter rules) |\n| Optional passive IPv4 capture foundation | Implemented (Scapy adapter; host driver/permissions required) |
-| Incident management and defensive response | Not implemented |
+| Simulated threat generation and heuristic detection | Implemented (starter rules) |
+| Optional passive IPv4 capture foundation | Implemented (Scapy adapter; host driver/permissions required) |
+| SQLite incident management workspace | Implemented (local-only) |
+| Automated defensive response / blocking | Not implemented |
 | Simulation/scenario engine and stress runner | Not implemented |
 | SFML interface, Docker, AI | Not implemented |
 | GitHub Actions baseline CI | Added on the upgrade branch; Linux and Windows checks configured |
@@ -93,8 +95,10 @@ remaining scheduled demo packets. The initial rule blocks TCP port
 23; the demo sends TCP packets to ports 80, 443, and 23.
 
 This UI executes its own JavaScript simulation. It shares neither state nor
-packet-routing calls with the C++ executable. The topology's Internet icon is a
-visual boundary, not a network device or an external connection.
+packet-routing calls with the C++ executable. The optional live-monitoring panel
+uses a separate passive Python capture adapter and persists metadata-derived
+detections; see [LIVE_MONITORING.md](LIVE_MONITORING.md). The topology's Internet
+icon remains a visual boundary, not a network device or external connection.
 
 ## Development Phases and Next Work
 
@@ -113,9 +117,9 @@ visual boundary, not a network device or an external connection.
 | 11 | GitHub Actions | Baseline Linux/Windows CI added on the upgrade branch |
 | 12 | Documentation and polish | Documentation is being maintained |
 
-The next feature phase is baseline hardening: keep all traffic and threat
-behavior simulated and internal to the application, and preserve the
-regression-tested network contract before adding flow aggregation.
+Live monitoring is now an optional passive sensor foundation. Next work should
+focus on capture reliability, richer protocol coverage, calibrated thresholds,
+and safe deployment controls without turning the product into an IPS.
 For packet flow and class ownership, see [architecture.md](architecture.md)
 and [oop.md](oop.md).
 
