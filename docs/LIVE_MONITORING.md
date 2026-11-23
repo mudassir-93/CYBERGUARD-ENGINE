@@ -9,8 +9,8 @@ incident workspace receives normalized detections in SQLite.
 
 ## Enable the optional capture dependency
 
-Install the regular CyberGuard requirements first (Python 3; the existing
-project has no mandatory third-party Python dependencies), then:
+The application itself uses Python 3 and has no mandatory third-party
+runtime dependencies. Install the optional capture dependency:
 
 \`\`\`powershell
 python -m pip install -r requirements-live.txt
@@ -35,8 +35,9 @@ network interface in **Live network monitoring**, and choose **Start capture**.
 Only one capture session can run in this local process. Stop it from the same
 panel.
 
-The API is local and unauthenticated. Keep the server bound to loopback; do not
-expose it to an untrusted network.
+The API is local and unauthenticated. Live capture start/stop controls also
+reject non-loopback clients. Keep the server bound to loopback; do not expose
+the dashboard or API to an untrusted network.
 
 ## API
 
@@ -55,7 +56,8 @@ port, TCP SYN flag, and packet length. Packet payloads are not persisted.
 - High packet rate: at least 100 packets from one source to one destination
   in a 10-second rolling window.
 - Internal host fan-out: one private source contacting at least 3 distinct
-  private destinations in 60 seconds.
+  private destinations in 60 seconds. Evidence lists are capped so a busy sensor
+cannot create unbounded incident payloads.
 
 The live rules are implemented in the Python `DetectionWindowEngine`; the existing C++ flow detectors remain connected to the simulator path and are not invoked directly by packet capture. These are explainable starter heuristics, not calibrated detections. A packet
 capture cannot establish whether an application login succeeded or failed, so
