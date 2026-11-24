@@ -12,7 +12,7 @@ This project is intended for learning, demonstration, and academic review. The s
 
 ## Overview
 
-CyberGuard combines three local components:
+The local application is composed of these components:
 
 - A native C++ simulation for the network model, packet logic, and device behavior
 - A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
