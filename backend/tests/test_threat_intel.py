@@ -9,7 +9,7 @@ class ThreatIntelTests(unittest.TestCase):
  def tearDown(self): self.temp.cleanup()
  def test_indicator_validation_and_normalization(self):
   self.assertEqual(normalize_indicator({"type":"domain","value":"Example.COM."})["value"],"example.com")
-  for item in ({"type":"ip","value":"999.1.1.1"},{"type":"domain","value":"not a domain"},{"type":"sha256","value":"abc"},{"type":"ip","value":"8.8.8.8","confidence":101}):
+  for item in ({"type":"ip","value":"999.1.1.1"},{"type":"domain","value":"not a domain"},{"type":"sha256","value":"abc"},{"type":"ip","value":"8.8.8.8","confidence":101},{"type":[],"value":"x"},{"type":"ip","value":"8.8.8.8","severity":[]}):
    with self.assertRaises(ValueError): normalize_indicator(item)
  def test_import_idempotency_and_update(self):
   item={"type":"ip","value":"203.0.113.9","source":"feed-a","confidence":70}; self.assertEqual(self.intel.import_indicators([item])["inserted"],1)
