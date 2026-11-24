@@ -251,7 +251,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest fully verified post-merge master baseline is commit `34b7fa200526759fa6e1c49d381b433cc5b1e50a`; Ubuntu and Windows both passed in run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). PR #3 has since merged as `6ff5369a1f174e6f45ac58c8d5caf388a089385e`; its post-merge CI run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613) is running. Do not treat the older baseline run as validation of the latest merge until that run completes.
+The latest verified post-merge master commit is `6ff5369a1f174e6f45ac58c8d5caf388a089385e`; both Ubuntu and Windows passed in GitHub Actions run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613).
 
 | Check | Verified master baseline |
 | --- | --- |
