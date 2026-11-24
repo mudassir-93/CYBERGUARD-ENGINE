@@ -265,7 +265,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified post-merge master commit is `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`; Ubuntu and Windows both passed in run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131). The latest merge adds the synthetic ML demo dataset at commit `21fb2996125059bf71bb4c439164951bf707068b`; its post-merge CI run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737) is running.
+The latest verified post-merge master commit is `21fb2996125059bf71bb4c439164951bf707068b`; Ubuntu and Windows both passed in run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737).
 
 | Check | Verified master baseline |
 | --- | --- |
