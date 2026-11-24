@@ -59,7 +59,7 @@ class ThreatIntelStore:
  def import_indicators(self,items):
   if not isinstance(items,list) or not items or len(items)>5000: raise ValueError("indicators must be a non-empty array of at most 5000 entries")
   values=[normalize_indicator(x) for x in items]; now=datetime.now(timezone.utc).isoformat(timespec="seconds"); inserted=updated=0
-  with self.connect() as db:
+  with self.session() as db
    for x in values:
     old=db.execute("SELECT 1 FROM threat_indicators WHERE type=? AND value=? AND source=?",(x["type"],x["value"],x["source"])).fetchone()
     db.execute("""INSERT INTO threat_indicators(type,value,confidence,severity,source,description,tags_json,first_seen,last_seen,expires_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(type,value,source) DO UPDATE SET confidence=excluded.confidence,severity=excluded.severity,description=excluded.description,tags_json=excluded.tags_json,last_seen=COALESCE(excluded.last_seen,threat_indicators.last_seen),expires_at=excluded.expires_at""",(x["type"],x["value"],x["confidence"],x["severity"],x["source"],x["description"],json.dumps(x["tags"]),x["first_seen"],x["last_seen"],x["expires_at"],now))
@@ -69,7 +69,7 @@ class ThreatIntelStore:
  def list_indicators(self,kind=None,limit=100):
   if kind and kind not in {"ip","domain","md5","sha1","sha256"}: raise ValueError("Invalid indicator type")
   limit=max(1,min(int(limit),500)); now=datetime.now(timezone.utc).isoformat(timespec="seconds")
-  with self.connect() as db: rows=db.execute("SELECT * FROM threat_indicators WHERE (expires_at IS NULL OR expires_at>?)"+(" AND type=?" if kind else "")+" ORDER BY confidence DESC,id DESC LIMIT ?",(now,kind,limit) if kind else (now,limit)).fetchall()
+  with self.session() as db rows=db.execute("SELECT * FROM threat_indicators WHERE (expires_at IS NULL OR expires_at>?)"+(" AND type=?" if kind else "")+" ORDER BY confidence DESC,id DESC LIMIT ?",(now,kind,limit) if kind else (now,limit)).fetchall()
   return [self.row(r) for r in rows]
  def match_incident(self,incident):
   candidates={("ip",incident.get("source_ip")),("ip",incident.get("destination_ip"))}
@@ -86,7 +86,7 @@ class ThreatIntelStore:
      except ValueError:
       if DOMAIN.fullmatch(v.lower()): candidates.add(("domain",v.lower()))
   walk(incident.get("evidence",{})); candidates.discard(("ip",None)); now=datetime.now(timezone.utc).isoformat(timespec="seconds"); found=[]
-  with self.connect() as db:
+  with self.session() as db
    for kind,value in candidates:
     if value: found.extend(self.row(r) for r in db.execute("SELECT * FROM threat_indicators WHERE type=? AND value=? AND (expires_at IS NULL OR expires_at>?)",(kind,value,now)).fetchall())
   return found
@@ -94,9 +94,9 @@ class ThreatIntelStore:
   if not isinstance(note,str) or not note.strip() or len(note.strip())>2000: raise ValueError("note must contain 1-2000 characters")
   if not isinstance(author,str) or not author.strip() or len(author)>80: raise ValueError("author must contain 1-80 characters")
   now=datetime.now(timezone.utc).isoformat(timespec="seconds")
-  with self.connect() as db:
+  with self.session() as db
    if not db.execute("SELECT 1 FROM incidents WHERE id=?",(incident_id,)).fetchone(): return None
    cur=db.execute("INSERT INTO analyst_notes(incident_id,note,author,created_at) VALUES(?,?,?,?)",(incident_id,note.strip(),author.strip(),now))
    return {"id":cur.lastrowid,"incident_id":incident_id,"note":note.strip(),"author":author.strip(),"created_at":now}
  def list_notes(self,incident_id):
-  with self.connect() as db: return [dict(r) for r in db.execute("SELECT id,incident_id,note,author,created_at FROM analyst_notes WHERE incident_id=? ORDER BY id",(incident_id,)).fetchall()]
+  with self.session() as db return [dict(r) for r in db.execute("SELECT id,incident_id,note,author,created_at FROM analyst_notes WHERE incident_id=? ORDER BY id",(incident_id,)).fetchall()]
