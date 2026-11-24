@@ -39,25 +39,43 @@ jobs:
       - name: Install optional live-capture test dependency
         run: python -m pip install -r requirements-live.txt -r requirements-ml.txt
 
+      - name: Validate Windows verification script
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          [scriptblock]::Create((Get-Content 'scripts/verify-windows.ps1' -Raw)) | Out-Null
+
+      - name: Run complete Windows verification script
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\scripts\verify-windows.ps1
+
       - name: Configure CMake
+        if: runner.os == 'Linux'
         run: cmake -S . -B build -DCYBERGUARD_BUILD_TESTS=ON
 
       - name: Build
+        if: runner.os == 'Linux'
         run: cmake --build build --config Release --parallel
 
       - name: Run C++ tests
+        if: runner.os == 'Linux'
         run: ctest --test-dir build -C Release --output-on-failure
 
       - name: Validate Python backend syntax
+        if: runner.os == 'Linux'
         run: python -m py_compile backend/ai_analyst.py backend/incidents.py backend/cli.py backend/application.py backend/server.py backend/simulation_bridge.py backend/live_monitor.py backend/threat_intel.py backend/ml_anomaly.py backend/ml_isolation_forest.py backend/ml_evaluate.py
 
       - name: Run Python backend tests
+        if: runner.os == 'Linux'
         run: python -m unittest discover -s backend/tests -v
 
       - name: Validate dashboard JavaScript syntax
+        if: runner.os == 'Linux'
         run: node --check app.js
 
       - name: Run C++ to SQLite integration
+        if: runner.os == 'Linux'
         run: python backend/run_simulation.py
         env:
           CYBERGUARD_DATA_DIR: ${{ runner.temp }}/cyberguard-integration-data

@@ -17,6 +17,7 @@ The local application is composed of these components:
 - A native C++ simulation for the network model, packet logic, and device behavior
 - A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
 - A guided Python CLI for local setup checks, simulation runs, and incident workflows
+- A one-command Windows verification script for the native build, C++/Python tests, dashboard syntax, and simulator-to-SQLite integration
 - An object-oriented Python application layer that composes repositories, monitoring, simulation, and anomaly-analysis services
 - An optional Python packet sensor for passive IPv4 metadata capture
 
@@ -107,6 +108,10 @@ For Windows, a typical setup is:
 ```powershell
 git clone https://github.com/mudassir-93/CYBERGUARD-ENGINE.git
 cd CYBERGUARD-ENGINE
+
+# Build and verify the project on Windows
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\verify-windows.ps1
 ```
 
 ### 2. Build the native C++ project
@@ -246,7 +251,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified post-merge cross-platform baseline is master commit `022b310a110794005a1b6cf5e71a6a452c5d9328`; both Ubuntu and Windows passed in GitHub Actions run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340).
+The latest verified post-merge master commit is `6ff5369a1f174e6f45ac58c8d5caf388a089385e`; both Ubuntu and Windows passed in GitHub Actions run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613).
 
 | Check | Verified master baseline |
 | --- | --- |
@@ -257,7 +262,7 @@ The latest verified post-merge cross-platform baseline is master commit `022b310
 | Dashboard JavaScript syntax | Passed on both platforms |
 | C++ to SQLite integration | Passed on both platforms |
 
-The follow-up CLI/Ollama readiness changes are under review in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2). The leakage-aware ML evaluation workflow is being developed separately in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3) and requires fresh cross-platform CI. Do not interpret the master baseline above as validation of unmerged PR changes.
+The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), and leakage-aware ML evaluation is merged in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3). The Windows one-command verification helper is in development on a separate PR branch.
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
@@ -275,6 +280,8 @@ The browser dashboard presents a simulated network with device cards, packet cou
 
 For deeper technical details, use the docs folder:
 
+- [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md)
+- [docs/ML_EVALUATION.md](docs/ML_EVALUATION.md)
 - [docs/development-process.md](docs/development-process.md)
 - [docs/architecture.md](docs/architecture.md)
 - [docs/oop.md](docs/oop.md)
