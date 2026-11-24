@@ -30,7 +30,7 @@ Optional environment variables:
 
 The endpoint must use HTTP on a loopback host (127.0.0.1, ::1, or localhost).
 Non-loopback URLs are rejected to prevent incident evidence being sent to a
-remote host by configuration mistake.
+remote host by configuration mistake. Model names are limited to 200 characters.
 
 ## Use the CLI
 
@@ -63,9 +63,14 @@ uses the same loopback-client restriction as the other API endpoints.
 ## Safety and limitations
 
 - Only a bounded allowlist of incident fields is sent to the local model.
+- Incident JSON is limited to 24,000 UTF-8 bytes before it is sent.
 - Evidence, notes, hostnames, and log strings are untrusted data, not model
   instructions. The system prompt explicitly tells the model to ignore embedded
   instructions.
+- The Ollama response is read with a 16,385-byte cap; anything larger than
+  16,384 bytes is rejected before JSON parsing.
+- Model configuration and timeout values are validated, including rejection of
+  non-finite timeouts and booleans.
 - The response is not a detection verdict. It may be incomplete or incorrect;
   verify claims against source telemetry and incident evidence.
 - IOC matches and starter heuristics do not prove compromise.
