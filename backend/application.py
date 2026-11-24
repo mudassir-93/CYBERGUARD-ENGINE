@@ -12,7 +12,7 @@ from typing import Any, Callable
 
 from incidents import IncidentStore, default_store
 from live_monitor import LiveTrafficMonitor, list_capture_interfaces
-from simulation_bridge import run_simulation
+from simulation_bridge import SimulationBridge
 from threat_intel import ThreatIntelStore
 
 
@@ -31,7 +31,8 @@ class CyberGuardApplication:
         self.incidents = incident_store or default_store()
         self.threat_intelligence = threat_intel or ThreatIntelStore(self.incidents.database_path)
         self.live_monitor = live_monitor or LiveTrafficMonitor(self.incidents)
-        self._simulation_runner = simulation_runner or run_simulation
+        self._simulation_bridge = SimulationBridge()
+        self._simulation_runner = simulation_runner
         self._interface_provider = interface_provider or list_capture_interfaces
         self._anomaly_model_path = anomaly_model_path
         self._anomaly_model = None
@@ -42,7 +43,9 @@ class CyberGuardApplication:
         return self._interface_provider()
 
     def run_simulation(self) -> dict[str, Any]:
-        return self._simulation_runner(store=self.incidents)
+        if self._simulation_runner is not None:
+            return self._simulation_runner(store=self.incidents)
+        return self._simulation_bridge.run(store=self.incidents)
 
     def score_anomaly(self, features: Any) -> dict[str, Any]:
         model_path = self._anomaly_model_path or os.environ.get("CYBERGUARD_ANOMALY_MODEL")
