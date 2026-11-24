@@ -1,10 +1,10 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** The initial simulator, detection, incident-management, passive IPv4 monitoring, IOC enrichment, anomaly-analysis, OOP, guided CLI, and optional read-only Ollama analyst milestones are merged into `master` by PR [#1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/1). Merge commit: `022b310a110794005a1b6cf5e71a6a452c5d9328`. Post-merge Windows and Ubuntu CI both passed in run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340). The CLI readiness milestone is under PR #2 (`feature/cli-doctor-readiness`). A leakage-aware ML evaluation milestone is under PR #3 (`feature/ml-evaluation-pipeline`).  
+**Status:** The initial platform foundations are merged through PR #1 (merge commit `022b310a110794005a1b6cf5e71a6a452c5d9328`). CLI/Ollama readiness is merged through PR #2 (merge commit `34b7fa200526759fa6e1c49d381b433cc5b1e50a`); its post-merge Ubuntu/Windows CI passed in run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). Leakage-aware ML evaluation is merged through PR #3 (merge commit `6ff5369a1f174e6f45ac58c8d5caf388a089385e`); post-merge CI run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613) is currently running. The next owner-PC readiness milestone is being developed on `feature/windows-verification-and-docs`.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
-**Current implementation branch:** `feature/ml-evaluation-pipeline`
+**Current implementation branch:** `feature/windows-verification-and-docs`
 
 ## 1. Product vision
 
@@ -302,7 +302,7 @@ Owner approval is still required before:
 - [x] First hardening milestone committed on the isolated implementation branch.
 - [x] Traffic & Flow Engine v1 implementation and cross-platform CI validation (Linux and Windows, 25/25 C++ tests each).
 
-The owner explicitly approved implementation and authorized safe PR merges with rollback preparation. The initial 214-commit upgrade branch was integrated through PR #1 into `master`; the post-merge CI run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340) passed both Ubuntu and Windows jobs. Recovery snapshots are preserved as `safety/pre-integration-master-2026-11-24` and `safety/pre-integration-research-2026-11-24`. Current follow-up work is isolated on `feature/cli-doctor-readiness`, with a pre-change snapshot at `safety/pre-cli-doctor-2026-11-24`. Physical Windows Npcap capture and real Ollama inference still require owner-PC verification.
+The owner explicitly approved implementation and authorized safe PR merges with rollback preparation. The initial 214-commit upgrade branch was integrated through PR #1 into `master`; the post-merge CI run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340) passed both Ubuntu and Windows jobs. Recovery snapshots are preserved as `safety/pre-integration-master-2026-11-24` and `safety/pre-integration-research-2026-11-24`. Follow-up work has dated recovery snapshots: `safety/pre-cli-doctor-2026-11-24`, `safety/pre-ml-evaluation-2026-11-24`, and `safety/pre-windows-verify-v2-2026-11-24`. Physical Windows Npcap capture and real Ollama inference still require owner-PC verification.
 
 
 ## 11. Traffic & Flow Engine v1 (completed)
@@ -396,7 +396,7 @@ Added an optional Ollama-backed, read-only explanation workflow for persisted in
 **Validation:** Cross-platform CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on Linux and Windows. Actual model inference still requires the owner to install Ollama and pull a local model on the target PC. The AI explanation is advisory and is not a detection verdict.
 
 
-## 19. CLI local-readiness diagnostics (implementation in progress)
+## 19. CLI local-readiness diagnostics (completed; merged through PR #2)
 
 The guided `doctor` command is being extended to diagnose the optional local AI analyst without making Ollama a required dependency.
 
@@ -406,10 +406,10 @@ The guided `doctor` command is being extended to diagnose the optional local AI 
 - `cyberguard doctor` reports the local AI status and provides the exact `ollama pull <model>` command when the model is missing.
 - Unit tests cover ready, missing-model, and unavailable-service cases; CLI tests ensure the optional dependency does not make doctor fail.
 
-**Validation gate:** focused Python tests, full backend suite, C++ build/tests, dashboard JavaScript syntax, simulator-to-SQLite integration, and hosted Windows/Ubuntu CI must pass before merge. Actual Ollama inference and Npcap capture remain PC-specific checks.
+**Validation:** PR CI run [45306544059](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45306544059) passed on Ubuntu and Windows. The merge commit's post-merge CI run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414) also passed both platforms. Actual Ollama inference and Npcap capture remain PC-specific checks.
 
 
-## 20. Leakage-aware ML evaluation workflow (implementation in progress)
+## 20. Leakage-aware ML evaluation workflow (implemented; merged through PR #3)
 
 Added a reproducible binary evaluation path for the optional Isolation Forest:
 
@@ -421,4 +421,17 @@ Added a reproducible binary evaluation path for the optional Isolation Forest:
 - Writes a JSON report atomically and keeps datasets/model artifacts out of the repository.
 - Documents dataset, label, grouping, contamination, and interpretation requirements in [docs/ML_EVALUATION.md](ML_EVALUATION.md).
 
-**Validation gate:** automated tests must cover group isolation, split validity, input validation, metric calculation, and report output; the complete Python suite and Windows/Ubuntu CI must pass. No benchmark dataset is bundled, and no performance claim is made until the owner supplies a properly licensed, representative dataset.
+**Validation:** PR CI run [45307123845](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307123845) passed on Ubuntu and Windows, including the full Python suite and C++/SQLite integration. The merge commit is `6ff5369a1f174e6f45ac58c8d5caf388a089385e`; its post-merge run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613) is running. No benchmark dataset is bundled, and no performance claim is made until the owner supplies a properly licensed, representative dataset.
+
+## 21. Windows owner verification workflow (implementation in progress)
+
+Add a safe, repeatable PowerShell entry point for validating CyberGuard on the owner's Windows PC:
+
+- Detect required local tools and reuse the existing CMake generator, with an explicit generator override for a fresh build directory.
+- Build the native C++20 target and run CTest.
+- Compile Python sources and run the full backend unit suite.
+- Check dashboard JavaScript syntax when Node.js is installed.
+- Run simulator-to-SQLite integration and CLI doctor using an isolated temporary data directory; preserve the owner's normal incident database.
+- Never install software, enable packet capture, change firewall rules, or perform active response automatically.
+
+**Validation gate:** PowerShell syntax check on hosted Windows CI; cross-platform project CI green; owner runs the script on the target PC. Physical Npcap and Ollama checks remain separate opt-in validation.
