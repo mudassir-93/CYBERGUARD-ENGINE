@@ -1,6 +1,6 @@
 # CyberGuard Development and Verification
 
-This guide reflects the current `master` baseline after PRs #1, #2, and #3. The one-command Windows owner verification helper is in progress on a separate feature branch.
+This guide reflects the current `master` baseline after PRs #1 through #5. The Windows one-command verification helper is merged and passes hosted Windows CI; running it on the owner's PC remains pending.
 
 ## Source tree
 
@@ -10,6 +10,7 @@ This guide reflects the current `master` baseline after PRs #1, #2, and #3. The 
 - `web/`: legacy browser assets retained for reference.
 - `docs/`: architecture, data contracts, safety boundaries, setup, and milestone tracker.
 - `scripts/`: owner-run verification helpers; no automatic capture or active response.
+- `examples/`: synthetic, clearly labeled demonstration datasets; never use these as real-world benchmarks.
 
 ## Implemented scope
 
@@ -61,7 +62,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\verify-windows.ps1
 ```
 
-This helper is part of the Windows verification milestone. It builds the native project, runs C++ and Python tests, checks dashboard syntax when Node.js is installed, executes simulator-to-SQLite integration in a temporary data directory, and runs the local doctor report. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md).
+The merged helper builds the native project, runs C++ and Python tests, checks dashboard syntax when Node.js is installed, executes simulator-to-SQLite integration in a temporary data directory, and runs the local doctor report. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md).
 
 ## Run the guided CLI
 
@@ -95,7 +96,7 @@ Open `http://127.0.0.1:8000/`. The server is loopback-only and unauthenticated. 
 
 ## Tests and CI
 
-The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest verified post-merge master run is [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613); Ubuntu and Windows both passed. Follow-up branch changes must pass a fresh PR CI run before integration.
+The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest verified post-merge run for PR #4 is [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131); Ubuntu and Windows both passed. PR #5's post-merge run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737) is running. Follow-up branch changes must pass a fresh PR CI run before integration.
 
 Local checks:
 
