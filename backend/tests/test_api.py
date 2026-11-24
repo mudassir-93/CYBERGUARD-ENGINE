@@ -17,7 +17,10 @@ class IncidentApiTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.previous_store = api_server.STORE
+        self.previous_intel = api_server.THREAT_INTEL
         api_server.STORE = IncidentStore(Path(self.temp.name) / "api.sqlite3")
+        from threat_intel import ThreatIntelStore
+        api_server.THREAT_INTEL = ThreatIntelStore(api_server.STORE.database_path)
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), api_server.CyberGuardHandler)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
@@ -28,6 +31,7 @@ class IncidentApiTests(unittest.TestCase):
         self.httpd.server_close()
         self.thread.join(timeout=2)
         api_server.STORE = self.previous_store
+        api_server.THREAT_INTEL = self.previous_intel
         self.temp.cleanup()
 
     def request_json(self, path, method="GET", payload=None):
