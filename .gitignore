@@ -17,8 +17,9 @@ venv/
 *.sqlite
 *.sqlite3
 
-# Local datasets and generated model artifacts
+# Local datasets, generated model artifacts, and evaluation reports
 /datasets/
+/reports/
 /artifacts/
 /models/
 
