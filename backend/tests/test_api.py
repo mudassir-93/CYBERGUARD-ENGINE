@@ -95,14 +95,12 @@ class IncidentApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertFalse(body["running"])
 
-
     def test_live_capture_controls_reject_non_loopback_clients(self):
         from unittest.mock import patch
         with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
             with self.assertRaises(HTTPError) as caught:
                 self.request_json("/api/live/start", "POST", {"interface": "test0"})
         self.assertEqual(caught.exception.code, 403)
-
 
     def test_threat_intel_import_and_incident_enrichment_and_notes(self):
         from unittest.mock import patch
@@ -135,7 +133,6 @@ class IncidentApiTests(unittest.TestCase):
                 })
         self.assertEqual(caught.exception.code, 403)
 
-
     def test_all_api_routes_reject_non_loopback_clients(self):
         from unittest.mock import patch
         with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
@@ -148,7 +145,6 @@ class IncidentApiTests(unittest.TestCase):
                     with self.assertRaises(HTTPError) as caught:
                         self.request_json(path, method, payload)
                     self.assertEqual(caught.exception.code, 403)
-
 
     def test_anomaly_scoring_api_uses_configured_local_model(self):
         import os
@@ -170,6 +166,37 @@ class IncidentApiTests(unittest.TestCase):
             with self.assertRaises(HTTPError) as caught:
                 self.request_json("/api/anomaly/score", "POST", {"features": {}})
         self.assertEqual(caught.exception.code, 503)
+
+    def test_analyst_explanation_endpoint_returns_local_model_result(self):
+        from unittest.mock import patch
+        incident, _ = self.application.incidents.ingest({
+            "type": "port_scan", "source_ip": "192.0.2.10",
+            "destination_ip": "192.0.2.20", "evidence": {"distinct_ports": 12},
+        })
+        expected = {"model": "llama3.2:3b", "explanation": "A scan-like pattern was observed."}
+        with patch.object(self.application, "explain_incident", return_value=expected) as explain:
+            status, body = self.request_json("/api/analyst/explain", "POST",
+                                             {"incident_id": incident["id"]})
+        self.assertEqual(status, 200)
+        self.assertEqual(body, expected)
+        explain.assert_called_once_with(incident["id"])
+
+    def test_analyst_endpoint_reports_missing_incident(self):
+        with self.assertRaises(HTTPError) as caught:
+            self.request_json("/api/analyst/explain", "POST", {"incident_id": "CG-MISSING"})
+        self.assertEqual(caught.exception.code, 404)
+
+    def test_analyst_endpoint_requires_incident_id(self):
+        with self.assertRaises(HTTPError) as caught:
+            self.request_json("/api/analyst/explain", "POST", {})
+        self.assertEqual(caught.exception.code, 400)
+
+    def test_analyst_endpoint_rejects_non_loopback_clients(self):
+        from unittest.mock import patch
+        with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/analyst/explain", "POST", {"incident_id": "CG-1"})
+        self.assertEqual(caught.exception.code, 403)
 
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
