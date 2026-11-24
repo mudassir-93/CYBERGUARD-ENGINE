@@ -17,6 +17,7 @@ The local application is composed of these components:
 - A native C++ simulation for the network model, packet logic, and device behavior
 - A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
 - A guided Python CLI for local setup checks, simulation runs, and incident workflows
+- A one-command Windows verification script for C++ build/tests, Python tests, dashboard syntax, and simulator-to-SQLite integration
 - An object-oriented Python application layer that composes repositories, monitoring, simulation, and anomaly-analysis services
 - An optional Python packet sensor for passive IPv4 metadata capture
 
@@ -106,6 +107,9 @@ For Windows, a typical setup is:
 ```powershell
 git clone https://github.com/mudassir-93/CYBERGUARD-ENGINE.git
 cd CYBERGUARD-ENGINE
+
+# Build, run C++/Python tests, and verify the local integration on Windows
+.\scripts\verify-windows.ps1
 ```
 
 ### 2. Build the native C++ project
@@ -274,6 +278,7 @@ The browser dashboard presents a simulated network with device cards, packet cou
 
 For deeper technical details, use the docs folder:
 
+- [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md)
 - [docs/development-process.md](docs/development-process.md)
 - [docs/architecture.md](docs/architecture.md)
 - [docs/oop.md](docs/oop.md)
