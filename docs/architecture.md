@@ -26,7 +26,7 @@ CyberGuard executable (src/main.cpp)
                                +-- Workstation
 
 CyberGuardTests and CyberGuardSmokeTest also link to CyberGuardCore.
-The default browser app is served from the repository root via backend/server.py.
+The default browser app is served from the repository root via `backend/server.py`. The Python runtime is composed by `backend/application.py`; the HTTP handler receives a `CyberGuardApplication` instance through dependency injection. The application owns the incident repository, IOC repository, live monitor, anomaly model lifecycle, and native simulator bridge.
 Legacy files under web/ are kept as reference assets and are not the main entry route.
 ```
 
@@ -110,3 +110,28 @@ the same IPv4 validation. Port zero is representable by the C++ model.
 See [oop.md](oop.md) for class design and ownership details, and
 [development-process.md](development-process.md) for build, test, and browser
 instructions.
+
+## Python Application Object Graph
+
+```text
+create_server()
+    |
+    +-- CyberGuardHandler
+    |       |
+    |       +-- injected CyberGuardApplication
+    |
+    +-- CyberGuardApplication
+            +-- IncidentStore (SQLite repository)
+            +-- ThreatIntelStore (SQLite IOC/notes repository)
+            +-- LiveTrafficMonitor
+            |       +-- DetectionWindowEngine
+            +-- SimulationBridge
+            +-- local anomaly model lifecycle/cache
+```
+
+The application object is the composition root: it creates or receives dependencies,
+owns their lifecycle, and exposes use-case operations to the HTTP layer. This keeps
+the request handler from constructing repositories or relying on module-level
+mutable service globals. The native simulator bridge is an object with injectable
+process execution, allowing its orchestration to be tested without launching a
+real executable.
