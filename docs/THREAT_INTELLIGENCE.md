@@ -8,7 +8,7 @@ API:
 - `GET /api/incidents/{id}` — incident evidence, timeline, exact-match `threat_intel_matches`, and `analyst_notes`.
 - `POST /api/incidents/{id}/notes` — append `{ "note": "...", "author": "..." }`.
 
-Matches compare source/destination IPs and explicit domain/hash fields in evidence. A match is enrichment, not proof of compromise. No match triggers blocking. Writes are loopback-client restricted; the unauthenticated API must remain bound to 127.0.0.1.
+Matches compare source/destination IPs and explicit domain/hash fields in evidence. A match is enrichment, not proof of compromise. No match triggers blocking. All API routes (reads and writes) reject non-loopback clients, even if the server is accidentally bound to a public interface. This is a local-use boundary, not user authentication.
 
 ## Explainable anomaly baseline
 
