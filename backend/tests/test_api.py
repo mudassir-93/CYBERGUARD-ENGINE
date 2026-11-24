@@ -162,7 +162,8 @@ class IncidentApiTests(unittest.TestCase):
                                              {"features": {name: 10.2 for name in FEATURES}})
         self.assertEqual(status, 200)
         self.assertEqual(body["result"]["algorithm"], "IsolationForest")
-\n    def test_anomaly_scoring_api_requires_configured_model(self):
+
+    def test_anomaly_scoring_api_requires_configured_model(self):
         import os
         from unittest.mock import patch
         with patch.dict(os.environ, {}, clear=True):
