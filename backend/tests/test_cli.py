@@ -3,6 +3,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cli import CyberGuardCLI
@@ -22,11 +23,16 @@ class CyberGuardCLITests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.store = IncidentStore(Path(self.temp.name) / "incidents.sqlite3")
         self.output = []
+        self.analyst = Mock()
+        self.analyst.explain.return_value = {
+            "model": "test-model", "explanation": "A suspicious scan-like pattern was observed."
+        }
         self.cli = CyberGuardCLI(
             store=self.store,
             simulation_bridge=FakeSimulationBridge(),
             input_fn=lambda _prompt: "0",
             output_fn=self.output.append,
+            analyst=self.analyst,
         )
 
     def tearDown(self):
@@ -72,6 +78,18 @@ class CyberGuardCLITests(unittest.TestCase):
     def test_simulation_delegates_to_bridge(self):
         self.assertEqual(self.cli.run(["simulate"]), 0)
         self.assertTrue(any("detections_received" in line for line in self.output))
+
+    def test_explain_command_uses_read_only_analyst(self):
+        incident = self.create_incident()
+        self.assertEqual(self.cli.run(["explain", incident["id"]]), 0)
+        self.analyst.explain.assert_called_once()
+        self.assertTrue(any("test-model" in line for line in self.output))
+        self.assertTrue(any("Advisory only" in line for line in self.output))
+
+    def test_explain_command_rejects_unknown_incident(self):
+        self.assertEqual(self.cli.run(["explain", "CG-MISSING"]), 1)
+        self.assertTrue(any("Incident not found" in line for line in self.output))
+        self.analyst.explain.assert_not_called()
 
     def test_interactive_menu_can_exit(self):
         self.assertEqual(self.cli.run([]), 0)
