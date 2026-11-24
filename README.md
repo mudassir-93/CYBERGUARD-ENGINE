@@ -274,3 +274,8 @@ CyberGuard includes a local SQLite-backed incident workspace. Start it with `pyt
 The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. No external feed is fetched and no indicator triggers blocking. The dashboard includes a manual JSON import panel. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
 A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
+
+
+## Application architecture
+
+The application uses object-oriented components across the native and service layers. The Python backend is composed through `CyberGuardApplication`, with repository and adapter objects injected into the HTTP server. The browser dashboard uses feature controllers: `NetworkSimulatorController`, `IncidentDashboardController`, `LiveMonitorController`, `ThreatIntelController`, and `AnomalyDashboardController`. Stateless validation and calculation helpers remain pure functions where that is simpler and clearer. See [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md).
