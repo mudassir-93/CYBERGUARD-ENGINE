@@ -96,7 +96,7 @@ Open `http://127.0.0.1:8000/`. The server is loopback-only and unauthenticated. 
 
 ## Tests and CI
 
-The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest verified post-merge run for PR #4 is [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131); Ubuntu and Windows both passed. PR #5's post-merge run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737) is running. Follow-up branch changes must pass a fresh PR CI run before integration.
+The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest verified post-merge master run is [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737); Ubuntu and Windows both passed. Follow-up branch changes must pass a fresh PR CI run before integration.
 
 Local checks:
 
