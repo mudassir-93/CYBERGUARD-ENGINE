@@ -17,7 +17,8 @@ It records subsequent implementation work with verifiable commit and CI evidence
 **Implementation commits:**
 - `0cd1362a76139254a46ce8b3c13643524bc8abe9` — response/configuration hardening.
 - `bc576410ec4e82b929608729e8261f3275d00e05` — regression tests.
-- `PLACEHOLDER_DOC_COMMIT` — documentation update (replace after commit is returned).
+- `e32f007bf74bbc0513bf1629e90200c755de6040` — documentation update.
+- `40ca8f0fb7eb880e4368579974ed00f58e82db77` — this progress addendum.
 
 **Validation status:** The previous cross-platform CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on both Ubuntu and Windows before this hardening change. A new CI run for these commits is required; do not treat the previous run as validation of the new code.
 
