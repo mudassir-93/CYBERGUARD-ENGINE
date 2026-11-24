@@ -45,7 +45,9 @@ CMakeLists.txt      C++20 targets and test configuration
 | Automated external threat-feed polling / TAXII | Not implemented |
 | Calibrated production ML risk scoring | Not implemented |
 | Simulation/scenario engine and stress runner | Not implemented |
-| SFML interface, Docker, AI | Not implemented |
+| SFML interface, Docker | Not implemented |
+| Optional local AI incident explanation | Implemented in CLI/API using Ollama; CI validation pending |
+| Autonomous AI investigation or response | Not implemented and out of scope for the initial local release |
 | GitHub Actions baseline CI | Added on the upgrade branch; Linux and Windows checks configured |
 
 The first three development phases are represented by the implemented
@@ -155,3 +157,13 @@ Report checks that could not run instead of treating them as successful.
 ## Threat Intelligence and Anomaly Baseline
 
 See [THREAT_INTELLIGENCE.md](THREAT_INTELLIGENCE.md) for the JSON IOC import contract, incident enrichment, analyst notes API, and robust anomaly baseline trainer. These features remain local-first and perform no automated response. The baseline requires representative trusted CSV data and is not a calibrated probability.
+
+
+## Optional Local AI Analyst
+
+Install Ollama locally and pull the configured model (default `llama3.2:3b`).
+Run `python backend/cli.py explain CG-INCIDENTID` or use interactive menu
+option 7. The HTTP API route is `POST /api/analyst/explain`. Configuration,
+loopback restrictions, and safety limitations are documented in
+[LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md). This integration has no additional
+Python package dependency and does not require cloud inference.
