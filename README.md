@@ -119,7 +119,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 The one-command verification script above already configures and builds CyberGuard. If you prefer to build manually with MinGW, use a separate build directory:
 
 ```powershell
-cmake -S . -B build-mingw -G "MinGW Makefiles" -DCYBERGUARD_BUILD_TESTS=ON
+cmake -S . -B build-mingw -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCYBERGUARD_BUILD_TESTS=ON
 cmake --build build-mingw --config Release
 ```
 
@@ -135,8 +135,16 @@ The native test suite covers packet behavior, routing, firewall decisions, flow 
 
 ### 4. Run the native demo
 
+For the default Visual Studio generator used by the verification script:
+
 ```powershell
-.\build\CyberGuard.exe
+.\build\Release\CyberGuard.exe
+```
+
+For the manual MinGW build:
+
+```powershell
+.\build-mingw\CyberGuard.exe
 ```
 
 The console demo runs normal, port-scan, brute-force-pattern, DoS-like, and internal host-sweep scenarios. It aggregates packet outcomes into flows and prints explainable alerts. It never sends real network traffic.
