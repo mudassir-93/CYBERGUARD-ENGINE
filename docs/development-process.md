@@ -9,6 +9,7 @@ This guide reflects the current `master` baseline after PRs #1, #2, and #3. The 
 - `index.html`, `app.js`, `dashboard.css`: primary browser dashboard and its feature controllers.
 - `web/`: legacy browser assets retained for reference.
 - `docs/`: architecture, data contracts, safety boundaries, setup, and milestone tracker.
+- `scripts/`: owner-run verification helpers; no automatic capture or active response.
 
 ## Implemented scope
 
@@ -20,7 +21,8 @@ This guide reflects the current `master` baseline after PRs #1, #2, and #3. The 
 | SQLite incident lifecycle and evidence | Implemented, local-only |
 | Passive IPv4 packet metadata sensor | Optional Scapy adapter; Npcap/libpcap and permissions required |
 | Local IOC catalog and analyst notes | Implemented; explicit imports, exact-match enrichment |
-| Robust anomaly baseline and Isolation Forest | Implemented as experimental local analysis, not calibrated verdicts |\n| Leakage-aware ML evaluation | Implemented; capture/session-grouped holdout and security metrics, awaiting representative owner data |\n| Leakage-aware ML evaluation | New grouped holdout evaluator; awaiting cross-platform CI and independent labeled data |
+| Robust anomaly baseline and Isolation Forest | Implemented as experimental local analysis, not calibrated verdicts |
+| Leakage-aware ML evaluation | Implemented; capture/session-grouped holdout and security metrics, awaiting representative owner data |
 | Local Ollama incident explanation | Optional, read-only, advisory |
 | Guided CLI | Implemented: doctor, summary, incidents, show, status, simulate, explain |
 | Dashboard | Implemented; simulator UI and C++ engine remain separate state domains |
@@ -49,6 +51,17 @@ ctest --test-dir build -C Release --output-on-failure
 ```
 
 If using MinGW, configure with `-G "MinGW Makefiles"` and use the matching build directory consistently.
+
+## Verify the Windows installation
+
+From PowerShell in the repository root, run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\\scripts\\verify-windows.ps1
+```
+
+This helper is part of the Windows verification milestone. It builds the native project, runs C++ and Python tests, checks dashboard syntax when Node.js is installed, executes simulator-to-SQLite integration in a temporary data directory, and runs the local doctor report. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md).
 
 ## Run the guided CLI
 
@@ -82,7 +95,7 @@ Open `http://127.0.0.1:8000/`. The server is loopback-only and unauthenticated. 
 
 ## Tests and CI
 
-The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest verified post-merge run is [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340); both operating-system jobs completed successfully. Follow-up branch changes must pass a fresh PR CI run before integration.
+The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest fully verified post-merge baseline is run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). PR #3's merge commit has a fresh post-merge run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613) in progress. Follow-up branch changes must pass a fresh PR CI run before integration.
 
 Local checks:
 
