@@ -425,7 +425,7 @@ Added a reproducible binary evaluation path for the optional Isolation Forest:
 
 ## 21. Windows owner verification workflow (implemented; merged through PR #4)
 
-Add a safe, repeatable PowerShell entry point for validating CyberGuard on the owner's Windows PC:
+Added a safe, repeatable PowerShell entry point for validating CyberGuard on Windows:
 
 - Detect required local tools and reuse the existing CMake generator, with an explicit generator override for a fresh build directory.
 - Build the native C++20 target and run CTest.
@@ -435,6 +435,7 @@ Add a safe, repeatable PowerShell entry point for validating CyberGuard on the o
 - Never install software, enable packet capture, change firewall rules, or perform active response automatically.
 
 **Validation:** PR CI run [45308210934](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308210934) executed the complete PowerShell script on Windows and passed; Ubuntu also passed. The merge commit is `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`, and post-merge CI run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131) passed both platforms. Owner-PC execution is still pending. Physical Npcap and Ollama checks remain separate opt-in validation.
+
 ## 22. Synthetic ML evaluation demo dataset (implemented; merged through PR #5)
 
 - Added `examples/synthetic-flow-demo.csv`, a deterministic 144-row synthetic flow dataset spanning 12 independent capture groups.
