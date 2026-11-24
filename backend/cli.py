@@ -11,8 +11,9 @@ import importlib.util
 import json
 import subprocess
 from pathlib import Path
-from typing import Callable, Sequence
+from typing import Any, Callable, Sequence
 
+from ai_analyst import OllamaAnalyst
 from incidents import STATUSES, IncidentStore, default_store
 from simulation_bridge import SimulationBridge
 
@@ -26,9 +27,11 @@ class CyberGuardCLI:
         simulation_bridge: SimulationBridge | None = None,
         input_fn: Callable[[str], str] = input,
         output_fn: Callable[[str], None] = print,
+        analyst: Any | None = None,
     ) -> None:
         self.store = store or default_store()
         self.simulation_bridge = simulation_bridge or SimulationBridge()
+        self.analyst = analyst or OllamaAnalyst()
         self.input = input_fn
         self.output = output_fn
 
@@ -58,6 +61,9 @@ class CyberGuardCLI:
         status.add_argument("incident_id")
         status.add_argument("new_status", choices=sorted(STATUSES))
         status.add_argument("--note", default=None, help="Optional resolution note")
+
+        explain = commands.add_parser("explain", help="Ask the local Ollama analyst to explain an incident")
+        explain.add_argument("incident_id")
 
         simulate = commands.add_parser("simulate", help="Run local C++ scenarios and ingest detections")
         simulate.add_argument("--executable", help="Path to the compiled CyberGuard executable")
@@ -96,6 +102,15 @@ class CyberGuardCLI:
         if incident is None:
             raise ValueError(f"Incident not found: {incident_id}")
         self.output(json.dumps(incident, indent=2, ensure_ascii=False))
+
+    def _explain_incident(self, incident_id: str) -> None:
+        incident = self.store.get_incident(incident_id)
+        if incident is None:
+            raise ValueError(f"Incident not found: {incident_id}")
+        result = self.analyst.explain(incident)
+        self.output(f"Local analyst ({result['model']})")
+        self.output(result["explanation"])
+        self.output("Advisory only: verify findings against source telemetry; no response action was taken.")
 
     def _update_status(self, incident_id: str, new_status: str,
                        note: str | None = None) -> None:
@@ -143,6 +158,7 @@ class CyberGuardCLI:
             self.output("  4. Check local setup")
             self.output("  5. Show incident details")
             self.output("  6. Update incident status")
+            self.output("  7. Explain incident with local AI")
             self.output("  0. Exit")
             choice = self.input("Select an option: ").strip()
             if choice == "0":
@@ -173,6 +189,13 @@ class CyberGuardCLI:
                 except ValueError as error:
                     self.output(str(error))
                 continue
+            if choice == "7":
+                incident_id = self.input("Incident ID: ").strip()
+                try:
+                    self._explain_incident(incident_id)
+                except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as error:
+                    self.output(f"Unable to complete action: {error}")
+                continue
             self.output("Choose one of the listed options.")
 
     def run(self, argv: Sequence[str] | None = None) -> int:
@@ -191,6 +214,8 @@ class CyberGuardCLI:
                 self._show_incident(args.incident_id)
             elif args.command == "status":
                 self._update_status(args.incident_id, args.new_status, args.note)
+            elif args.command == "explain":
+                self._explain_incident(args.incident_id)
             elif args.command == "simulate":
                 return self._run_simulation(args.executable)
         except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as error:
