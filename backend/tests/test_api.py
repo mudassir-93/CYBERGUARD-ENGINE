@@ -156,6 +156,31 @@ class IncidentApiTests(unittest.TestCase):
                         self.request_json(path, method, payload)
                     self.assertEqual(caught.exception.code, 403)
 
+
+    def test_anomaly_scoring_api_uses_configured_local_model(self):
+        import os
+        from unittest.mock import patch
+        from ml_isolation_forest import FEATURES, save_model, train_model
+        rows = [{name: 10 + (index % 5) * 0.2 for name in FEATURES} for index in range(60)]
+        model_path = Path(self.temp.name) / "api-model.joblib"
+        save_model(train_model(rows), model_path)
+        api_server.ANOMALY_MODEL_CACHE.clear()
+        with patch.dict(os.environ, {"CYBERGUARD_ANOMALY_MODEL": str(model_path)}):
+            status, body = self.request_json("/api/anomaly/score", "POST",
+                                             {"features": {name: 10.2 for name in FEATURES}})
+        self.assertEqual(status, 200)
+        self.assertEqual(body["result"]["algorithm"], "IsolationForest")
+        api_server.ANOMALY_MODEL_CACHE.clear()
+
+    def test_anomaly_scoring_api_requires_configured_model(self):
+        import os
+        from unittest.mock import patch
+        api_server.ANOMALY_MODEL_CACHE.clear()
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/anomaly/score", "POST", {"features": {}})
+        self.assertEqual(caught.exception.code, 503)
+
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
             self.request_json("/api/detections", "POST", {"type": "not-a-rule"})
