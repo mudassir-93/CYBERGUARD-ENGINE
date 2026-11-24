@@ -3,14 +3,12 @@ import sys
 import tempfile
 import threading
 import unittest
-from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import server as api_server
-from incidents import IncidentStore
 
 
 class IncidentApiTests(unittest.TestCase):
@@ -159,16 +157,15 @@ class IncidentApiTests(unittest.TestCase):
         rows = [{name: 10 + (index % 5) * 0.2 for name in FEATURES} for index in range(60)]
         model_path = Path(self.temp.name) / "api-model.joblib"
         save_model(train_model(rows), model_path)
-                with patch.dict(os.environ, {"CYBERGUARD_ANOMALY_MODEL": str(model_path)}):
+        with patch.dict(os.environ, {"CYBERGUARD_ANOMALY_MODEL": str(model_path)}):
             status, body = self.request_json("/api/anomaly/score", "POST",
                                              {"features": {name: 10.2 for name in FEATURES}})
         self.assertEqual(status, 200)
         self.assertEqual(body["result"]["algorithm"], "IsolationForest")
-        
-    def test_anomaly_scoring_api_requires_configured_model(self):
+\n    def test_anomaly_scoring_api_requires_configured_model(self):
         import os
         from unittest.mock import patch
-                with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(HTTPError) as caught:
                 self.request_json("/api/anomaly/score", "POST", {"features": {}})
         self.assertEqual(caught.exception.code, 503)
