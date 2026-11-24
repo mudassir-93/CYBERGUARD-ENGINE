@@ -177,6 +177,8 @@ You can also run individual commands:
 
 ```powershell
 python backend/cli.py doctor
+python backend/cli.py dashboard
+python backend/cli.py dashboard --port 8080
 python backend/cli.py summary
 python backend/cli.py incidents --status new --limit 20
 python backend/cli.py show CG-INCIDENTID
@@ -185,7 +187,7 @@ python backend/cli.py simulate
 python backend/cli.py explain CG-INCIDENTID
 ```
 
-The CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. Start with the setup check:
+The CLI works directly with the local SQLite store and native simulator bridge. It starts the dashboard server only when you explicitly run `dashboard`; that server binds to `127.0.0.1` and is not exposed to your LAN. Start with the setup check:
 
 ```powershell
 python backend/cli.py doctor
