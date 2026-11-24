@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import ipaddress
 import json
+import math
 import os
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -16,6 +17,9 @@ from urllib.request import Request, urlopen
 
 class OllamaAnalyst:
     """Small standard-library client for Ollama's local chat API."""
+
+    MAX_INCIDENT_BYTES = 24_000
+    MAX_RESPONSE_BYTES = 16_384
 
     def __init__(
         self,
@@ -46,9 +50,10 @@ class OllamaAnalyst:
                 or parsed.password or parsed.path not in ("", "/")
                 or parsed.query or parsed.fragment):
             raise ValueError("Ollama must use an HTTP loopback URL without credentials or a path")
-        if not self.model.strip():
-            raise ValueError("Ollama model name cannot be empty")
-        if not 1 <= self.timeout <= 180:
+        if not isinstance(self.model, str) or not self.model.strip() or len(self.model) > 200:
+            raise ValueError("Ollama model name must contain 1-200 characters")
+        if (isinstance(self.timeout, bool) or not isinstance(self.timeout, (int, float))
+                or not math.isfinite(self.timeout) or not 1 <= self.timeout <= 180):
             raise ValueError("Ollama timeout must be between 1 and 180 seconds")
 
     def explain(self, incident: dict[str, Any]) -> dict[str, str]:
@@ -66,7 +71,7 @@ class OllamaAnalyst:
             if key in incident
         }
         serialized = json.dumps(evidence, ensure_ascii=False, default=str)
-        if len(serialized.encode("utf-8")) > 24000:
+        if len(serialized.encode("utf-8")) > self.MAX_INCIDENT_BYTES:
             raise ValueError("Incident evidence is too large for local analysis")
 
         payload = {
@@ -103,7 +108,12 @@ class OllamaAnalyst:
         )
         try:
             with self._opener(request, timeout=self.timeout) as response:
-                result = json.loads(response.read().decode("utf-8"))
+                raw = response.read(self.MAX_RESPONSE_BYTES + 1)
+            if len(raw) > self.MAX_RESPONSE_BYTES:
+                raise RuntimeError("Ollama response exceeded the 16 KB safety limit")
+            result = json.loads(raw.decode("utf-8"))
+        except RuntimeError:
+            raise
         except (HTTPError, URLError, TimeoutError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
             raise RuntimeError(
                 "Local Ollama is unavailable or returned an invalid response; "
