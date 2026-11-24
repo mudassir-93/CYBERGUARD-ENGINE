@@ -142,6 +142,20 @@ class IncidentApiTests(unittest.TestCase):
                 })
         self.assertEqual(caught.exception.code, 403)
 
+
+    def test_all_api_routes_reject_non_loopback_clients(self):
+        from unittest.mock import patch
+        with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
+            for path, method, payload in (
+                ("/api/health", "GET", None),
+                ("/api/detections", "POST", {"type": "port_scan", "source_ip": "10.0.0.1"}),
+                ("/api/incidents/CG-NOTREAL/status", "PATCH", {"status": "resolved"}),
+            ):
+                with self.subTest(path=path):
+                    with self.assertRaises(HTTPError) as caught:
+                        self.request_json(path, method, payload)
+                    self.assertEqual(caught.exception.code, 403)
+
     def test_invalid_detection_returns_client_error(self):
         with self.assertRaises(HTTPError) as caught:
             self.request_json("/api/detections", "POST", {"type": "not-a-rule"})
