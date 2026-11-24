@@ -14,6 +14,9 @@ class FakeSimulationBridge:
     def __init__(self, report=None):
         self.report = report or {"detections_received": 0, "incidents_created": 0}
 
+    def find_executable(self, explicit=None):
+        return Path(explicit or "build/CyberGuard.exe")
+
     def run(self, executable=None, store=None):
         return self.report
 
