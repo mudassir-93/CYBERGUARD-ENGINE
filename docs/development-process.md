@@ -40,7 +40,7 @@ CMakeLists.txt      C++20 targets and test configuration
 | API network boundary | Implemented (all API reads/writes loopback-only) |
 | OOP backend composition root | Implemented (application owns services; HTTP handler uses dependency injection) |
 | OOP native simulator bridge | Implemented (SimulationBridge encapsulates executable discovery, execution, and JSONL ingestion) |
-| OOP ML inference | Implemented (IsolationForestAnalyzer owns the loaded model and scoring interface) |
+| OOP ML inference | Implemented (IsolationForestAnalyzer owns the loaded model and scoring interface) |\n| Guided local CLI | Implemented (interactive menu, setup checks, simulation, incident list/detail/status commands) |
 | Automated defensive response / blocking | Not implemented |
 | Automated external threat-feed polling / TAXII | Not implemented |
 | Calibrated production ML risk scoring | Not implemented |
@@ -96,7 +96,7 @@ the network simulator, incidents, live monitoring, threat intelligence, and
 anomaly-scoring UI. These counts describe the completed CI run for commit
 `0f82a957`; consult the latest Actions run for any later commit.
 
-## Run the Browser Simulator
+## Use the Guided CLI\n\nRun the interactive local workspace from the repository root:\n\n```powershell\npython backend/cli.py\n```\n\nAvailable commands include:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --severity high\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI accesses the local SQLite repositories directly and runs the native simulator through the existing process bridge. It does not start an HTTP listener or enable active network response.\n\n## Run the Browser Simulator
 
 Start the backend server from the repository root:
 
