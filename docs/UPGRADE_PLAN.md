@@ -1,10 +1,10 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** The initial simulator, detection, incident-management, passive IPv4 monitoring, IOC enrichment, anomaly-analysis, OOP, guided CLI, and optional read-only Ollama analyst milestones are merged into `master` by PR [#1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/1). Merge commit: `022b310a110794005a1b6cf5e71a6a452c5d9328`. Post-merge Windows and Ubuntu CI both passed in run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340). A follow-up CLI readiness milestone is being implemented on `feature/cli-doctor-readiness`; it adds an optional local Ollama health/model check to `cyberguard doctor`.  
+**Status:** The initial simulator, detection, incident-management, passive IPv4 monitoring, IOC enrichment, anomaly-analysis, OOP, guided CLI, and optional read-only Ollama analyst milestones are merged into `master` by PR [#1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/1). Merge commit: `022b310a110794005a1b6cf5e71a6a452c5d9328`. Post-merge Windows and Ubuntu CI both passed in run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340). The CLI readiness milestone is under PR #2 (`feature/cli-doctor-readiness`). A leakage-aware ML evaluation milestone is under PR #3 (`feature/ml-evaluation-pipeline`).  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
-**Current implementation branch:** `feature/cli-doctor-readiness`
+**Current implementation branch:** `feature/ml-evaluation-pipeline`
 
 ## 1. Product vision
 
@@ -407,3 +407,18 @@ The guided `doctor` command is being extended to diagnose the optional local AI 
 - Unit tests cover ready, missing-model, and unavailable-service cases; CLI tests ensure the optional dependency does not make doctor fail.
 
 **Validation gate:** focused Python tests, full backend suite, C++ build/tests, dashboard JavaScript syntax, simulator-to-SQLite integration, and hosted Windows/Ubuntu CI must pass before merge. Actual Ollama inference and Npcap capture remain PC-specific checks.
+
+
+## 20. Leakage-aware ML evaluation workflow (implementation in progress)
+
+Added a reproducible binary evaluation path for the optional Isolation Forest:
+
+- Reads the versioned five-feature flow CSV plus ground-truth label and capture/session group columns.
+- Requires both benign and malicious observations and validates every feature value; malformed rows fail closed.
+- Splits by whole capture/session groups, never by individual rows, and refuses to fall back to a leakage-prone random row split.
+- Trains the anomaly model only on benign training observations and evaluates once on held-out groups.
+- Reports accuracy, balanced accuracy, malicious precision/recall/F1, benign specificity, false-positive/negative rates, confusion matrix, sample/group counts, and mean/p95 inference latency.
+- Writes a JSON report atomically and keeps datasets/model artifacts out of the repository.
+- Documents dataset, label, grouping, contamination, and interpretation requirements in [docs/ML_EVALUATION.md](ML_EVALUATION.md).
+
+**Validation gate:** automated tests must cover group isolation, split validity, input validation, metric calculation, and report output; the complete Python suite and Windows/Ubuntu CI must pass. No benchmark dataset is bundled, and no performance claim is made until the owner supplies a properly licensed, representative dataset.
