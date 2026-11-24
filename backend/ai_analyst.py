@@ -31,7 +31,7 @@ class OllamaAnalyst:
         self.base_url = (base_url or os.environ.get(
             "CYBERGUARD_OLLAMA_URL", "http://127.0.0.1:11434"
         )).rstrip("/")
-        self.model = model or os.environ.get(
+        self.model = model if model is not None else os.environ.get(
             "CYBERGUARD_OLLAMA_MODEL", "llama3.2:3b"
         )
         self.timeout = timeout if timeout is not None else float(
