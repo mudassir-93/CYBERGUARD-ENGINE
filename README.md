@@ -165,7 +165,25 @@ python backend/cli.py simulate
 python backend/cli.py explain CG-INCIDENTID
 ```
 
-The CLI works directly with the local SQLite store and native simulator bridge. Its `doctor` command checks the simulator, optional Scapy/scikit-learn dependencies, and the optional loopback Ollama service/model. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.
+The CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. Start with the setup check:
+
+```powershell
+python backend/cli.py doctor
+```
+
+The doctor report checks the SQLite database and native simulator, and reports optional Scapy, scikit-learn, and local Ollama readiness. Ollama is checked through its loopback-only `/api/tags` endpoint with a short timeout. If the configured model (default `llama3.2:3b`) is missing, the report prints the matching `ollama pull <model>` command. Missing optional tools do not prevent the core simulator and incident workspace from running.
+
+Useful incident workflows:
+
+```powershell
+python backend/cli.py summary
+python backend/cli.py incidents --status new --limit 20
+python backend/cli.py show CG-INCIDENTID
+python backend/cli.py status CG-INCIDENTID acknowledged
+python backend/cli.py explain CG-INCIDENTID
+```
+
+The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.
 
 ### 7. Open the browser dashboard
 
@@ -227,9 +245,9 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified post-merge cross-platform CI run for master commit `022b310a110794005a1b6cf5e71a6a452c5d9328` completed successfully on both Ubuntu and Windows (GitHub Actions run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340)). Both jobs passed the C++ build/tests, Python syntax/tests, dashboard JavaScript syntax, and C++-to-SQLite integration.
+The latest verified post-merge cross-platform baseline is master commit `022b310a110794005a1b6cf5e71a6a452c5d9328`; both Ubuntu and Windows passed in GitHub Actions run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340).
 
-| Check | Post-merge result |
+| Check | Verified master baseline |
 | --- | --- |
 | Windows CI job | Passed |
 | Ubuntu CI job | Passed |
@@ -237,6 +255,8 @@ The latest verified post-merge cross-platform CI run for master commit `022b310a
 | Python syntax and backend tests | Passed on both platforms |
 | Dashboard JavaScript syntax | Passed on both platforms |
 | C++ to SQLite integration | Passed on both platforms |
+
+The follow-up CLI/Ollama readiness changes are under review in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2). Its Ubuntu PR job has passed; its Windows job must also finish successfully before merge. Do not interpret the master baseline above as validation of unmerged PR changes.
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
