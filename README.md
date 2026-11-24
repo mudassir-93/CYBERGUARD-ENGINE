@@ -165,7 +165,7 @@ python backend/cli.py simulate
 python backend/cli.py explain CG-INCIDENTID
 ```
 
-The CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.
+The CLI works directly with the local SQLite store and native simulator bridge. Its `doctor` command checks the simulator, optional Scapy/scikit-learn dependencies, and the optional loopback Ollama service/model. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.
 
 ### 7. Open the browser dashboard
 
@@ -227,7 +227,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified cross-platform CI run for commit `f9b0436495bf3cf751535c6a1335ccd776e0ca5b` completed successfully on both Ubuntu and Windows (GitHub Actions run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562)). It built the C++ project, ran C++ and Python tests, checked Python and dashboard JavaScript syntax, and ran the C++-to-SQLite integration, including the latest CLI and local AI analyst changes.
+The latest verified post-merge cross-platform CI run for master commit `022b310a110794005a1b6cf5e71a6a452c5d9328` completed successfully on both Ubuntu and Windows (GitHub Actions run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340)). Both jobs passed the C++ build/tests, Python syntax/tests, dashboard JavaScript syntax, and C++-to-SQLite integration.
 
 | Check | Earlier verified milestone |
 | --- | --- |
