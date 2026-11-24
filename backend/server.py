@@ -14,6 +14,12 @@ MAX_BODY_BYTES = 1_000_000
 class CyberGuardHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
+
+    def setup(self):
+        # BaseRequestHandler assigns self.server before setup(), and setup()
+        # runs before handle(); bind dependencies here so the first request
+        # can never observe an uninitialized application.
+        super().setup()
         self.application: CyberGuardApplication = self.server.application
 
     def log_message(self, format, *args):
