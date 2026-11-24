@@ -135,3 +135,19 @@ the request handler from constructing repositories or relying on module-level
 mutable service globals. The native simulator bridge is an object with injectable
 process execution, allowing its orchestration to be tested without launching a
 real executable.
+
+
+## Browser Application Object Graph
+
+```text
+app.js
+  +-- NetworkSimulatorController
+  +-- IncidentDashboardController
+  +-- LiveMonitorController
+  |      +-- IncidentDashboardController (injected)
+  +-- ThreatIntelController
+  |      +-- IncidentDashboardController (injected)
+  +-- AnomalyDashboardController
+```
+
+The JavaScript controllers own their feature-specific UI state, DOM references, event handlers, and async API interactions. The live-monitor and threat-intelligence controllers receive the incident controller as a dependency when they need to refresh the incident view. The browser simulator remains an independent presentation simulation; it does not call the native C++ network engine.
