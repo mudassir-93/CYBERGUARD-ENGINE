@@ -7,6 +7,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ml_anomaly import FEATURES
 from ml_evaluate import evaluate_rows, load_labeled_rows, split_by_group
 
+try:
+    import sklearn  # noqa: F401
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+
 
 def fixture_rows(group_count=12):
     rows = []
@@ -29,6 +35,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual({r["label"] for r in train}, {"benign", "malicious"})
         self.assertEqual({r["label"] for r in test}, {"benign", "malicious"})
 
+    @unittest.skipUnless(ML_AVAILABLE, "optional scikit-learn dependencies are not installed")
     def test_evaluation_reports_security_metrics_and_latency(self):
         report = evaluate_rows(fixture_rows(), seed=13)
         self.assertEqual(report["split"]["group_overlap"], 0)
