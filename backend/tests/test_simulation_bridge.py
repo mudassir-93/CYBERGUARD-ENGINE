@@ -50,7 +50,7 @@ class SimulationBridgeTests(unittest.TestCase):
         binary = root / "CyberGuard"
         binary.write_text("test executable", encoding="utf-8")
         kinds = ("port_scan", "brute_force", "dos", "lateral_movement")
-        output = "\\n".join(
+        output = "\n".join(
             __import__("json").dumps({
                 "type": kind, "source_ip": "10.0.0.20",
                 "destination_ip": "10.0.0.10", "protocol": "TCP"
