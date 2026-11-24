@@ -25,7 +25,7 @@ This guide reflects the current `master` baseline after PRs #1 through #5. The W
 | Robust anomaly baseline and Isolation Forest | Implemented as experimental local analysis, not calibrated verdicts |
 | Leakage-aware ML evaluation | Implemented; capture/session-grouped holdout and security metrics, awaiting representative owner data |
 | Local Ollama incident explanation | Optional, read-only, advisory |
-| Guided CLI | Implemented: doctor, summary, incidents, show, status, simulate, explain |
+| Guided CLI | Implemented: doctor, summary, incidents, show, status, simulate, explain, and explicit loopback dashboard launch |
 | Dashboard | Implemented; simulator UI and C++ engine remain separate state domains |
 | Remote multi-user authentication/authorization | Not implemented |
 | Automatic blocking or response | Not implemented and out of scope for initial local release |
