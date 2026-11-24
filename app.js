@@ -442,7 +442,8 @@ loadIncidents();
 }
 
 class LiveMonitorController {
-  constructor() {
+  constructor(incidentController) {
+    this.incidentController = incidentController;
 this.liveElements = {
   state: document.querySelector('#liveCaptureState'),
   interface: document.querySelector('#liveInterfaceSelect'),
@@ -500,7 +501,7 @@ async refreshLiveInterfaces() {
   }
 }
 
-this.this.lastLiveDetectionCount = -1;
+
 
 async refreshLiveStatus() {
   try {
@@ -562,7 +563,7 @@ this.liveElements.stop.addEventListener('click', async () => {
 
 this.liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
 refreshLiveInterfaces();
-window.setInterval(refreshLiveStatus, 3000);
+window.setInterval(this.refreshLiveStatus, 3000);
   }
 }
 
@@ -640,6 +641,6 @@ class AnomalyDashboardController {
 
 const networkSimulator = new NetworkSimulatorController();
 const incidentDashboard = new IncidentDashboardController();
-const liveMonitor = new LiveMonitorController();
+const liveMonitor = new LiveMonitorController(incidentDashboard);
 const threatIntel = new ThreatIntelController(incidentDashboard);
 const anomalyDashboard = new AnomalyDashboardController();
