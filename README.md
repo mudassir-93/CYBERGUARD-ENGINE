@@ -199,12 +199,12 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest completed cross-platform GitHub Actions milestone (commit `0f82a957`) passed on both Ubuntu and Windows:
+The previously completed cross-platform GitHub Actions milestone (commit `0f82a957`) passed on both Ubuntu and Windows. The newer threat-intelligence and optional Isolation Forest milestone adds further Python tests and an ML dependency; its latest cross-platform CI run is still pending verification:
 
 | Check | Ubuntu | Windows |
 | --- | ---: | ---: |
 | C++ automated tests | 32/32 | 32/32 |
-| Python backend tests | 30/30 | 30/30 |
+| Python backend tests (previous milestone) | 30/30 | 30/30 |
 | C++ build and CTest | Passed | Passed |
 | Python syntax | Passed | Passed |
 | Dashboard JavaScript syntax | Passed | Passed |
