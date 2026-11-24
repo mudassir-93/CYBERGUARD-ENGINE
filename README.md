@@ -135,13 +135,19 @@ The native test suite covers packet behavior, routing, firewall decisions, flow 
 
 ### 4. Run the native demo
 
-For the default Visual Studio generator used by the verification script:
+For a Visual Studio multi-configuration build:
 
 ```powershell
 .\build\Release\CyberGuard.exe
 ```
 
-For the manual MinGW build:
+For a single-configuration build created directly in `build` (for example, when CMake selects MinGW):
+
+```powershell
+.\build\CyberGuard.exe
+```
+
+For the separate manual MinGW build shown above:
 
 ```powershell
 .\build-mingw\CyberGuard.exe
