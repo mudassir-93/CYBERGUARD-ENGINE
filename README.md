@@ -16,6 +16,7 @@ CyberGuard combines three local components:
 
 - A native C++ simulation for the network model, packet logic, and device behavior
 - A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
+- A guided Python CLI for local setup checks, simulation runs, and incident workflows
 - An object-oriented Python application layer that composes repositories, monitoring, simulation, and anomaly-analysis services
 - An optional Python packet sensor for passive IPv4 metadata capture
 
@@ -62,7 +63,7 @@ Not implemented yet:
 
 Detection rules are starter heuristics, not proof of compromise. Live capture inspects TCP SYN metadata but does not inspect authentication events, packet payloads, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for simulator thresholds and [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for optional capture setup, detection limits, and permissions.
 
-Object-oriented design, application composition, and dependency-injection conventions are documented in [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md). The C++ simulator uses domain classes; the Python backend uses repositories and services; declarative formats such as HTML/CSS/YAML remain declarative. The JavaScript dashboard is still being reorganized into cohesive UI controller classes.
+Object-oriented design, application composition, and dependency-injection conventions are documented in [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md). The C++ simulator uses domain classes; the Python backend uses repositories, services, a composition root, and a guided CLI controller; the JavaScript dashboard uses five feature controllers. Declarative formats such as HTML/CSS/YAML remain declarative.
 
 Detailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
 
@@ -143,7 +144,7 @@ python backend/run_simulation.py
 
 The dashboard also provides a **Run C++ simulation** action. It executes the local native binary, receives structured JSON Lines detections, and persists incidents. Set `CYBERGUARD_EXECUTABLE` if the executable is outside the standard build folders.
 
-### 6. Open the browser dashboard
+### 6. Use the guided CLI (optional)\n\nFrom the repository root, open the interactive local workspace:\n\n```powershell\npython backend/cli.py\n```\n\nYou can also run individual commands:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --limit 20\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. Live packet capture remains a separate, optional dashboard workflow.\n\n### 7. Open the browser dashboard
 
 From the repository root:
 
@@ -203,7 +204,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The earlier cross-platform CI milestone (commit `0f82a957`) passed on both Ubuntu and Windows. The current branch CI workflow additionally installs the optional Scapy and scikit-learn dependencies, runs the expanded Python suite, checks Python and dashboard JavaScript syntax, builds/tests the C++ project, and runs the C++-to-SQLite integration. The latest branch commit still requires a confirmed Actions result; the earlier test counts below must not be mistaken for verification of the newer additions.
+The latest verified cross-platform CI run for branch commit `7eec0cd0` completed successfully on both Ubuntu and Windows (GitHub Actions run [45301469257](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45301469257)). It built the C++ project, ran all C++ and Python tests, checked Python and dashboard JavaScript syntax, and ran the C++-to-SQLite integration. The CLI syntax check was added after that run and will be verified by the next CI run.
 
 | Check | Earlier verified milestone |
 | --- | --- |
