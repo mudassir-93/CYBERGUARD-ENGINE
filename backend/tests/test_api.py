@@ -16,12 +16,8 @@ from incidents import IncidentStore
 class IncidentApiTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.previous_store = api_server.STORE
-        self.previous_intel = api_server.THREAT_INTEL
-        api_server.STORE = IncidentStore(Path(self.temp.name) / "api.sqlite3")
-        from threat_intel import ThreatIntelStore
-        api_server.THREAT_INTEL = ThreatIntelStore(api_server.STORE.database_path)
-        self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), api_server.CyberGuardHandler)
+        self.application = api_server.create_application(self.temp.name)
+        self.httpd = api_server.create_server("127.0.0.1", 0, self.application)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
         self.base = "http://127.0.0.1:" + str(self.httpd.server_port)
@@ -30,8 +26,7 @@ class IncidentApiTests(unittest.TestCase):
         self.httpd.shutdown()
         self.httpd.server_close()
         self.thread.join(timeout=2)
-        api_server.STORE = self.previous_store
-        api_server.THREAT_INTEL = self.previous_intel
+        self.application.close()
         self.temp.cleanup()
 
     def request_json(self, path, method="GET", payload=None):
@@ -71,33 +66,33 @@ class IncidentApiTests(unittest.TestCase):
         from unittest.mock import patch
         report = {"detections_received": 4, "incidents_created": 4, "detections_correlated": 0,
                   "by_type": {"port_scan": 1, "brute_force": 1, "dos": 1, "lateral_movement": 1}}
-        with patch.object(api_server, "run_simulation", return_value=report):
+        with patch.object(self.application, "run_simulation", return_value=report):
             status, body = self.request_json("/api/simulate", "POST", {})
         self.assertEqual(status, 200)
         self.assertEqual(body["detections_received"], 4)
 
     def test_live_monitor_status_endpoint(self):
         from unittest.mock import patch
-        with patch.object(api_server.LIVE_MONITOR, "status", return_value={"available": False, "running": False}):
+        with patch.object(self.application.live_monitor, "status", return_value={"available": False, "running": False}):
             status, body = self.request_json("/api/live/status")
         self.assertEqual(status, 200)
         self.assertFalse(body["available"])
 
     def test_live_interface_endpoint_reports_optional_dependency(self):
         from unittest.mock import patch
-        with patch.object(api_server, "list_capture_interfaces", side_effect=RuntimeError("Scapy is missing")):
+        with patch.object(self.application, "list_interfaces", side_effect=RuntimeError("Scapy is missing")):
             with self.assertRaises(HTTPError) as caught:
                 self.request_json("/api/live/interfaces")
         self.assertEqual(caught.exception.code, 503)
 
     def test_live_start_and_stop_endpoints(self):
         from unittest.mock import patch
-        with patch.object(api_server.LIVE_MONITOR, "start", return_value={"running": True}) as start:
+        with patch.object(self.application.live_monitor, "start", return_value={"running": True}) as start:
             status, body = self.request_json("/api/live/start", "POST", {"interface": "test0"})
         self.assertEqual(status, 200)
         self.assertTrue(body["running"])
         start.assert_called_once_with("test0")
-        with patch.object(api_server.LIVE_MONITOR, "stop", return_value={"running": False}):
+        with patch.object(self.application.live_monitor, "stop", return_value={"running": False}):
             status, body = self.request_json("/api/live/stop", "POST")
         self.assertEqual(status, 200)
         self.assertFalse(body["running"])
@@ -164,19 +159,16 @@ class IncidentApiTests(unittest.TestCase):
         rows = [{name: 10 + (index % 5) * 0.2 for name in FEATURES} for index in range(60)]
         model_path = Path(self.temp.name) / "api-model.joblib"
         save_model(train_model(rows), model_path)
-        api_server.ANOMALY_MODEL_CACHE.clear()
-        with patch.dict(os.environ, {"CYBERGUARD_ANOMALY_MODEL": str(model_path)}):
+                with patch.dict(os.environ, {"CYBERGUARD_ANOMALY_MODEL": str(model_path)}):
             status, body = self.request_json("/api/anomaly/score", "POST",
                                              {"features": {name: 10.2 for name in FEATURES}})
         self.assertEqual(status, 200)
         self.assertEqual(body["result"]["algorithm"], "IsolationForest")
-        api_server.ANOMALY_MODEL_CACHE.clear()
-
+        
     def test_anomaly_scoring_api_requires_configured_model(self):
         import os
         from unittest.mock import patch
-        api_server.ANOMALY_MODEL_CACHE.clear()
-        with patch.dict(os.environ, {}, clear=True):
+                with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(HTTPError) as caught:
                 self.request_json("/api/anomaly/score", "POST", {"features": {}})
         self.assertEqual(caught.exception.code, 503)
