@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from incidents import IncidentStore
-from simulation_bridge import ingest_jsonl
+from simulation_bridge import SimulationBridge, ingest_jsonl
 
 
 class SimulationBridgeTests(unittest.TestCase):
@@ -41,6 +41,27 @@ class SimulationBridgeTests(unittest.TestCase):
     def test_rejects_malformed_native_output(self):
         with self.assertRaises(ValueError):
             ingest_jsonl('{"type":\n', self.store)
+
+
+    def test_bridge_object_executes_native_program(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        root = Path(self.temp.name)
+        binary = root / "CyberGuard"
+        binary.write_text("test executable", encoding="utf-8")
+        kinds = ("port_scan", "brute_force", "dos", "lateral_movement")
+        output = "\\n".join(
+            __import__("json").dumps({
+                "type": kind, "source_ip": "10.0.0.20",
+                "destination_ip": "10.0.0.10", "protocol": "TCP"
+            }) for kind in kinds
+        )
+        runner = Mock(return_value=SimpleNamespace(returncode=0, stdout=output, stderr=""))
+        bridge = SimulationBridge(repository_root=root, process_runner=runner)
+        report = bridge.run(store=self.store)
+        self.assertEqual(report["detections_received"], 4)
+        self.assertEqual(set(report["by_type"]), set(kinds))
+        runner.assert_called_once()
 
 
 if __name__ == "__main__":
