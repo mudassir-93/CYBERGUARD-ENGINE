@@ -38,25 +38,26 @@ The browser dashboard is served by a local Python API. It can display persisted 
 
 The implemented scope includes the C++ network simulator, flow aggregation, deterministic normal/suspicious traffic scenarios, first-generation detection rules, and the browser dashboard.
 
-Completed phases include:
+Completed foundations include:
 
-- Project foundation
-- Device model and ownership
-- Packet creation and routing
-- Firewall rule evaluation
-- Flow aggregation and simulated threat detection
-- SQLite incident management and native simulator integration
-- Optional passive IPv4 monitoring foundation
+- Project foundation, device model, packet routing, and firewall rule evaluation
+- Flow aggregation, bounded threat scenarios, and explainable simulator detections
+- SQLite incident management and native simulator-to-incident integration
+- Optional passive IPv4 metadata monitoring with a dashboard capture workflow
+- Local IOC catalog with explicit JSON import, incident enrichment, and append-only analyst notes
+- Dependency-free median/MAD anomaly baseline and optional scikit-learn Isolation Forest training/scoring
+- Manual dashboard anomaly scoring through a loopback-only API endpoint
+- Loopback-only enforcement for all API reads and writes
 
 Not implemented yet:
 
 - production-grade network telemetry, calibrated detections, and IPv6/VLAN coverage
-- authentication, authorization, multi-tenant operations, and production deployment hardening
-- ML-based anomaly detection and calibrated risk scoring
+- analyst authentication, authorization, multi-tenant operations, and production deployment hardening
+- calibrated ML risk scoring and validation against representative labeled traffic
 - automated response or blocking actions
 - SFML interface
 - Docker deployment
-- AI-based automation
+- automated AI investigation or response
 
 Detection rules are starter heuristics, not proof of compromise. Live capture inspects TCP SYN metadata but does not inspect authentication events, packet payloads, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for simulator thresholds and [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for optional capture setup, detection limits, and permissions.
 
@@ -199,18 +200,18 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The previously completed cross-platform GitHub Actions milestone (commit `0f82a957`) passed on both Ubuntu and Windows. The newer threat-intelligence and optional Isolation Forest milestone adds further Python tests and an ML dependency; its latest cross-platform CI run is still pending verification:
+The earlier cross-platform CI milestone (commit `0f82a957`) passed on both Ubuntu and Windows. The current branch CI workflow additionally installs the optional Scapy and scikit-learn dependencies, runs the expanded Python suite, checks Python and dashboard JavaScript syntax, builds/tests the C++ project, and runs the C++-to-SQLite integration. The latest branch commit still requires a confirmed Actions result; the earlier test counts below must not be mistaken for verification of the newer additions.
 
-| Check | Ubuntu | Windows |
-| --- | ---: | ---: |
-| C++ automated tests | 32/32 | 32/32 |
-| Python backend tests (previous milestone) | 30/30 | 30/30 |
-| C++ build and CTest | Passed | Passed |
-| Python syntax | Passed | Passed |
-| Dashboard JavaScript syntax | Passed | Passed |
-| C++ to SQLite integration | Passed | Passed |
+| Check | Earlier verified milestone |
+| --- | --- |
+| C++ automated tests | 32/32 on Ubuntu and Windows |
+| Python backend tests | 30/30 on Ubuntu and Windows |
+| C++ build and CTest | Passed on Ubuntu and Windows |
+| Python syntax | Passed |
+| Dashboard JavaScript syntax | Passed |
+| C++ to SQLite integration | Passed |
 
-These are CI results, not a claim that physical packet capture has been verified on every user's network adapter. Real adapter capture still requires host-specific Npcap/libpcap and permission checks. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md).
+Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
 ## Screenshots
 
