@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Core simulator, flow aggregation, deterministic detections, passive IPv4 monitoring foundation, incident investigation, local IOC catalog, anomaly tooling, backend/browser OOP refactor, guided CLI, and optional read-only Ollama incident analyst are implemented on the isolated branch. Fresh cross-platform CI for the CLI and AI analyst changes is pending; do not treat the latest batch as verified until both hosted jobs finish green.  
+**Status:** The simulator, flow aggregation, first-generation detections, passive IPv4 monitoring foundation, incident management, local IOC catalog, anomaly tooling, OOP refactor, guided CLI, and optional read-only Ollama incident analyst are implemented on the isolated branch. Latest cross-platform CI passed on Windows and Ubuntu for commit `f9b0436495bf3cf751535c6a1335ccd776e0ca5b` (run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562)). Integration PR [#1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/1) is open; merge is gated on the PR's own checks.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -64,8 +64,8 @@ The repository is a small C++20/CMake project with a separate browser simulation
 2. The C++ engine is an in-memory simulator; it does not send network traffic. Optional live monitoring is a separate passive IPv4 metadata sensor.
 3. The native engine has bidirectional flow aggregation and bounded deterministic scenarios/detections. The live sensor has narrower metadata-only heuristics and does not inspect payloads, process identity, or authentication outcomes.
 4. The Python backend is an application/API layer with SQLite incident management, IOC enrichment, analyst notes, anomaly scoring, and a native simulator bridge; it is no longer a static-file server only.
-5. The browser dashboard is organized into five feature controllers. A guided local CLI was added after the latest green CI run and still requires CI validation.
-6. Cross-platform CI passed at commit `7eec0cd0` (32/32 C++ and 51/51 Python tests on Ubuntu and Windows). Later CLI changes must be validated by the next run.
+5. The browser dashboard is organized into five feature controllers. The guided local CLI and optional Ollama analyst are covered by the latest green cross-platform CI run.
+6. Cross-platform CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on Ubuntu and Windows, including C++ build/tests, Python syntax/tests, JavaScript syntax, and C++-to-SQLite integration.
 7. The API enforces loopback-only access and has no user authentication or authorization. It is not suitable for remote or multi-user deployment.
 8. The Isolation Forest and robust baseline are experimental. Their scores are not calibrated probabilities and have not been validated against representative labeled network traffic.
 9. External threat-feed polling, TAXII, autonomous AI actions, production deployment, and automated response/blocking are not implemented. A read-only local Ollama incident explanation adapter is now implemented; see docs/LOCAL_AI_ANALYST.md.
@@ -306,7 +306,7 @@ Owner approval is still required before:
 
 The owner explicitly approved implementation. The branch now contains the simulator, detection, local incident, passive monitoring, threat-intelligence, and anomaly-baseline foundations described in the completed milestones below.
 
-**Current CI gate:** Fresh hosted Linux and Windows checks are queued/running for the latest CLI and local AI analyst batch. Review the branch Actions page before marking the batch complete: https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions
+**Current CI evidence:** Latest feature-head CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) completed successfully on Windows and Ubuntu. The PR-triggered validation for PR #1 must also complete before merge.
 
 **Important:** Application source code and runtime behavior have been extended on `research/cyberguard-upgrade-plan`. No files were deleted and `master` remains untouched. Physical Windows adapter capture remains a host-specific validation task.
 
@@ -339,7 +339,7 @@ Implemented on the development branch:
 Acceptance passed hosted Linux and Windows CI: 25/25 C++ tests on each platform, plus Python and JavaScript syntax checks. No real network capture or live traffic generation is enabled.
 
 
-## 13. Multi-pattern threat detection milestone (implemented; latest CI pending)
+## 13. Multi-pattern threat detection milestone (implemented; cross-platform CI passed)
 
 Added deterministic, explainable detection over the existing in-memory flow records:
 
@@ -351,7 +351,7 @@ Added deterministic, explainable detection over the existing in-memory flow reco
 
 These are initial heuristics, not authentication-aware or payload-aware detection. They do not establish that an account or host is compromised. All scenarios remain in-memory simulator packets and open no sockets.
 
-**Latest implementation CI:** pending hosted Linux and Windows results for the multi-pattern detection batch. Master remains unchanged; all implementation commits remain on `research/cyberguard-upgrade-plan`.
+**Latest implementation CI:** hosted Linux and Windows checks passed in run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562). Master remains unchanged until PR #1 is merged.
 
 
 ## 15. Incident management v1 implementation status
@@ -382,10 +382,10 @@ IOC matches are contextual enrichment, not proof of compromise, and never trigge
 
 Implemented a dependency-free median/MAD baseline plus an optional scikit-learn Isolation Forest trainer/scorer for packet rate, distinct ports, failed attempts, bytes per second, and destination fan-out. Isolation Forest training requires at least 50 trusted baseline observations and produces a local joblib model artifact with per-feature context. The robust baseline and Isolation Forest score are not calibrated probabilities or production verdicts; neither is wired to automatic severity changes or response. Unit tests cover training limits, scoring, explanations, and invalid values.
 
-**Latest validation gate:** Run the full Linux and Windows workflow after the latest commit. CI installs the optional ML dependency and includes Python syntax checks plus all backend and Isolation Forest tests on Ubuntu and Windows. Physical Npcap adapter capture and anomaly quality on representative network data still require local validation.
+**Latest validation:** Run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on Ubuntu and Windows with the optional ML dependency, Python tests, syntax checks, and integration. Physical Npcap adapter capture and anomaly quality on representative network data still require local validation.
 
 
-## 18. Optional local AI incident analyst milestone (implementation complete; CI pending)
+## 18. Optional local AI incident analyst milestone (implementation complete; cross-platform CI passed)
 
 Added an optional Ollama-backed, read-only explanation workflow for persisted incidents.
 
@@ -399,4 +399,4 @@ Added an optional Ollama-backed, read-only explanation workflow for persisted in
 - Added setup and safety documentation in `docs/LOCAL_AI_ANALYST.md`.
 - No Python Ollama package, cloud API key, or paid inference service is required.
 
-**Validation gate:** New Linux and Windows CI runs must pass C++ build/tests, Python syntax/tests, JavaScript syntax, and simulator-to-SQLite integration. Actual model inference still requires the owner to install Ollama and pull a local model on the target PC. The AI explanation is advisory and is not a detection verdict.
+**Validation:** Cross-platform CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on Linux and Windows. Actual model inference still requires the owner to install Ollama and pull a local model on the target PC. The AI explanation is advisory and is not a detection verdict.
