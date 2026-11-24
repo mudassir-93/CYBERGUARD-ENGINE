@@ -237,3 +237,14 @@ button, select { cursor: pointer; }
   .live-monitor-stats > div { padding: 10px; }
   .live-monitor-stats strong { font-size: 20px; }
 }
+
+/* Threat intelligence and analyst investigation controls */
+.threat-intel-panel { margin: 22px 0; padding: 18px 19px; }
+.threat-intel-panel > p { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.threat-intel-panel > label { display:block; margin:12px 0 7px; color:var(--muted); font-size:10px; }
+.threat-intel-panel textarea { display:block; width:100%; min-height:120px; padding:12px; resize:vertical; border:1px solid var(--line); background:#06121a; color:var(--ink); font:10px 'DM Mono',monospace; }
+.threat-intel-panel #threatIntelMessage { color:var(--green); font:10px 'DM Mono',monospace; }
+.incident-note-form { display:flex; gap:7px; margin-top:10px; }
+.incident-note-form input { min-width:0; flex:1; padding:8px 9px; border:1px solid var(--line); background:#06121a; color:var(--ink); font:10px 'DM Mono',monospace; }
+.incident-note-form button { padding:7px 10px; border:1px solid var(--line); color:var(--cyan); font-size:10px; }
+.incident-note-form button:disabled { opacity:.5; cursor:wait; }
