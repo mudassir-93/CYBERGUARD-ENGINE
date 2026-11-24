@@ -23,7 +23,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\verify-windows.ps1
 ```
 
-The script reuses an existing CMake generator when the build cache exists; otherwise it lets CMake choose the default generator for the installed toolchain. It then:
+The script reuses an existing CMake generator when the build cache exists; otherwise it lets CMake choose the default generator for the installed toolchain. If you use MinGW explicitly, pass `-Generator "MinGW Makefiles"` (and use a fresh build directory if an existing cache uses another generator). It then:
 
 1. Configures and builds the C++20 project
 2. Runs CTest
