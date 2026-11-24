@@ -49,6 +49,7 @@ Completed foundations include:
 - Local IOC catalog with explicit JSON import, incident enrichment, and append-only analyst notes
 - Dependency-free median/MAD anomaly baseline and optional scikit-learn Isolation Forest training/scoring
 - Manual dashboard anomaly scoring through a loopback-only API endpoint
+- Optional local Ollama incident explanations through the guided CLI and loopback-only API
 - Loopback-only enforcement for all API reads and writes
 
 Not implemented yet:
@@ -59,7 +60,7 @@ Not implemented yet:
 - automated response or blocking actions
 - SFML interface
 - Docker deployment
-- automated AI investigation or response
+- autonomous AI investigation or response
 
 Detection rules are starter heuristics, not proof of compromise. Live capture inspects TCP SYN metadata but does not inspect authentication events, packet payloads, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for simulator thresholds and [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for optional capture setup, detection limits, and permissions.
 
@@ -144,7 +145,7 @@ python backend/run_simulation.py
 
 The dashboard also provides a **Run C++ simulation** action. It executes the local native binary, receives structured JSON Lines detections, and persists incidents. Set `CYBERGUARD_EXECUTABLE` if the executable is outside the standard build folders.
 
-### 6. Use the guided CLI (optional)\n\nFrom the repository root, open the interactive local workspace:\n\n```powershell\npython backend/cli.py\n```\n\nYou can also run individual commands:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --limit 20\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. Live packet capture remains a separate, optional dashboard workflow.\n\n### 7. Open the browser dashboard
+### 6. Use the guided CLI (optional)\n\nFrom the repository root, open the interactive local workspace:\n\n```powershell\npython backend/cli.py\n```\n\nYou can also run individual commands:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --limit 20\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.\n\n### 7. Open the browser dashboard
 
 From the repository root:
 
@@ -280,3 +281,8 @@ A dependency-free robust median/MAD anomaly baseline is available with `python b
 ## Application architecture
 
 The application uses object-oriented components across the native and service layers. The Python backend is composed through `CyberGuardApplication`, with repository and adapter objects injected into the HTTP server. The browser dashboard uses feature controllers: `NetworkSimulatorController`, `IncidentDashboardController`, `LiveMonitorController`, `ThreatIntelController`, and `AnomalyDashboardController`. Stateless validation and calculation helpers remain pure functions where that is simpler and clearer. See [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md).
+
+
+## Optional local AI incident analyst
+
+CyberGuard can explain a persisted incident using a local Ollama model without a cloud API key. Install Ollama and pull a model (default: `llama3.2:3b`), then use `python backend/cli.py explain CG-INCIDENTID` or the interactive menu's option 7. The loopback-only API also exposes `POST /api/analyst/explain`. This feature is advisory only: it cannot change incident state, run commands, or block traffic. See [docs/LOCAL_AI_ANALYST.md](docs/LOCAL_AI_ANALYST.md) for setup, configuration, and limitations.
