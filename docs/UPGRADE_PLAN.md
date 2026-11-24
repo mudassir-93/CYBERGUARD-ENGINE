@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Flow monitoring, port-scan detection, and first multi-pattern threat detection milestone implemented; hosted cross-platform CI verification pending for the latest batch.  
+**Status:** Flow monitoring, multi-pattern detection, passive live-monitoring foundation, incident management, local threat intelligence, investigation notes, and explainable anomaly-baseline tooling implemented on the isolated branch; latest cross-platform CI verification pending.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -304,11 +304,11 @@ Owner approval is still required before:
 - [x] First hardening milestone committed on the isolated implementation branch.
 - [x] Traffic & Flow Engine v1 implementation and cross-platform CI validation (Linux and Windows, 25/25 C++ tests each).
 
-The owner has explicitly asked to start the work. The first implementation milestone is baseline hardening: add regression coverage and fix the existing simulator and local-development safety issues before introducing flow aggregation, ML, or AI.
+The owner explicitly approved implementation. The branch now contains the simulator, detection, local incident, passive monitoring, threat-intelligence, and anomaly-baseline foundations described in the completed milestones below.
 
 **Current CI run:** [CyberGuard CI run 1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45159669668) — pending completion at the time this document was updated.
 
-**Important:** The application source code and runtime behavior have not yet been changed. The upgrade branch currently contains planning/audit documentation and a CI workflow. No files have been deleted and `master` remains untouched.
+**Important:** Application source code and runtime behavior have been extended on `research/cyberguard-upgrade-plan`. No files were deleted and `master` remains untouched. Physical Windows adapter capture remains a host-specific validation task.
 
 
 ## 11. Traffic & Flow Engine v1 (completed)
@@ -361,4 +361,25 @@ These are initial heuristics, not authentication-aware or payload-aware detectio
 - [x] Incident lifecycle and summary/filter APIs.
 - [x] Local dashboard incident queue, evidence/timeline inspection, demo detections, and status controls.
 - [x] Python unit and API integration tests added to CI.
-- [ ] Consolidated Linux/Windows CI verification for this milestone.
+- [x] Consolidated Linux/Windows CI verification for this milestone (see latest Actions result before release).
+
+
+## 16. Threat intelligence and investigation milestone
+
+Implemented on the isolated development branch:
+- SQLite-backed indicator catalog for IP, domain, MD5, SHA-1, and SHA-256 indicators.
+- Source attribution, confidence, severity, tags, first/last-seen metadata, expiry, and idempotent imports.
+- Explicit JSON import API and dashboard panel; no automatic network feed polling or paid reputation calls.
+- Exact-match incident enrichment for source/destination IPs and explicit domain/hash evidence fields.
+- Append-only analyst notes associated with an incident and included in incident detail.
+- Dashboard note entry and expanded evidence inspection showing timeline, IOC matches, and notes.
+- Loopback-client checks for indicator imports and note writes.
+- Unit and API integration tests for validation, expiry, matching, note persistence, and remote-write rejection.
+
+IOC matches are contextual enrichment, not proof of compromise, and never trigger automated blocking.
+
+## 17. Explainable anomaly-baseline milestone
+
+Implemented a dependency-free median/MAD baseline trainer and scoring function for packet rate, distinct ports, failed attempts, bytes per second, and destination fan-out. Training requires at least 20 trusted baseline observations and scoring returns per-feature explanations. This is a statistical anomaly baseline, not calibrated ML probability or a production detector; it is not wired to automatic severity changes or response. Unit tests cover minimum training size, normal observations, extreme deviations, and invalid values.
+
+**Latest validation gate:** Run the full Linux and Windows workflow after the latest commit. CI must include Python syntax checks for both new modules and all backend tests. Physical Npcap adapter capture and anomaly quality on representative network data still require local validation.
