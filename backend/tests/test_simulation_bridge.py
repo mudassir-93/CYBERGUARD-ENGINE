@@ -58,7 +58,7 @@ class SimulationBridgeTests(unittest.TestCase):
         )
         runner = Mock(return_value=SimpleNamespace(returncode=0, stdout=output, stderr=""))
         bridge = SimulationBridge(repository_root=root, process_runner=runner)
-        report = bridge.run(store=self.store)
+        report = bridge.run(executable=str(binary), store=self.store)
         self.assertEqual(report["detections_received"], 4)
         self.assertEqual(set(report["by_type"]), set(kinds))
         runner.assert_called_once()
