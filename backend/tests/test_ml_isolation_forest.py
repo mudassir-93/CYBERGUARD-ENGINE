@@ -2,7 +2,7 @@ import sys,tempfile,unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 try:
- from ml_isolation_forest import FEATURES,load_model,save_model,score_observation,train_model
+ from ml_isolation_forest import FEATURES,IsolationForestAnalyzer,load_model,save_model,score_observation,train_model
  AVAILABLE=True
 except ImportError:
  AVAILABLE=False
@@ -17,6 +17,14 @@ class IsolationForestTests(unittest.TestCase):
    loaded=load_model(path)
    result=score_observation({name:10.2 for name in FEATURES},loaded)
   self.assertIn("anomalous",result); self.assertEqual(result["algorithm"],"IsolationForest")
+ def test_analyzer_object_loads_and_scores(self):
+  model=train_model(self.rows())
+  with tempfile.TemporaryDirectory() as directory:
+   path=save_model(model,Path(directory)/"analyzer.joblib")
+   analyzer=IsolationForestAnalyzer.from_file(path)
+   result=analyzer.score({name:10.2 for name in FEATURES})
+  self.assertEqual(analyzer.training_samples,80)
+  self.assertEqual(result["algorithm"],"IsolationForest")
  def test_rejects_small_baseline_and_invalid_parameters(self):
   with self.assertRaises(ValueError): train_model(self.rows()[:49])
   with self.assertRaises(ValueError): train_model(self.rows(),contamination=0.5)
