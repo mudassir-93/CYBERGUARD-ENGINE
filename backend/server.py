@@ -101,6 +101,18 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path.startswith("/api/") and not self._is_loopback_client():
             return self._json(403, {"error": "CyberGuard API is restricted to local clients"})
+        if path == "/api/analyst/explain":
+            try:
+                incident_id = self._body().get("incident_id")
+                if not isinstance(incident_id, str) or not incident_id.strip():
+                    raise ValueError("incident_id is required")
+                return self._json(200, self.application.explain_incident(incident_id.strip()))
+            except KeyError as error:
+                return self._json(404, {"error": str(error).strip("'")})
+            except ValueError as error:
+                return self._json(400, {"error": str(error)})
+            except RuntimeError as error:
+                return self._json(503, {"error": str(error)})
         if path == "/api/anomaly/score":
             try:
                 features = self._body().get("features")
@@ -200,7 +212,7 @@ if __name__ == "__main__":
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nStopping server...")
+        print("\nStopping CyberGuard...")
     finally:
         server.server_close()
         application.close()
