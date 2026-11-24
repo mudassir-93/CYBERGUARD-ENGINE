@@ -21,3 +21,15 @@ python backend/ml_anomaly.py path\to\trusted-baseline.csv --output data\anomaly-
 Use `score_features(features, model)` to get an anomaly flag, heuristic score, and per-feature explanations. This is a statistical baseline, not a calibrated probability, supervised classifier, or production verdict. It is not connected to automatic severity changes or response. Train and validate with representative local data before operational use.
 
 Automated feed polling/TAXII, domain resolution, production ML calibration, tenant isolation, analyst authentication, and automated response remain out of scope.
+
+
+## Optional Isolation Forest model
+
+The optional scikit-learn pipeline provides an actual unsupervised model in addition to the dependency-free robust baseline. Install it only when you want to train or score models:
+
+```powershell
+python -m pip install -r requirements-ml.txt
+python backend/ml_isolation_forest.py path\to\trusted-baseline.csv --output data\isolation-forest.joblib
+```
+
+The CSV uses the same five numeric telemetry columns. Training requires at least 50 trusted baseline observations. Python code can use `load_model(path)` and `score_observation(features, model)`. The result includes the Isolation Forest decision value and robust per-feature context. The numeric score is not a calibrated probability. Treat model artifacts as trusted local files because joblib uses Python object serialization. CI installs the optional ML dependency and tests the training/scoring pipeline on Ubuntu and Windows.
