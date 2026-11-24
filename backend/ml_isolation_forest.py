@@ -9,6 +9,8 @@ from sklearn.ensemble import IsolationForest
 from ml_anomaly import FEATURES,_number
 
 def _features(row):
+    if not isinstance(row,dict):
+        raise ValueError("features must be a JSON object")
     return [_number(row.get(name,0),name) for name in FEATURES]
 
 def train_model(rows,contamination=0.03,n_estimators=200):
