@@ -23,6 +23,28 @@ class FakeResponse:
 
 
 class OllamaAnalystTests(unittest.TestCase):
+    def test_diagnose_reports_installed_model(self):
+        opener = Mock(return_value=FakeResponse({
+            "models": [{"name": "llama3.2:3b", "size": 123}]
+        }))
+        ready, detail = OllamaAnalyst(opener=opener).diagnose()
+        self.assertTrue(ready)
+        self.assertIn("installed and ready", detail)
+        self.assertEqual(opener.call_args.args[0].full_url, "http://127.0.0.1:11434/api/tags")
+
+    def test_diagnose_suggests_pull_for_missing_model(self):
+        opener = Mock(return_value=FakeResponse({"models": []}))
+        ready, detail = OllamaAnalyst(opener=opener).diagnose()
+        self.assertFalse(ready)
+        self.assertIn("ollama pull llama3.2:3b", detail)
+
+    def test_diagnose_handles_unavailable_ollama(self):
+        from urllib.error import URLError
+        opener = Mock(side_effect=URLError("connection refused"))
+        ready, detail = OllamaAnalyst(opener=opener).diagnose()
+        self.assertFalse(ready)
+        self.assertIn("not responding", detail)
+
     def test_explain_sends_bounded_untrusted_incident_and_returns_text(self):
         opener = Mock(return_value=FakeResponse({
             "message": {"content": "What happened: A port scan was observed."}

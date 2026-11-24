@@ -131,7 +131,13 @@ class CyberGuardCLI:
         for label, module in (("Passive capture (Scapy)", "scapy"),
                               ("ML tools (scikit-learn)", "sklearn")):
             available = importlib.util.find_spec(module) is not None
-            checks.append((label, available, "available" if available else "optional dependency not installed"))
+            detail = "available" if available else "optional dependency not installed"
+            checks.append((label, available, detail))
+        try:
+            ollama_ready, ollama_detail = self.analyst.diagnose()
+        except (OSError, RuntimeError, ValueError) as error:
+            ollama_ready, ollama_detail = False, str(error)
+        checks.append(("Local AI analyst (Ollama)", ollama_ready, ollama_detail))
         self.output("CyberGuard local setup")
         for label, ok, detail in checks:
             self.output(f"[{'OK' if ok else 'OPTIONAL / NOT READY'}] {label}: {detail}")

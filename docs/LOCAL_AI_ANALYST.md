@@ -75,3 +75,8 @@ uses the same loopback-client restriction as the other API endpoints.
   on the selected model and available hardware.
 - Do not expose the unauthenticated CyberGuard API beyond loopback. The analyst
   endpoint is not a substitute for authentication or multi-user authorization.
+
+
+## Check readiness from the CLI
+
+Run `python backend/cli.py doctor` to check whether the configured Ollama service is responding and whether the configured model is installed. The check calls only the loopback `/api/tags` endpoint with a short timeout. If the service is unavailable, the output explains that Ollama is not responding. If the service is available but the model is missing, the CLI prints the exact `ollama pull <model>` command. Ollama remains optional; simulator, incident, and dashboard functionality do not depend on it.
