@@ -1,4 +1,6 @@
-const deviceCatalog = [
+class NetworkSimulatorController {
+  constructor() {
+this.deviceCatalog = [
   { name: 'Internet', ip: '203.0.113.1', kind: 'gateway' },
   { name: 'Router', ip: '10.0.0.1', kind: 'router' },
   { name: 'Firewall', ip: '10.0.0.2', kind: 'firewall' },
@@ -10,7 +12,7 @@ const deviceCatalog = [
   { name: 'PC-05', ip: '10.0.0.24', kind: 'pc' }
 ];
 
-const state = {
+this.state = {
   packetId: 0,
   paused: false,
   stats: { created: 0, delivered: 0, blocked: 0, dropped: 0 },
@@ -19,7 +21,7 @@ const state = {
   demoTimers: []
 };
 
-const elements = {
+this.elements = {
   created: document.querySelector('#createdMetric'),
   delivered: document.querySelector('#deliveredMetric'),
   blocked: document.querySelector('#blockedMetric'),
@@ -33,8 +35,13 @@ const elements = {
   sourceSelect: document.querySelector('#sourceSelect'),
   destinationSelect: document.querySelector('#destinationSelect')
 };
+    for (const name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+      if (name !== 'constructor') this[name] = this[name].bind(this);
+    }
+    this.initialize();
+  }
 
-function now() {
+now() {
   return new Date().toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -42,47 +49,47 @@ function now() {
   });
 }
 
-function populateEndpointOptions() {
-  const endpoints = deviceCatalog.filter(device => device.kind === 'server' || device.kind === 'pc');
+populateEndpointOptions() {
+  const endpoints = this.deviceCatalog.filter(device => device.kind === 'server' || device.kind === 'pc');
   const options = endpoints
     .map(device => `<option value="${device.name}">${device.name} · ${device.ip}</option>`)
     .join('');
 
-  elements.sourceSelect.innerHTML = options;
-  elements.destinationSelect.innerHTML = options;
-  elements.sourceSelect.value = 'PC-01';
-  elements.destinationSelect.value = 'Server';
+  this.elements.sourceSelect.innerHTML = options;
+  this.elements.destinationSelect.innerHTML = options;
+  this.elements.sourceSelect.value = 'PC-01';
+  this.elements.destinationSelect.value = 'Server';
 }
 
-function addEvent(message, type = '') {
-  state.events.unshift({ time: now(), message, type });
-  state.events = state.events.slice(0, 12);
+addEvent(message, type = '') {
+  this.state.events.unshift({ time: this.now(), message, type });
+  this.state.events = this.state.events.slice(0, 12);
 
-  elements.eventList.innerHTML = state.events
+  this.elements.eventList.innerHTML = this.state.events
     .map(event => `<div class="event-row ${event.type}"><span class="event-time">${event.time}</span><span class="event-message">${event.message}</span></div>`)
     .join('');
 }
 
-function renderStats() {
-  elements.onlineMetric.textContent = String(deviceCatalog.length);
-  elements.created.textContent = String(state.stats.created);
-  elements.delivered.textContent = String(state.stats.delivered);
-  elements.blocked.textContent = String(state.stats.blocked);
+renderStats() {
+  this.elements.onlineMetric.textContent = String(this.deviceCatalog.length);
+  this.elements.created.textContent = String(this.state.stats.created);
+  this.elements.delivered.textContent = String(this.state.stats.delivered);
+  this.elements.blocked.textContent = String(this.state.stats.blocked);
 
-  elements.deliveryMeta.textContent = state.stats.created
-    ? `${Math.round((state.stats.delivered / state.stats.created) * 100)}% delivery rate`
+  this.elements.deliveryMeta.textContent = this.state.stats.created
+    ? `${Math.round((this.state.stats.delivered / this.state.stats.created) * 100)}% delivery rate`
     : 'Awaiting traffic';
 
-  elements.blockedMeta.textContent = state.stats.blocked
-    ? `${state.stats.blocked} policy decision${state.stats.blocked === 1 ? '' : 's'}`
+  this.elements.blockedMeta.textContent = this.state.stats.blocked
+    ? `${this.state.stats.blocked} policy decision${this.state.stats.blocked === 1 ? '' : 's'}`
     : 'Firewall clear';
 }
 
-function renderRules() {
-  const activeRules = state.rules.filter(rule => rule.enabled).length;
-  elements.ruleCount.textContent = `${activeRules} active`;
+renderRules() {
+  const activeRules = this.state.rules.filter(rule => rule.enabled).length;
+  this.elements.ruleCount.textContent = `${activeRules} active`;
 
-  elements.ruleList.innerHTML = state.rules.map((rule, index) => `
+  this.elements.ruleList.innerHTML = this.state.rules.map((rule, index) => `
     <div class="rule-row">
       <span class="rule-action ${rule.action.toLowerCase()}">${rule.action}</span>
       <span class="rule-condition">${rule.protocol} destination port ${rule.port}</span>
@@ -93,7 +100,7 @@ function renderRules() {
   document.querySelectorAll('.rule-toggle').forEach(button => {
     button.addEventListener('click', () => {
       const ruleIndex = Number(button.dataset.rule);
-      const rule = state.rules[ruleIndex];
+      const rule = this.state.rules[ruleIndex];
       if (!rule) return;
 
       rule.enabled = !rule.enabled;
@@ -103,8 +110,8 @@ function renderRules() {
   });
 }
 
-function animatePacket(result) {
-  const orb = elements.packetOrb;
+animatePacket(result) {
+  const orb = this.elements.packetOrb;
   orb.classList.remove('animate');
   void orb.offsetWidth;
   orb.style.background = result === 'BLOCKED' ? 'var(--red)' : 'var(--cyan)';
@@ -114,18 +121,18 @@ function animatePacket(result) {
   orb.classList.add('animate');
 }
 
-function routePacket({ source, destination, protocol, port, size }, quiet = false) {
-  const packetId = ++state.packetId;
-  state.stats.created += 1;
+routePacket({ source, destination, protocol, port, size }, quiet = false) {
+  const packetId = ++this.state.packetId;
+  this.state.stats.created += 1;
 
-  const matchingRule = state.rules.find(rule =>
+  const matchingRule = this.state.rules.find(rule =>
     rule.enabled &&
     rule.protocol === protocol &&
     Number(rule.port) === Number(port)
   );
 
   const result = matchingRule?.action === 'BLOCK' ? 'BLOCKED' : 'DELIVERED';
-  state.stats[result.toLowerCase()] += 1;
+  this.state.stats[result.toLowerCase()] += 1;
 
   renderStats();
   animatePacket(result);
@@ -143,12 +150,12 @@ function routePacket({ source, destination, protocol, port, size }, quiet = fals
   return result;
 }
 
-function cancelDemoSequence() {
-  state.demoTimers.forEach(timerId => clearTimeout(timerId));
-  state.demoTimers = [];
+cancelDemoSequence() {
+  this.state.demoTimers.forEach(timerId => clearTimeout(timerId));
+  this.state.demoTimers = [];
 }
 
-function seedDemoSequence() {
+seedDemoSequence() {
   cancelDemoSequence();
   const sequence = [
     { source: 'PC-01', destination: 'Server', protocol: 'TCP', port: 80, size: 512 },
@@ -158,14 +165,15 @@ function seedDemoSequence() {
     { source: 'PC-04', destination: 'PC-01', protocol: 'TCP', port: 443, size: 768 }
   ];
 
-  state.demoTimers = sequence.map((packet, index) => setTimeout(() => {
+  this.state.demoTimers = sequence.map((packet, index) => setTimeout(() => {
     routePacket(packet, true);
-    if (index === sequence.length - 1) state.demoTimers = [];
+    if (index === sequence.length - 1) this.state.demoTimers = [];
   }, index * 650));
 
   addEvent('<strong>Demo sequence started</strong> · traffic routed across five workstations');
 }
 
+  initialize() {
 document.querySelector('#packetForm').addEventListener('submit', event => {
   event.preventDefault();
   const source = document.querySelector('#sourceSelect').value;
@@ -191,33 +199,33 @@ document.querySelector('#ruleForm').addEventListener('submit', event => {
 
   if (!rule.port || rule.port > 65535) return;
 
-  state.rules.push(rule);
+  this.state.rules.push(rule);
   renderRules();
   addEvent(`<strong>Firewall rule added</strong> · ${rule.action} ${rule.protocol}:${rule.port}`);
 });
 
 document.querySelector('#pauseButton').addEventListener('click', event => {
-  state.paused = !state.paused;
-  if (state.paused) cancelDemoSequence();
-  event.currentTarget.innerHTML = state.paused ? '<span>▶</span>Resume stream' : '<span>Ⅱ</span>Pause stream';
-  addEvent(`<strong>Simulation ${state.paused ? 'paused' : 'resumed'}</strong> · manual controls remain available`);
+  this.state.paused = !this.state.paused;
+  if (this.state.paused) this.cancelDemoSequence();
+  event.currentTarget.innerHTML = this.state.paused ? '<span>▶</span>Resume stream' : '<span>Ⅱ</span>Pause stream';
+  addEvent(`<strong>Simulation ${this.state.paused ? 'paused' : 'resumed'}</strong> · manual controls remain available`);
 });
 
 document.querySelector('#demoButton').addEventListener('click', () => {
-  if (state.paused) return;
+  if (this.state.paused) return;
   seedDemoSequence();
 });
 
 document.querySelector('#resetButton').addEventListener('click', () => {
   cancelDemoSequence();
-  state.packetId = 0;
-  state.stats = { created: 0, delivered: 0, blocked: 0, dropped: 0 };
-  state.rules = [{ action: 'BLOCK', protocol: 'TCP', port: 23, enabled: true }];
-  state.events = [];
+  this.state.packetId = 0;
+  this.state.stats = { created: 0, delivered: 0, blocked: 0, dropped: 0 };
+  this.state.rules = [{ action: 'BLOCK', protocol: 'TCP', port: 23, enabled: true }];
+  this.state.events = [];
 
   renderStats();
   renderRules();
-  elements.eventList.innerHTML = '';
+  this.elements.eventList.innerHTML = '';
   addEvent('<strong>Simulation reset</strong> · network ready for traffic');
 });
 
@@ -226,9 +234,12 @@ renderStats();
 renderRules();
 addEvent('<strong>Engine initialized</strong> · nine devices online');
 addEvent('<strong>Firewall ready</strong> · TCP destination port 23 blocked');
+  }
+}
 
-
-const incidentElements = {
+class IncidentDashboardController {
+  constructor() {
+this.incidentElements = {
   list: document.querySelector('#incidentList'),
   summary: document.querySelector('#incidentSummary'),
   filter: document.querySelector('#incidentStatusFilter'),
@@ -237,13 +248,18 @@ const incidentElements = {
   simulate: document.querySelector('#runCppSimulation'),
   message: document.querySelector('#incidentMessage')
 };
+    for (const name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+      if (name !== 'constructor') this[name] = this[name].bind(this);
+    }
+    this.initialize();
+  }
 
-function setIncidentMessage(message, isError = false) {
-  incidentElements.message.textContent = message;
-  incidentElements.message.classList.toggle('error', isError);
+setIncidentMessage(message, isError = false) {
+  this.incidentElements.message.textContent = message;
+  this.incidentElements.message.classList.toggle('error', isError);
 }
 
-function makeIncidentNode(incident) {
+makeIncidentNode(incident) {
   const card = document.createElement('article');
   card.className = 'incident-card';
   const top = document.createElement('div');
@@ -284,7 +300,7 @@ function makeIncidentNode(incident) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Status update failed');
       setIncidentMessage('Incident ' + incident.id + ' updated.');
-      await loadIncidents();
+      await this.loadIncidents();
     } catch (error) {
       setIncidentMessage(error.message, true);
       status.value = incident.status;
@@ -351,39 +367,39 @@ function makeIncidentNode(incident) {
   return card;
 }
 
-async function loadIncidents() {
+async loadIncidents() {
   try {
-    const status = incidentElements.filter.value;
+    const status = this.incidentElements.filter.value;
     const response = await fetch('/api/incidents' + (status ? '?status=' + encodeURIComponent(status) : ''));
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to load incidents');
-    incidentElements.summary.textContent = result.summary.open + ' open · ' +
+    this.incidentElements.summary.textContent = result.summary.open + ' open · ' +
       result.summary.critical + ' critical · ' + result.summary.total + ' total';
-    incidentElements.list.replaceChildren();
+    this.incidentElements.list.replaceChildren();
     if (!result.incidents.length) {
       const empty = document.createElement('p');
       empty.className = 'incident-empty';
       empty.textContent = 'No incidents match this view. Generate local demo detections to explore the workflow.';
-      incidentElements.list.append(empty);
+      this.incidentElements.list.append(empty);
     } else {
-      result.incidents.forEach(incident => incidentElements.list.append(makeIncidentNode(incident)));
+      result.incidents.forEach(incident => this.incidentElements.list.append(this.makeIncidentNode(incident)));
     }
     setIncidentMessage('SQLite incident store connected.');
   } catch (error) {
-    incidentElements.summary.textContent = 'API unavailable';
-    incidentElements.list.replaceChildren();
+    this.incidentElements.summary.textContent = 'API unavailable';
+    this.incidentElements.list.replaceChildren();
     setIncidentMessage(error.message + ' · Start with python backend/server.py.', true);
   }
 }
 
-async function generateIncidentDemo() {
+async generateIncidentDemo() {
   const samples = [
     { type: 'port_scan', source_ip: '10.0.0.20', destination_ip: '10.0.0.10', destination_port: 443, protocol: 'TCP', summary: 'PC-01 contacted many service ports on the server', evidence: { distinct_ports: 12, threshold: 10, window_seconds: 60, source: 'local-demo' } },
     { type: 'brute_force', source_ip: '10.0.0.21', destination_ip: '10.0.0.10', destination_port: 22, protocol: 'TCP', summary: 'Repeated failed connection attempts to SSH service', evidence: { failed_attempts: 8, threshold: 5, window_seconds: 60, source: 'local-demo' } },
     { type: 'dos', source_ip: '10.0.0.22', destination_ip: '10.0.0.10', destination_port: 80, protocol: 'TCP', summary: 'High-volume packet burst against the web server', evidence: { packet_count: 180, threshold: 100, window_seconds: 10, source: 'local-demo' } },
     { type: 'lateral_movement', source_ip: '10.0.0.23', destination_ip: '10.0.0.24', destination_port: 445, protocol: 'TCP', summary: 'Internal workstation contacted multiple private hosts', evidence: { distinct_internal_destinations: 5, threshold: 3, window_seconds: 60, source: 'local-demo' } }
   ];
-  incidentElements.demo.disabled = true;
+  this.incidentElements.demo.disabled = true;
   try {
     for (const sample of samples) {
       const response = await fetch('/api/detections', {
@@ -393,19 +409,20 @@ async function generateIncidentDemo() {
       if (!response.ok) throw new Error(result.error || 'Detection ingestion failed');
     }
     setIncidentMessage('Four local demo detections submitted and persisted in SQLite.');
-    await loadIncidents();
+    await this.loadIncidents();
   } catch (error) {
     setIncidentMessage(error.message, true);
   } finally {
-    incidentElements.demo.disabled = false;
+    this.incidentElements.demo.disabled = false;
   }
 }
 
-incidentElements.refresh.addEventListener('click', loadIncidents);
-incidentElements.filter.addEventListener('change', loadIncidents);
-incidentElements.demo.addEventListener('click', generateIncidentDemo);
-incidentElements.simulate.addEventListener('click', async () => {
-  incidentElements.simulate.disabled = true;
+  initialize() {
+this.incidentElements.refresh.addEventListener('click', loadIncidents);
+this.incidentElements.filter.addEventListener('change', loadIncidents);
+this.incidentElements.demo.addEventListener('click', generateIncidentDemo);
+this.incidentElements.simulate.addEventListener('click', async () => {
+  this.incidentElements.simulate.disabled = true;
   setIncidentMessage('Running native C++ simulator and importing detections…');
   try {
     const response = await fetch('/api/simulate', { method: 'POST' });
@@ -413,16 +430,20 @@ incidentElements.simulate.addEventListener('click', async () => {
     if (!response.ok) throw new Error(result.error || 'Native simulation failed');
     setIncidentMessage(result.detections_received + ' native detections imported · ' +
       result.incidents_created + ' new incidents · ' + result.detections_correlated + ' correlated.');
-    await loadIncidents();
+    await this.loadIncidents();
   } catch (error) {
     setIncidentMessage(error.message, true);
   } finally {
-    incidentElements.simulate.disabled = false;
+    this.incidentElements.simulate.disabled = false;
   }
 });
 loadIncidents();
+  }
+}
 
-const liveElements = {
+class LiveMonitorController {
+  constructor() {
+this.liveElements = {
   state: document.querySelector('#liveCaptureState'),
   interface: document.querySelector('#liveInterfaceSelect'),
   start: document.querySelector('#startLiveCapture'),
@@ -433,156 +454,192 @@ const liveElements = {
   detections: document.querySelector('#liveDetectionsCreated'),
   errors: document.querySelector('#liveCaptureErrors')
 };
+    this.lastLiveDetectionCount = -1;
+    for (const name of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+      if (name !== 'constructor') this[name] = this[name].bind(this);
+    }
+    this.initialize();
+  }
 
-function liveMessage(message, isError = false) {
-  liveElements.message.textContent = message;
-  liveElements.message.classList.toggle('error', isError);
+liveMessage(message, isError = false) {
+  this.liveElements.message.textContent = message;
+  this.liveElements.message.classList.toggle('error', isError);
 }
 
-async function refreshLiveInterfaces() {
-  liveElements.refresh.disabled = true;
+async refreshLiveInterfaces() {
+  this.liveElements.refresh.disabled = true;
   try {
     const response = await fetch('/api/live/interfaces');
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Live capture is unavailable');
-    liveElements.interface.replaceChildren();
+    this.liveElements.interface.replaceChildren();
     result.interfaces.forEach(item => {
       const option = document.createElement('option');
       option.value = item.name;
       option.textContent = item.description === item.name ? item.name : item.description + ' · ' + item.name;
-      liveElements.interface.append(option);
+      this.liveElements.interface.append(option);
     });
-    liveElements.interface.disabled = result.interfaces.length === 0;
-    liveElements.start.disabled = result.interfaces.length === 0;
+    this.liveElements.interface.disabled = result.interfaces.length === 0;
+    this.liveElements.start.disabled = result.interfaces.length === 0;
     liveMessage(result.interfaces.length
       ? 'Choose the interface connected to the network you are authorized to monitor.'
       : 'No capture interfaces are available on this machine.');
-    if (!result.interfaces.length) liveElements.interface.innerHTML = '<option value="">No interfaces found</option>';
+    if (!result.interfaces.length) this.liveElements.interface.innerHTML = '<option value="">No interfaces found</option>';
   } catch (error) {
-    liveElements.interface.replaceChildren();
+    this.liveElements.interface.replaceChildren();
     const option = document.createElement('option');
     option.value = '';
     option.textContent = 'Live capture unavailable';
-    liveElements.interface.append(option);
-    liveElements.interface.disabled = true;
-    liveElements.start.disabled = true;
+    this.liveElements.interface.append(option);
+    this.liveElements.interface.disabled = true;
+    this.liveElements.start.disabled = true;
     liveMessage(error.message + ' · Install optional capture support and check Npcap/libpcap.', true);
   } finally {
-    liveElements.refresh.disabled = false;
-    await refreshLiveStatus();
+    this.liveElements.refresh.disabled = false;
+    await this.refreshLiveStatus();
   }
 }
 
-let lastLiveDetectionCount = -1;
+this.this.lastLiveDetectionCount = -1;
 
-async function refreshLiveStatus() {
+async refreshLiveStatus() {
   try {
     const response = await fetch('/api/live/status');
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to read capture status');
-    liveElements.state.textContent = result.running ? 'Capture running' : (result.available ? 'Capture stopped' : 'Capture unavailable');
-    liveElements.state.classList.toggle('is-running', result.running);
-    liveElements.packets.textContent = String(result.packets_seen || 0);
-    liveElements.detections.textContent = String(result.detections_created || 0);
-    liveElements.errors.textContent = String(result.ingest_errors || 0);
+    this.liveElements.state.textContent = result.running ? 'Capture running' : (result.available ? 'Capture stopped' : 'Capture unavailable');
+    this.liveElements.state.classList.toggle('is-running', result.running);
+    this.liveElements.packets.textContent = String(result.packets_seen || 0);
+    this.liveElements.detections.textContent = String(result.detections_created || 0);
+    this.liveElements.errors.textContent = String(result.ingest_errors || 0);
     const detectionCount = Number(result.detections_created || 0);
-    if (lastLiveDetectionCount >= 0 && detectionCount > lastLiveDetectionCount) {
+    if (this.lastLiveDetectionCount >= 0 && detectionCount > this.lastLiveDetectionCount) {
       await loadIncidents();
       setIncidentMessage('New live-monitoring detections were added to the incident list.');
     }
-    lastLiveDetectionCount = detectionCount;
-    liveElements.start.disabled = !result.available || result.running || !liveElements.interface.value;
-    liveElements.stop.disabled = !result.running;
-    if (result.last_error) liveMessage(result.last_error, true);
+    this.lastLiveDetectionCount = detectionCount;
+    this.liveElements.start.disabled = !result.available || result.running || !this.liveElements.interface.value;
+    this.liveElements.stop.disabled = !result.running;
+    if (result.last_error) this.liveMessage(result.last_error, true);
   } catch (error) {
-    liveElements.state.textContent = 'API unavailable';
+    this.liveElements.state.textContent = 'API unavailable';
     liveMessage(error.message, true);
   }
 }
 
-liveElements.start.addEventListener('click', async () => {
-  liveElements.start.disabled = true;
+  initialize() {
+this.liveElements.start.addEventListener('click', async () => {
+  this.liveElements.start.disabled = true;
   liveMessage('Starting passive packet capture…');
   try {
     const response = await fetch('/api/live/start', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ interface: liveElements.interface.value })
+      body: JSON.stringify({ interface: this.liveElements.interface.value })
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to start packet capture');
     liveMessage('Capture started on ' + result.interface + '. Incoming metadata will be analyzed locally.');
-    await refreshLiveStatus();
+    await this.refreshLiveStatus();
   } catch (error) {
     liveMessage(error.message, true);
-    await refreshLiveStatus();
+    await this.refreshLiveStatus();
   }
 });
 
-liveElements.stop.addEventListener('click', async () => {
-  liveElements.stop.disabled = true;
+this.liveElements.stop.addEventListener('click', async () => {
+  this.liveElements.stop.disabled = true;
   try {
     const response = await fetch('/api/live/stop', { method: 'POST' });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to stop packet capture');
     liveMessage('Live packet capture stopped.');
-    await refreshLiveStatus();
+    await this.refreshLiveStatus();
   } catch (error) {
     liveMessage(error.message, true);
-    await refreshLiveStatus();
+    await this.refreshLiveStatus();
   }
 });
 
-liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
+this.liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
 refreshLiveInterfaces();
 window.setInterval(refreshLiveStatus, 3000);
+  }
+}
 
-const threatIntelInput = document.querySelector('#threatIntelInput');
-const threatIntelImport = document.querySelector('#importThreatIntel');
-const threatIntelMessage = document.querySelector('#threatIntelMessage');
-if (threatIntelImport) {
-  threatIntelImport.addEventListener('click', async () => {
-    threatIntelImport.disabled = true;
+class ThreatIntelController {
+  constructor(incidentController) {
+    this.incidentController = incidentController;
+    this.input = document.querySelector('#threatIntelInput');
+    this.importButton = document.querySelector('#importThreatIntel');
+    this.message = document.querySelector('#threatIntelMessage');
+    this.initialize();
+  }
+
+  initialize() {
+    if (!this.importButton) return;
+    this.importButton.addEventListener('click', () => this.importIndicators());
+  }
+
+  async importIndicators() {
+    this.importButton.disabled = true;
     try {
-      const payload = JSON.parse(threatIntelInput.value);
+      const payload = JSON.parse(this.input.value);
       const response = await fetch('/api/threat-intel/import', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Threat-intelligence import failed');
-      threatIntelMessage.textContent = result.inserted + ' new · ' + result.updated + ' updated indicators.';
-      await loadIncidents();
+      this.message.textContent = result.inserted + ' new · ' + result.updated + ' updated indicators.';
+      await this.incidentController.loadIncidents();
     } catch (error) {
-      threatIntelMessage.textContent = error instanceof SyntaxError ? 'Enter valid JSON before importing.' : error.message;
+      this.message.textContent = error instanceof SyntaxError ? 'Enter valid JSON before importing.' : error.message;
     } finally {
-      threatIntelImport.disabled = false;
+      this.importButton.disabled = false;
     }
-  });
+  }
 }
 
-const anomalyFeaturesInput = document.querySelector('#anomalyFeaturesInput');
-const anomalyScoreButton = document.querySelector('#scoreAnomaly');
-const anomalyMessage = document.querySelector('#anomalyMessage');
-const anomalyResult = document.querySelector('#anomalyResult');
-if (anomalyScoreButton) {
-  anomalyScoreButton.addEventListener('click', async () => {
-    anomalyScoreButton.disabled = true;
-    anomalyMessage.textContent = 'Scoring locally…';
+class AnomalyDashboardController {
+  constructor() {
+    this.featuresInput = document.querySelector('#anomalyFeaturesInput');
+    this.scoreButton = document.querySelector('#scoreAnomaly');
+    this.message = document.querySelector('#anomalyMessage');
+    this.result = document.querySelector('#anomalyResult');
+    this.initialize();
+  }
+
+  initialize() {
+    if (!this.scoreButton) return;
+    this.scoreButton.addEventListener('click', () => this.score());
+  }
+
+  async score() {
+    this.scoreButton.disabled = true;
+    this.message.textContent = 'Scoring locally…';
     try {
-      const payload = JSON.parse(anomalyFeaturesInput.value);
+      const payload = JSON.parse(this.featuresInput.value);
       const response = await fetch('/api/anomaly/score', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Anomaly scoring failed');
-      anomalyResult.textContent = JSON.stringify(result.result, null, 2);
-      anomalyMessage.textContent = result.result.anomalous ? 'Unusual telemetry flagged for analyst review.' : 'No anomaly flagged by this model.';
+      this.result.textContent = JSON.stringify(result.result, null, 2);
+      this.message.textContent = result.result.anomalous
+        ? 'Unusual telemetry flagged for analyst review.'
+        : 'No anomaly flagged by this model.';
     } catch (error) {
-      anomalyMessage.textContent = error instanceof SyntaxError ? 'Enter valid JSON before scoring.' : error.message;
-      anomalyResult.textContent = 'No score available.';
+      this.message.textContent = error instanceof SyntaxError ? 'Enter valid JSON before scoring.' : error.message;
+      this.result.textContent = 'No score available.';
     } finally {
-      anomalyScoreButton.disabled = false;
+      this.scoreButton.disabled = false;
     }
-  });
+  }
 }
+
+const networkSimulator = new NetworkSimulatorController();
+const incidentDashboard = new IncidentDashboardController();
+const liveMonitor = new LiveMonitorController();
+const threatIntel = new ThreatIntelController(incidentDashboard);
+const anomalyDashboard = new AnomalyDashboardController();
