@@ -46,23 +46,23 @@ try {
     Write-Host "CMake: $cmakeVersion"
 
     $cachePath = Join-Path $BuildDirectory "CMakeCache.txt"
-    $generator = $null
+    $resolvedGenerator = $null
     if (Test-Path $cachePath) {
         $generatorLine = Select-String -Path $cachePath -Pattern "^CMAKE_GENERATOR:INTERNAL=" | Select-Object -First 1
         if ($generatorLine) {
-            $generator = $generatorLine.Line.Substring("CMAKE_GENERATOR:INTERNAL=".Length)
-            if ($Generator -and $Generator -ne $generator) {
-                throw "Build directory '$BuildDirectory' already uses '$generator'. Choose a fresh build directory to use '$Generator'."
+            $resolvedGenerator = $generatorLine.Line.Substring("CMAKE_GENERATOR:INTERNAL=".Length)
+            if ($Generator -and $Generator -ne $resolvedGenerator) {
+                throw "Build directory '$BuildDirectory' already uses '$resolvedGenerator'. Choose a fresh build directory to use '$Generator'."
             }
-            Write-Host "Reusing existing CMake generator: $generator"
+            Write-Host "Reusing existing CMake generator: $resolvedGenerator"
         }
     } elseif ($Generator) {
-        $generator = $Generator
+        $resolvedGenerator = $Generator
     }
 
     $configureArguments = @("-S", ".", "-B", $BuildDirectory, "-DCYBERGUARD_BUILD_TESTS=ON")
-    if ($generator) {
-        $configureArguments += @("-G", $generator)
+    if ($resolvedGenerator) {
+        $configureArguments += @("-G", $resolvedGenerator)
     } else {
         Write-Host "Using CMake's default generator for this Windows environment."
     }
