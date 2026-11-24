@@ -1,13 +1,14 @@
 [CmdletBinding()]
 param(
     [string]$BuildDirectory = "build",
+    [string]$Generator = "",
     [ValidateSet("Debug", "Release", "RelWithDebInfo", "MinSizeRel")]
     [string]$Configuration = "Release"
 )
 
 $ErrorActionPreference = "Stop"
 
-if (-not $IsWindows -and $env:OS -ne "Windows_NT") {
+if ($env:OS -ne "Windows_NT") {
     throw "This verification script is intended for Windows PowerShell."
 }
 
@@ -50,8 +51,13 @@ try {
         $generatorLine = Select-String -Path $cachePath -Pattern "^CMAKE_GENERATOR:INTERNAL=" | Select-Object -First 1
         if ($generatorLine) {
             $generator = $generatorLine.Line.Substring("CMAKE_GENERATOR:INTERNAL=".Length)
+            if ($Generator -and $Generator -ne $generator) {
+                throw "Build directory '$BuildDirectory' already uses '$generator'. Choose a fresh build directory to use '$Generator'."
+            }
             Write-Host "Reusing existing CMake generator: $generator"
         }
+    } elseif ($Generator) {
+        $generator = $Generator
     }
 
     $configureArguments = @("-S", ".", "-B", $BuildDirectory, "-DCYBERGUARD_BUILD_TESTS=ON")
