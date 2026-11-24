@@ -23,8 +23,10 @@ Install optional dependencies and execute from the repository root:
 
 ```powershell
 python -m pip install -r requirements-ml.txt
-python backend/ml_evaluate.py datasets/flows.csv --label-column label --group-column capture_id --benign-label benign --test-fraction 0.25 --seed 42 --output reports/isolation-forest-evaluation.json
+python backend/ml_evaluate.py examples/synthetic-flow-demo.csv --label-column label --group-column capture_id --benign-label benign --test-fraction 0.25 --seed 42 --output reports/demo-evaluation.json
 ```
+
+The repository includes `examples/synthetic-flow-demo.csv` (144 rows across 12 capture groups) so the full command can be tried without downloading a dataset. It is synthetic demonstration data only; it is not a benchmark and must not be used to claim real-world detection quality. Replace it with a properly licensed, representative labeled flow CSV for meaningful evaluation.
 
 The evaluator deterministically searches for a group-disjoint holdout split. It requires at least four independent groups, both classes in training and test sets, and at least 50 benign training observations. Related capture groups never cross the train/test boundary. The model is trained only on benign training rows; the held-out groups are used once for evaluation.
 
