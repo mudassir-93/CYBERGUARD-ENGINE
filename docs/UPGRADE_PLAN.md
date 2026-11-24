@@ -434,4 +434,4 @@ Add a safe, repeatable PowerShell entry point for validating CyberGuard on the o
 - Run simulator-to-SQLite integration and CLI doctor using an isolated temporary data directory; preserve the owner's normal incident database.
 - Never install software, enable packet capture, change firewall rules, or perform active response automatically.
 
-**Validation gate:** PowerShell syntax check on hosted Windows CI; cross-platform project CI green; owner runs the script on the target PC. Physical Npcap and Ollama checks remain separate opt-in validation.
+**Validation gate:** the complete PowerShell verification script executes on hosted Windows CI, the Linux pipeline remains green, and the owner runs the script on the target PC. Physical Npcap and Ollama checks remain separate opt-in validation.
