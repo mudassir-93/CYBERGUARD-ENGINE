@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Core simulator, flow aggregation, deterministic detections, passive IPv4 monitoring foundation, incident investigation, local IOC catalog, anomaly tooling, backend/browser OOP refactor, and guided local CLI are implemented on the isolated branch. Cross-platform CI passed on commit `7eec0cd0`; the CLI changes added afterward are awaiting their first CI run.  
+**Status:** Core simulator, flow aggregation, deterministic detections, passive IPv4 monitoring foundation, incident investigation, local IOC catalog, anomaly tooling, backend/browser OOP refactor, guided CLI, and optional read-only Ollama incident analyst are implemented on the isolated branch. Fresh cross-platform CI for the CLI and AI analyst changes is pending; do not treat the latest batch as verified until both hosted jobs finish green.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -68,7 +68,7 @@ The repository is a small C++20/CMake project with a separate browser simulation
 6. Cross-platform CI passed at commit `7eec0cd0` (32/32 C++ and 51/51 Python tests on Ubuntu and Windows). Later CLI changes must be validated by the next run.
 7. The API enforces loopback-only access and has no user authentication or authorization. It is not suitable for remote or multi-user deployment.
 8. The Isolation Forest and robust baseline are experimental. Their scores are not calibrated probabilities and have not been validated against representative labeled network traffic.
-9. External threat-feed polling, TAXII, the Ollama AI analyst, production deployment, and automated response/blocking are not implemented.
+9. External threat-feed polling, TAXII, autonomous AI actions, production deployment, and automated response/blocking are not implemented. A read-only local Ollama incident explanation adapter is now implemented; see docs/LOCAL_AI_ANALYST.md.
 10. Physical live capture still depends on host-specific Scapy/Npcap or libpcap installation, supported interfaces, and capture permissions; this requires testing on the user's Windows machine.
 
 ### Preserve before changing
@@ -306,7 +306,7 @@ Owner approval is still required before:
 
 The owner explicitly approved implementation. The branch now contains the simulator, detection, local incident, passive monitoring, threat-intelligence, and anomaly-baseline foundations described in the completed milestones below.
 
-**Current CI run:** [CyberGuard CI run 1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45159669668) — pending completion at the time this document was updated.
+**Current CI gate:** Fresh hosted Linux and Windows checks are queued/running for the latest CLI and local AI analyst batch. Review the branch Actions page before marking the batch complete: https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions
 
 **Important:** Application source code and runtime behavior have been extended on `research/cyberguard-upgrade-plan`. No files were deleted and `master` remains untouched. Physical Windows adapter capture remains a host-specific validation task.
 
@@ -383,3 +383,20 @@ IOC matches are contextual enrichment, not proof of compromise, and never trigge
 Implemented a dependency-free median/MAD baseline plus an optional scikit-learn Isolation Forest trainer/scorer for packet rate, distinct ports, failed attempts, bytes per second, and destination fan-out. Isolation Forest training requires at least 50 trusted baseline observations and produces a local joblib model artifact with per-feature context. The robust baseline and Isolation Forest score are not calibrated probabilities or production verdicts; neither is wired to automatic severity changes or response. Unit tests cover training limits, scoring, explanations, and invalid values.
 
 **Latest validation gate:** Run the full Linux and Windows workflow after the latest commit. CI installs the optional ML dependency and includes Python syntax checks plus all backend and Isolation Forest tests on Ubuntu and Windows. Physical Npcap adapter capture and anomaly quality on representative network data still require local validation.
+
+
+## 18. Optional local AI incident analyst milestone (implementation complete; CI pending)
+
+Added an optional Ollama-backed, read-only explanation workflow for persisted incidents.
+
+- Added `backend/ai_analyst.py`, a standard-library client for the local Ollama chat API.
+- The configured endpoint must be HTTP on a loopback host; remote URLs, embedded credentials, and URL paths are rejected.
+- Incident context is restricted to an allowlist of persisted fields and bounded to 24 KB.
+- The system prompt treats evidence, notes, hostnames, and logs as untrusted data, requests confidence/limitations, and prohibits shell commands, automatic blocking, or state changes.
+- Wired the analyst into the application composition root and added loopback-only `POST /api/analyst/explain`.
+- Added CLI `explain <incident_id>` and interactive menu option 7.
+- Added unit, CLI, and API tests for prompt construction, data bounds, loopback validation, missing incidents, offline Ollama behavior, and advisory output.
+- Added setup and safety documentation in `docs/LOCAL_AI_ANALYST.md`.
+- No Python Ollama package, cloud API key, or paid inference service is required.
+
+**Validation gate:** New Linux and Windows CI runs must pass C++ build/tests, Python syntax/tests, JavaScript syntax, and simulator-to-SQLite integration. Actual model inference still requires the owner to install Ollama and pull a local model on the target PC. The AI explanation is advisory and is not a detection verdict.
