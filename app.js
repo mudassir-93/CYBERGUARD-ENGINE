@@ -104,8 +104,8 @@ renderRules() {
       if (!rule) return;
 
       rule.enabled = !rule.enabled;
-      renderRules();
-      addEvent(`<strong>Firewall rule updated</strong> · rule ${ruleIndex} is now ${rule.enabled ? 'active' : 'disabled'}`);
+      this.renderRules();
+      this.addEvent(`<strong>Firewall rule updated</strong> · rule ${ruleIndex} is now ${rule.enabled ? 'active' : 'disabled'}`);
     });
   });
 }
@@ -134,13 +134,13 @@ routePacket({ source, destination, protocol, port, size }, quiet = false) {
   const result = matchingRule?.action === 'BLOCK' ? 'BLOCKED' : 'DELIVERED';
   this.state.stats[result.toLowerCase()] += 1;
 
-  renderStats();
-  animatePacket(result);
+  this.renderStats();
+  this.animatePacket(result);
 
   if (result === 'BLOCKED') {
-    addEvent(`<strong>Packet #${packetId} blocked</strong> · ${source} → ${destination} · ${protocol}:${port}`, 'blocked');
+    this.addEvent(`<strong>Packet #${packetId} blocked</strong> · ${source} → ${destination} · ${protocol}:${port}`, 'blocked');
   } else {
-    addEvent(`<strong>Packet #${packetId} delivered</strong> · ${source} → ${destination} · ${protocol}:${port}`, 'delivered');
+    this.addEvent(`<strong>Packet #${packetId} delivered</strong> · ${source} → ${destination} · ${protocol}:${port}`, 'delivered');
   }
 
   if (!quiet) {
@@ -156,7 +156,7 @@ cancelDemoSequence() {
 }
 
 seedDemoSequence() {
-  cancelDemoSequence();
+  this.cancelDemoSequence();
   const sequence = [
     { source: 'PC-01', destination: 'Server', protocol: 'TCP', port: 80, size: 512 },
     { source: 'PC-03', destination: 'Server', protocol: 'UDP', port: 53, size: 384 },
@@ -166,11 +166,11 @@ seedDemoSequence() {
   ];
 
   this.state.demoTimers = sequence.map((packet, index) => setTimeout(() => {
-    routePacket(packet, true);
+    this.routePacket(packet, true);
     if (index === sequence.length - 1) this.state.demoTimers = [];
   }, index * 650));
 
-  addEvent('<strong>Demo sequence started</strong> · traffic routed across five workstations');
+  this.addEvent('<strong>Demo sequence started</strong> · traffic routed across five workstations');
 }
 
   initialize() {
@@ -184,7 +184,7 @@ document.querySelector('#packetForm').addEventListener('submit', event => {
 
   if (!port || port < 1 || port > 65535 || !size || size < 1) return;
 
-  routePacket({ source, destination, protocol, port, size });
+  this.routePacket({ source, destination, protocol, port, size });
 });
 
 document.querySelector('#ruleForm').addEventListener('submit', event => {
@@ -200,40 +200,40 @@ document.querySelector('#ruleForm').addEventListener('submit', event => {
   if (!rule.port || rule.port > 65535) return;
 
   this.state.rules.push(rule);
-  renderRules();
-  addEvent(`<strong>Firewall rule added</strong> · ${rule.action} ${rule.protocol}:${rule.port}`);
+  this.renderRules();
+  this.addEvent(`<strong>Firewall rule added</strong> · ${rule.action} ${rule.protocol}:${rule.port}`);
 });
 
 document.querySelector('#pauseButton').addEventListener('click', event => {
   this.state.paused = !this.state.paused;
   if (this.state.paused) this.cancelDemoSequence();
   event.currentTarget.innerHTML = this.state.paused ? '<span>▶</span>Resume stream' : '<span>Ⅱ</span>Pause stream';
-  addEvent(`<strong>Simulation ${this.state.paused ? 'paused' : 'resumed'}</strong> · manual controls remain available`);
+  this.addEvent(`<strong>Simulation ${this.state.paused ? 'paused' : 'resumed'}</strong> · manual controls remain available`);
 });
 
 document.querySelector('#demoButton').addEventListener('click', () => {
   if (this.state.paused) return;
-  seedDemoSequence();
+  this.seedDemoSequence();
 });
 
 document.querySelector('#resetButton').addEventListener('click', () => {
-  cancelDemoSequence();
+  this.cancelDemoSequence();
   this.state.packetId = 0;
   this.state.stats = { created: 0, delivered: 0, blocked: 0, dropped: 0 };
   this.state.rules = [{ action: 'BLOCK', protocol: 'TCP', port: 23, enabled: true }];
   this.state.events = [];
 
-  renderStats();
-  renderRules();
+  this.renderStats();
+  this.renderRules();
   this.elements.eventList.innerHTML = '';
-  addEvent('<strong>Simulation reset</strong> · network ready for traffic');
+  this.addEvent('<strong>Simulation reset</strong> · network ready for traffic');
 });
 
-populateEndpointOptions();
-renderStats();
-renderRules();
-addEvent('<strong>Engine initialized</strong> · nine devices online');
-addEvent('<strong>Firewall ready</strong> · TCP destination port 23 blocked');
+this.populateEndpointOptions();
+this.renderStats();
+this.renderRules();
+this.addEvent('<strong>Engine initialized</strong> · nine devices online');
+this.addEvent('<strong>Firewall ready</strong> · TCP destination port 23 blocked');
   }
 }
 
@@ -299,10 +299,10 @@ makeIncidentNode(incident) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Status update failed');
-      setIncidentMessage('Incident ' + incident.id + ' updated.');
+      this.setIncidentMessage('Incident ' + incident.id + ' updated.');
       await this.loadIncidents();
     } catch (error) {
-      setIncidentMessage(error.message, true);
+      this.setIncidentMessage(error.message, true);
       status.value = incident.status;
     }
   });
@@ -352,12 +352,12 @@ makeIncidentNode(incident) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Unable to save investigation note');
-      setIncidentMessage('Investigation note saved for ' + incident.id + '.');
+      this.setIncidentMessage('Investigation note saved for ' + incident.id + '.');
       noteInput.value = '';
       evidence.open = true;
       evidence.dispatchEvent(new Event('toggle'));
     } catch (error) {
-      setIncidentMessage(error.message, true);
+      this.setIncidentMessage(error.message, true);
     } finally {
       noteButton.disabled = false;
     }
@@ -367,7 +367,7 @@ makeIncidentNode(incident) {
   return card;
 }
 
-async loadIncidents() {
+async this.loadIncidents() {
   try {
     const status = this.incidentElements.filter.value;
     const response = await fetch('/api/incidents' + (status ? '?status=' + encodeURIComponent(status) : ''));
@@ -384,15 +384,15 @@ async loadIncidents() {
     } else {
       result.incidents.forEach(incident => this.incidentElements.list.append(this.makeIncidentNode(incident)));
     }
-    setIncidentMessage('SQLite incident store connected.');
+    this.setIncidentMessage('SQLite incident store connected.');
   } catch (error) {
     this.incidentElements.summary.textContent = 'API unavailable';
     this.incidentElements.list.replaceChildren();
-    setIncidentMessage(error.message + ' · Start with python backend/server.py.', true);
+    this.setIncidentMessage(error.message + ' · Start with python backend/server.py.', true);
   }
 }
 
-async generateIncidentDemo() {
+async this.generateIncidentDemo() {
   const samples = [
     { type: 'port_scan', source_ip: '10.0.0.20', destination_ip: '10.0.0.10', destination_port: 443, protocol: 'TCP', summary: 'PC-01 contacted many service ports on the server', evidence: { distinct_ports: 12, threshold: 10, window_seconds: 60, source: 'local-demo' } },
     { type: 'brute_force', source_ip: '10.0.0.21', destination_ip: '10.0.0.10', destination_port: 22, protocol: 'TCP', summary: 'Repeated failed connection attempts to SSH service', evidence: { failed_attempts: 8, threshold: 5, window_seconds: 60, source: 'local-demo' } },
@@ -408,10 +408,10 @@ async generateIncidentDemo() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Detection ingestion failed');
     }
-    setIncidentMessage('Four local demo detections submitted and persisted in SQLite.');
+    this.setIncidentMessage('Four local demo detections submitted and persisted in SQLite.');
     await this.loadIncidents();
   } catch (error) {
-    setIncidentMessage(error.message, true);
+    this.setIncidentMessage(error.message, true);
   } finally {
     this.incidentElements.demo.disabled = false;
   }
@@ -423,21 +423,21 @@ this.incidentElements.filter.addEventListener('change', loadIncidents);
 this.incidentElements.demo.addEventListener('click', generateIncidentDemo);
 this.incidentElements.simulate.addEventListener('click', async () => {
   this.incidentElements.simulate.disabled = true;
-  setIncidentMessage('Running native C++ simulator and importing detections…');
+  this.setIncidentMessage('Running native C++ simulator and importing detections…');
   try {
     const response = await fetch('/api/simulate', { method: 'POST' });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Native simulation failed');
-    setIncidentMessage(result.detections_received + ' native detections imported · ' +
+    this.setIncidentMessage(result.detections_received + ' native detections imported · ' +
       result.incidents_created + ' new incidents · ' + result.detections_correlated + ' correlated.');
     await this.loadIncidents();
   } catch (error) {
-    setIncidentMessage(error.message, true);
+    this.setIncidentMessage(error.message, true);
   } finally {
     this.incidentElements.simulate.disabled = false;
   }
 });
-loadIncidents();
+this.loadIncidents();
   }
 }
 
@@ -467,7 +467,7 @@ liveMessage(message, isError = false) {
   this.liveElements.message.classList.toggle('error', isError);
 }
 
-async refreshLiveInterfaces() {
+async this.refreshLiveInterfaces() {
   this.liveElements.refresh.disabled = true;
   try {
     const response = await fetch('/api/live/interfaces');
@@ -482,7 +482,7 @@ async refreshLiveInterfaces() {
     });
     this.liveElements.interface.disabled = result.interfaces.length === 0;
     this.liveElements.start.disabled = result.interfaces.length === 0;
-    liveMessage(result.interfaces.length
+    this.liveMessage(result.interfaces.length
       ? 'Choose the interface connected to the network you are authorized to monitor.'
       : 'No capture interfaces are available on this machine.');
     if (!result.interfaces.length) this.liveElements.interface.innerHTML = '<option value="">No interfaces found</option>';
@@ -494,7 +494,7 @@ async refreshLiveInterfaces() {
     this.liveElements.interface.append(option);
     this.liveElements.interface.disabled = true;
     this.liveElements.start.disabled = true;
-    liveMessage(error.message + ' · Install optional capture support and check Npcap/libpcap.', true);
+    this.liveMessage(error.message + ' · Install optional capture support and check Npcap/libpcap.', true);
   } finally {
     this.liveElements.refresh.disabled = false;
     await this.refreshLiveStatus();
@@ -503,7 +503,7 @@ async refreshLiveInterfaces() {
 
 
 
-async refreshLiveStatus() {
+async this.refreshLiveStatus() {
   try {
     const response = await fetch('/api/live/status');
     const result = await response.json();
@@ -515,8 +515,8 @@ async refreshLiveStatus() {
     this.liveElements.errors.textContent = String(result.ingest_errors || 0);
     const detectionCount = Number(result.detections_created || 0);
     if (this.lastLiveDetectionCount >= 0 && detectionCount > this.lastLiveDetectionCount) {
-      await loadIncidents();
-      setIncidentMessage('New live-monitoring detections were added to the incident list.');
+      await this.incidentController.loadIncidents();
+      this.incidentController.setIncidentMessage('New live-monitoring detections were added to the incident list.');
     }
     this.lastLiveDetectionCount = detectionCount;
     this.liveElements.start.disabled = !result.available || result.running || !this.liveElements.interface.value;
@@ -524,14 +524,14 @@ async refreshLiveStatus() {
     if (result.last_error) this.liveMessage(result.last_error, true);
   } catch (error) {
     this.liveElements.state.textContent = 'API unavailable';
-    liveMessage(error.message, true);
+    this.liveMessage(error.message, true);
   }
 }
 
   initialize() {
 this.liveElements.start.addEventListener('click', async () => {
   this.liveElements.start.disabled = true;
-  liveMessage('Starting passive packet capture…');
+  this.liveMessage('Starting passive packet capture…');
   try {
     const response = await fetch('/api/live/start', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -539,10 +539,10 @@ this.liveElements.start.addEventListener('click', async () => {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to start packet capture');
-    liveMessage('Capture started on ' + result.interface + '. Incoming metadata will be analyzed locally.');
+    this.liveMessage('Capture started on ' + result.interface + '. Incoming metadata will be analyzed locally.');
     await this.refreshLiveStatus();
   } catch (error) {
-    liveMessage(error.message, true);
+    this.liveMessage(error.message, true);
     await this.refreshLiveStatus();
   }
 });
@@ -553,16 +553,16 @@ this.liveElements.stop.addEventListener('click', async () => {
     const response = await fetch('/api/live/stop', { method: 'POST' });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to stop packet capture');
-    liveMessage('Live packet capture stopped.');
+    this.liveMessage('Live packet capture stopped.');
     await this.refreshLiveStatus();
   } catch (error) {
-    liveMessage(error.message, true);
+    this.liveMessage(error.message, true);
     await this.refreshLiveStatus();
   }
 });
 
 this.liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
-refreshLiveInterfaces();
+this.this.refreshLiveInterfaces();
 window.setInterval(this.refreshLiveStatus, 3000);
   }
 }
