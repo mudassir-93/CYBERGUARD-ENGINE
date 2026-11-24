@@ -10,6 +10,7 @@ import threading
 from pathlib import Path
 from typing import Any, Callable
 
+from ai_analyst import OllamaAnalyst
 from incidents import IncidentStore, default_store
 from live_monitor import LiveTrafficMonitor, list_capture_interfaces
 from simulation_bridge import SimulationBridge
@@ -27,10 +28,12 @@ class CyberGuardApplication:
         simulation_runner: Callable[..., dict[str, Any]] | None = None,
         interface_provider: Callable[[], list[dict[str, str]]] | None = None,
         anomaly_model_path: str | None = None,
+        analyst: OllamaAnalyst | None = None,
     ) -> None:
         self.incidents = incident_store or default_store()
         self.threat_intelligence = threat_intel or ThreatIntelStore(self.incidents.database_path)
         self.live_monitor = live_monitor or LiveTrafficMonitor(self.incidents)
+        self.analyst = analyst or OllamaAnalyst()
         self._simulation_bridge = SimulationBridge()
         self._simulation_runner = simulation_runner
         self._interface_provider = interface_provider or list_capture_interfaces
@@ -47,6 +50,15 @@ class CyberGuardApplication:
         if self._simulation_runner is not None:
             return self._simulation_runner(store=self.incidents)
         return self._simulation_bridge.run(store=self.incidents)
+
+    def explain_incident(self, incident_id: str) -> dict[str, str]:
+        """Generate a read-only local AI explanation for a persisted incident."""
+        incident = self.incidents.get_incident(incident_id)
+        if incident is None:
+            raise KeyError("Incident not found")
+        incident["threat_intel_matches"] = self.threat_intelligence.match_incident(incident)
+        incident["analyst_notes"] = self.threat_intelligence.list_notes(incident_id)
+        return self.analyst.explain(incident)
 
     def score_anomaly(self, features: Any) -> dict[str, Any]:
         model_path = self._anomaly_model_path or os.environ.get("CYBERGUARD_ANOMALY_MODEL")
