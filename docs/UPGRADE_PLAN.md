@@ -1,10 +1,10 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** The simulator, flow aggregation, first-generation detections, passive IPv4 monitoring foundation, incident management, local IOC catalog, anomaly tooling, OOP refactor, guided CLI, and optional read-only Ollama incident analyst are implemented on the isolated branch. Latest cross-platform CI passed on Windows and Ubuntu for commit `f9b0436495bf3cf751535c6a1335ccd776e0ca5b` (run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562)). Integration PR [#1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/1) is open; merge is gated on the PR's own checks.  
+**Status:** The initial simulator, detection, incident-management, passive IPv4 monitoring, IOC enrichment, anomaly-analysis, OOP, guided CLI, and optional read-only Ollama analyst milestones are merged into `master` by PR [#1](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/1). Merge commit: `022b310a110794005a1b6cf5e71a6a452c5d9328`. Post-merge Windows and Ubuntu CI both passed in run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340). A follow-up CLI readiness milestone is being implemented on `feature/cli-doctor-readiness`; it adds an optional local Ollama health/model check to `cyberguard doctor`.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
-**Planning branch:** `research/cyberguard-upgrade-plan`
+**Current implementation branch:** `feature/cli-doctor-readiness`
 
 ## 1. Product vision
 
@@ -194,13 +194,11 @@ Check current API access, rate limits, authentication, attribution, commercial-u
 
 ## 7. Delivery roadmap and gates
 
-### Phase 0 — Planning and baseline
-- Complete repository inventory and architecture review.
-- Confirm build/test workflow and record baseline results.
-- Define product requirements, data contracts, security boundaries, and acceptance criteria.
-- No feature implementation until the owner asks to begin.
+### Phase 0 — Planning and baseline (completed)
+- Repository inventory, architecture review, baseline CI, product requirements, data contracts, and security boundaries were recorded.
+- The owner approved implementation and authorized safe PR-based integration with recovery snapshots.
 
-**Exit gate:** owner approves the implementation plan and first milestone.
+**Exit gate:** completed; implementation is underway in focused feature branches.
 
 ### Phase 1 — Simulation foundation
 - Add traffic generation and flow aggregation.
@@ -304,11 +302,7 @@ Owner approval is still required before:
 - [x] First hardening milestone committed on the isolated implementation branch.
 - [x] Traffic & Flow Engine v1 implementation and cross-platform CI validation (Linux and Windows, 25/25 C++ tests each).
 
-The owner explicitly approved implementation. The branch now contains the simulator, detection, local incident, passive monitoring, threat-intelligence, and anomaly-baseline foundations described in the completed milestones below.
-
-**Current CI evidence:** Latest feature-head CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) completed successfully on Windows and Ubuntu. The PR-triggered validation for PR #1 must also complete before merge.
-
-**Important:** Application source code and runtime behavior have been extended on `research/cyberguard-upgrade-plan`. No files were deleted and `master` remains untouched. Physical Windows adapter capture remains a host-specific validation task.
+The owner explicitly approved implementation and authorized safe PR merges with rollback preparation. The initial 214-commit upgrade branch was integrated through PR #1 into `master`; the post-merge CI run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340) passed both Ubuntu and Windows jobs. Recovery snapshots are preserved as `safety/pre-integration-master-2026-11-24` and `safety/pre-integration-research-2026-11-24`. Current follow-up work is isolated on `feature/cli-doctor-readiness`, with a pre-change snapshot at `safety/pre-cli-doctor-2026-11-24`. Physical Windows Npcap capture and real Ollama inference still require owner-PC verification.
 
 
 ## 11. Traffic & Flow Engine v1 (completed)
@@ -351,7 +345,7 @@ Added deterministic, explainable detection over the existing in-memory flow reco
 
 These are initial heuristics, not authentication-aware or payload-aware detection. They do not establish that an account or host is compromised. All scenarios remain in-memory simulator packets and open no sockets.
 
-**Latest implementation CI:** hosted Linux and Windows checks passed in run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562). Master remains unchanged until PR #1 is merged.
+**Latest implementation CI:** hosted Linux and Windows checks passed in run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562). The milestone is integrated into `master` through PR #1.
 
 
 ## 15. Incident management v1 implementation status
@@ -385,7 +379,7 @@ Implemented a dependency-free median/MAD baseline plus an optional scikit-learn 
 **Latest validation:** Run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on Ubuntu and Windows with the optional ML dependency, Python tests, syntax checks, and integration. Physical Npcap adapter capture and anomaly quality on representative network data still require local validation.
 
 
-## 18. Optional local AI incident analyst milestone (implementation complete; cross-platform CI passed)
+## 18. Optional local AI incident analyst milestone (implemented; cross-platform CI passed)
 
 Added an optional Ollama-backed, read-only explanation workflow for persisted incidents.
 
@@ -400,3 +394,16 @@ Added an optional Ollama-backed, read-only explanation workflow for persisted in
 - No Python Ollama package, cloud API key, or paid inference service is required.
 
 **Validation:** Cross-platform CI run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562) passed on Linux and Windows. Actual model inference still requires the owner to install Ollama and pull a local model on the target PC. The AI explanation is advisory and is not a detection verdict.
+
+
+## 19. CLI local-readiness diagnostics (implementation in progress)
+
+The guided `doctor` command is being extended to diagnose the optional local AI analyst without making Ollama a required dependency.
+
+- `OllamaAnalyst.diagnose()` performs a bounded GET to the configured loopback-only Ollama `/api/tags` endpoint.
+- It distinguishes an unavailable local service, an unexpected response, a missing configured model, and a ready model.
+- Missing Ollama or a missing model remains an optional capability warning; the rest of CyberGuard remains usable.
+- `cyberguard doctor` reports the local AI status and provides the exact `ollama pull <model>` command when the model is missing.
+- Unit tests cover ready, missing-model, and unavailable-service cases; CLI tests ensure the optional dependency does not make doctor fail.
+
+**Validation gate:** focused Python tests, full backend suite, C++ build/tests, dashboard JavaScript syntax, simulator-to-SQLite integration, and hosted Windows/Ubuntu CI must pass before merge. Actual Ollama inference and Npcap capture remain PC-specific checks.
