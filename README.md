@@ -16,6 +16,7 @@ CyberGuard combines three local components:
 
 - A native C++ simulation for the network model, packet logic, and device behavior
 - A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
+- An object-oriented Python application layer that composes repositories, monitoring, simulation, and anomaly-analysis services
 - An optional Python packet sensor for passive IPv4 metadata capture
 
 The browser dashboard is served by a local Python API. It can display persisted incidents, invoke the native C++ simulator through a structured local process bridge, and optionally capture passive packet metadata from a selected local interface.
@@ -60,6 +61,8 @@ Not implemented yet:
 - automated AI investigation or response
 
 Detection rules are starter heuristics, not proof of compromise. Live capture inspects TCP SYN metadata but does not inspect authentication events, packet payloads, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for simulator thresholds and [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for optional capture setup, detection limits, and permissions.
+
+Object-oriented design, application composition, and dependency-injection conventions are documented in [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md). The C++ simulator uses domain classes; the Python backend uses repositories and services; declarative formats such as HTML/CSS/YAML remain declarative. The JavaScript dashboard is still being reorganized into cohesive UI controller classes.
 
 Detailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
 
