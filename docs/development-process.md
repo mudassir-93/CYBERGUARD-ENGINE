@@ -1,6 +1,6 @@
 # CyberGuard Development and Verification
 
-This guide reflects the implementation currently merged into `master` and the follow-up CLI readiness work in progress.
+This guide reflects the current `master` baseline after PRs #1, #2, and #3. The one-command Windows owner verification helper is in progress on a separate feature branch.
 
 ## Source tree
 
@@ -20,7 +20,7 @@ This guide reflects the implementation currently merged into `master` and the fo
 | SQLite incident lifecycle and evidence | Implemented, local-only |
 | Passive IPv4 packet metadata sensor | Optional Scapy adapter; Npcap/libpcap and permissions required |
 | Local IOC catalog and analyst notes | Implemented; explicit imports, exact-match enrichment |
-| Robust anomaly baseline and Isolation Forest | Implemented as experimental local analysis, not calibrated verdicts |\n| Leakage-aware ML evaluation | New grouped holdout evaluator; awaiting cross-platform CI and independent labeled data |
+| Robust anomaly baseline and Isolation Forest | Implemented as experimental local analysis, not calibrated verdicts |\n| Leakage-aware ML evaluation | Implemented; capture/session-grouped holdout and security metrics, awaiting representative owner data |\n| Leakage-aware ML evaluation | New grouped holdout evaluator; awaiting cross-platform CI and independent labeled data |
 | Local Ollama incident explanation | Optional, read-only, advisory |
 | Guided CLI | Implemented: doctor, summary, incidents, show, status, simulate, explain |
 | Dashboard | Implemented; simulator UI and C++ engine remain separate state domains |
@@ -100,7 +100,7 @@ The C++ build and CTest commands are listed above. Report checks that cannot be 
 - Live capture requires a supported adapter, Npcap/libpcap, and suitable host permissions. The actual Windows adapter path still needs owner-PC validation.
 - The live sensor observes limited IPv4 metadata; it does not inspect payloads, process identity, or authentication outcomes.
 - Rule thresholds are starter heuristics. Validate false positives and false negatives using representative, labeled traffic before making operational claims.
-- Isolation Forest scores are not calibrated probabilities. The new evaluation workflow requires a capture/session group column and reports false-positive/negative metrics; see [ML_EVALUATION.md](ML_EVALUATION.md).
+- Isolation Forest scores are not calibrated probabilities. The grouped evaluation helper requires labeled CSV data with capture/session IDs; no benchmark dataset is bundled. See [ML_EVALUATION.md](ML_EVALUATION.md). The new evaluation workflow requires a capture/session group column and reports false-positive/negative metrics; see [ML_EVALUATION.md](ML_EVALUATION.md).
 - The local AI analyst is optional and depends on Ollama being installed and the selected model being pulled.
 - The API has no authentication/authorization and is not suitable for remote or multi-user use.
 - No automatic blocking, firewall changes, or disruptive response is performed.
