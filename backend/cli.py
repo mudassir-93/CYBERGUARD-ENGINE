@@ -169,6 +169,7 @@ class CyberGuardCLI:
             server.server_close()
             server.application.close()
         return 0
+
     def _interactive(self) -> int:
         actions = {
             "1": ("Incident summary", self._show_summary),
