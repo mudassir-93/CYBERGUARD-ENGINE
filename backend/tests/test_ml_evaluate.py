@@ -44,6 +44,20 @@ class EvaluationTests(unittest.TestCase):
         self.assertIn("p95_per_observation", report["inference_latency_ms"])
         self.assertEqual(report["training"]["trained_only_on"], "benign")
 
+    @unittest.skipUnless(ML_AVAILABLE, "optional scikit-learn dependencies are not installed")
+    def test_repository_synthetic_demo_dataset_runs_end_to_end(self):
+        repository_root = Path(__file__).resolve().parents[2]
+        rows = load_labeled_rows(
+            repository_root / "examples" / "synthetic-flow-demo.csv",
+            "label",
+            "capture_id",
+            "benign",
+        )
+        report = evaluate_rows(rows, seed=42)
+        self.assertEqual(report["split"]["group_overlap"], 0)
+        self.assertGreater(report["split"]["test_rows"], 0)
+        self.assertEqual(report["model"], "IsolationForest")
+
     def test_rejects_too_few_groups(self):
         with self.assertRaises(ValueError):
             split_by_group(fixture_rows(group_count=3))
