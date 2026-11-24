@@ -257,6 +257,31 @@ New application logic should follow these rules:
 7. Do not create classes for HTML, CSS, JSON, YAML, or CI configuration.
 8. Add tests around class behavior, object lifecycle, and dependency boundaries.
 
-The backend refactor is incremental. Existing repositories and sensor components already contain classes, but some modules still expose procedural helpers and will be reviewed and reorganized in later batches. The JavaScript dashboard also remains a separate UI layer and is not yet a complete class-based application.
+The backend refactor is incremental. Existing repositories and sensor components already contain classes; small stateless validation, normalization, and mathematical helpers remain pure functions where a class would add no value.
+
+The browser application is now organized into five feature controllers:
+- `NetworkSimulatorController` owns simulator state, firewall rules, packet routing, counters, and demo-sequence lifecycle.
+- `IncidentDashboardController` owns incident rendering, filtering, status updates, evidence inspection, and analyst-note workflows.
+- `LiveMonitorController` owns capture-interface selection, start/stop controls, status polling, and incident refresh coordination through an injected incident controller.
+- `ThreatIntelController` owns IOC import and delegates incident refresh to the incident controller.
+- `AnomalyDashboardController` owns the analyst-triggered local anomaly-scoring interaction.
+
+Each controller owns its DOM references and event wiring; callbacks are bound to their controller instance. The page-level composition at the end of `app.js` constructs the controllers and injects cross-feature dependencies. HTML and CSS remain declarative presentation assets.
 
 The actual C++ code structure lives in the `include/` and `src/` folders; backend application composition lives in `backend/application.py`; the browser UI is a separate presentation layer.
+
+## 9. Browser Controller Object Graph
+
+```text
+app.js composition root
+  +-- NetworkSimulatorController
+  +-- IncidentDashboardController
+  |      +-- incident list / status / evidence / notes
+  +-- LiveMonitorController
+  |      +-- injected IncidentDashboardController
+  +-- ThreatIntelController
+  |      +-- injected IncidentDashboardController
+  +-- AnomalyDashboardController
+```
+
+The browser controllers own feature state and event lifecycle. They call the existing local HTTP API for persistence and monitoring; they do not duplicate backend repositories or ML logic.
