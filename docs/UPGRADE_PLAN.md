@@ -1,6 +1,6 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** Flow monitoring, multi-pattern detection, passive live-monitoring foundation, incident management, local threat intelligence, investigation notes, and explainable anomaly-baseline tooling implemented on the isolated branch; latest cross-platform CI verification pending.  
+**Status:** Core simulator, flow aggregation, deterministic detections, passive IPv4 monitoring foundation, incident investigation, local IOC catalog, anomaly tooling, backend/browser OOP refactor, and guided local CLI are implemented on the isolated branch. Cross-platform CI passed on commit `7eec0cd0`; the CLI changes added afterward are awaiting their first CI run.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
@@ -41,7 +41,7 @@ The long-term path is **CyberGuard Monitor**, which may later ingest telemetry f
 
 All attack-like behavior in the initial release must remain inside the local simulator and be safe, bounded, and reproducible.
 
-## 3. Repository baseline — findings from current master
+## 3. Current branch baseline — verified implementation state
 
 The repository is a small C++20/CMake project with a separate browser simulation.
 
@@ -58,18 +58,18 @@ The repository is a small C++20/CMake project with a separate browser simulation
 - `web/`: legacy/duplicate browser assets.
 - `docs/`: architecture, development process, and OOP documentation.
 
-### Confirmed architectural limitations
+### Confirmed architectural limitations and current capabilities
 
-1. The native C++ simulation and browser dashboard are separate simulations with independent state.
-2. The native engine models packets and devices in memory; it does not capture or send real network traffic.
-3. The current model is packet-centric. ML-based network detection will need time-windowed flow aggregation and a stable feature schema.
-4. Threat generation, detection, incidents, response, and AI functionality are not implemented.
-5. The Python backend currently only serves static files; it is not an application API.
-6. CMake downloads GoogleTest through FetchContent during test-enabled configuration.
-7. The Python server binds to `0.0.0.0:8000`; before adding any API or sensitive data, local-development binding and safe deployment defaults must be reviewed.
-8. The README uses a project-educational license badge, but repository metadata reports no declared license. Do not claim an open-source license until the owner chooses one.
-9. A tracked `backend/__pycache__` directory appears in the repository listing. Its exact contents and impact must be reviewed before any cleanup.
-10. Existing documentation and recorded test results are useful baseline evidence, but all tests must be rerun on the working environment before treating the current state as verified.
+1. The native C++ simulation and browser dashboard remain separate simulations with independent state.
+2. The C++ engine is an in-memory simulator; it does not send network traffic. Optional live monitoring is a separate passive IPv4 metadata sensor.
+3. The native engine has bidirectional flow aggregation and bounded deterministic scenarios/detections. The live sensor has narrower metadata-only heuristics and does not inspect payloads, process identity, or authentication outcomes.
+4. The Python backend is an application/API layer with SQLite incident management, IOC enrichment, analyst notes, anomaly scoring, and a native simulator bridge; it is no longer a static-file server only.
+5. The browser dashboard is organized into five feature controllers. A guided local CLI was added after the latest green CI run and still requires CI validation.
+6. Cross-platform CI passed at commit `7eec0cd0` (32/32 C++ and 51/51 Python tests on Ubuntu and Windows). Later CLI changes must be validated by the next run.
+7. The API enforces loopback-only access and has no user authentication or authorization. It is not suitable for remote or multi-user deployment.
+8. The Isolation Forest and robust baseline are experimental. Their scores are not calibrated probabilities and have not been validated against representative labeled network traffic.
+9. External threat-feed polling, TAXII, the Ollama AI analyst, production deployment, and automated response/blocking are not implemented.
+10. Physical live capture still depends on host-specific Scapy/Npcap or libpcap installation, supported interfaces, and capture permissions; this requires testing on the user's Windows machine.
 
 ### Preserve before changing
 
