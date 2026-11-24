@@ -34,7 +34,7 @@ CMakeLists.txt      C++20 targets and test configuration
 | SQLite incident management workspace | Implemented (local-only) |
 | Local threat-intelligence catalog and incident IOC enrichment | Implemented (manual JSON import; exact matches) |
 | Analyst investigation notes and evidence timeline | Implemented (append-only local notes) |
-| Explainable anomaly baseline | Implemented (median/MAD statistical baseline; not calibrated ML) |
+| Explainable anomaly baseline | Implemented (median/MAD statistical baseline) |\n| Optional Isolation Forest pipeline | Implemented (scikit-learn; local training/scoring; uncalibrated) |
 | Automated defensive response / blocking | Not implemented |
 | Automated external threat-feed polling / TAXII | Not implemented |
 | Calibrated production ML risk scoring | Not implemented |
