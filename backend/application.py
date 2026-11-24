@@ -37,6 +37,7 @@ class CyberGuardApplication:
         self._anomaly_model_path = anomaly_model_path
         self._anomaly_analyzer = None
         self._anomaly_model_loaded = False
+        self._loaded_model_path: str | None = None
         self._anomaly_lock = threading.Lock()
 
     def list_interfaces(self) -> list[dict[str, str]]:
