@@ -58,7 +58,7 @@ From PowerShell in the repository root, run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\\scripts\\verify-windows.ps1
+.\scripts\verify-windows.ps1
 ```
 
 This helper is part of the Windows verification milestone. It builds the native project, runs C++ and Python tests, checks dashboard syntax when Node.js is installed, executes simulator-to-SQLite integration in a temporary data directory, and runs the local doctor report. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md).
