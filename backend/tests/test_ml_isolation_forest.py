@@ -23,4 +23,6 @@ class IsolationForestTests(unittest.TestCase):
  def test_invalid_observation_is_rejected(self):
   model=train_model(self.rows())
   with self.assertRaises(ValueError): score_observation({"packet_rate":-1},model)
+  with self.assertRaises(ValueError): score_observation(None,model)
+  with self.assertRaises(ValueError): score_observation({"packet_rate":True},model)
 if __name__=="__main__": unittest.main()
