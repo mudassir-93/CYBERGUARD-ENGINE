@@ -51,6 +51,28 @@ class OllamaAnalyst:
         if not 1 <= self.timeout <= 180:
             raise ValueError("Ollama timeout must be between 1 and 180 seconds")
 
+    def diagnose(self) -> tuple[bool, str]:
+        """Check whether the configured local Ollama model is ready for use."""
+        request = Request(self.base_url + "/api/tags", method="GET")
+        try:
+            with self._opener(request, timeout=min(self.timeout, 5)) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError, TimeoutError, OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return False, "Ollama is not responding on the configured loopback address"
+
+        if not isinstance(result, dict) or not isinstance(result.get("models"), list):
+            return False, "Ollama returned an unexpected model-list response"
+        names = {
+            item.get("name") for item in result["models"]
+            if isinstance(item, dict) and isinstance(item.get("name"), str)
+        }
+        if self.model in names:
+            return True, f"model {self.model} is installed and ready"
+        return False, (
+            f"Ollama is running, but model {self.model} is missing; "
+            f"run: ollama pull {self.model}"
+        )
+
     def explain(self, incident: dict[str, Any]) -> dict[str, str]:
         """Return a concise advisory explanation for one persisted incident."""
         if not isinstance(incident, dict) or not incident.get("id"):
