@@ -1,10 +1,10 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** The initial platform foundations are merged through PR #1 (merge commit `022b310a110794005a1b6cf5e71a6a452c5d9328`). CLI/Ollama readiness is merged through PR #2 (merge commit `34b7fa200526759fa6e1c49d381b433cc5b1e50a`); its post-merge Ubuntu/Windows CI passed in run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). Leakage-aware ML evaluation is merged through PR #3 (merge commit `6ff5369a1f174e6f45ac58c8d5caf388a089385e`); post-merge Ubuntu/Windows CI passed in run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613). The next owner-PC readiness milestone is being developed on `feature/windows-verification-and-docs`.  
+**Status:** The initial platform foundations are merged through PR #1 (merge commit `022b310a110794005a1b6cf5e71a6a452c5d9328`). CLI/Ollama readiness is merged through PR #2 (merge commit `34b7fa200526759fa6e1c49d381b433cc5b1e50a`); its post-merge Ubuntu/Windows CI passed in run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). Leakage-aware ML evaluation is merged through PR #3 (merge commit `6ff5369a1f174e6f45ac58c8d5caf388a089385e`); post-merge Ubuntu/Windows CI passed in run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613). Windows owner verification is merged through PR #4 (merge commit `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`); post-merge Ubuntu/Windows CI passed in run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131). The synthetic ML demo dataset is merged through PR #5 (merge commit `21fb2996125059bf71bb4c439164951bf707068b`); post-merge Ubuntu/Windows CI passed in run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737). Documentation refresh is on `feature/readme-roadmap-refresh`.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
-**Current implementation branch:** `feature/windows-verification-and-docs`
+**Current implementation branch:** `feature/readme-roadmap-refresh`
 
 ## 1. Product vision
 
@@ -423,9 +423,9 @@ Added a reproducible binary evaluation path for the optional Isolation Forest:
 
 **Validation:** PR CI run [45307123845](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307123845) passed on Ubuntu and Windows, including the full Python suite and C++/SQLite integration. The merge commit is `6ff5369a1f174e6f45ac58c8d5caf388a089385e`; its post-merge run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613) passed on Ubuntu and Windows. No benchmark dataset is bundled, and no performance claim is made until the owner supplies a properly licensed, representative dataset.
 
-## 21. Windows owner verification workflow (implementation in progress)
+## 21. Windows owner verification workflow (implemented; merged through PR #4)
 
-Add a safe, repeatable PowerShell entry point for validating CyberGuard on the owner's Windows PC:
+Added a safe, repeatable PowerShell entry point for validating CyberGuard on Windows:
 
 - Detect required local tools and reuse the existing CMake generator, with an explicit generator override for a fresh build directory.
 - Build the native C++20 target and run CTest.
@@ -434,4 +434,13 @@ Add a safe, repeatable PowerShell entry point for validating CyberGuard on the o
 - Run simulator-to-SQLite integration and CLI doctor using an isolated temporary data directory; preserve the owner's normal incident database.
 - Never install software, enable packet capture, change firewall rules, or perform active response automatically.
 
-**Validation gate:** the complete PowerShell verification script executes on hosted Windows CI, the Linux pipeline remains green, and the owner runs the script on the target PC. Physical Npcap and Ollama checks remain separate opt-in validation.
+**Validation:** PR CI run [45308210934](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308210934) executed the complete PowerShell script on Windows and passed; Ubuntu also passed. The merge commit is `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`, and post-merge CI run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131) passed both platforms. Owner-PC execution is still pending. Physical Npcap and Ollama checks remain separate opt-in validation.
+
+## 22. Synthetic ML evaluation demo dataset (implemented; merged through PR #5)
+
+- Added `examples/synthetic-flow-demo.csv`, a deterministic 144-row synthetic flow dataset spanning 12 independent capture groups.
+- Updated the ML evaluation guide with a copy/paste command that runs locally without downloading an external dataset.
+- Added an end-to-end test that loads and evaluates the bundled sample when optional scikit-learn dependencies are installed.
+- The dataset is explicitly synthetic demonstration material, not a benchmark or evidence of real-world detection quality.
+
+**Validation:** PR CI run [45308466127](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308466127) passed on Ubuntu and Windows, including 84 Python tests on each platform. Merge commit: `21fb2996125059bf71bb4c439164951bf707068b`. Post-merge run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737) is running.
