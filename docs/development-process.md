@@ -1,169 +1,118 @@
 # CyberGuard Development and Verification
 
-This guide describes the source tree, completed scope, build and test commands,
-browser demo, and remaining roadmap based on the current repository.
+This guide reflects the implementation currently merged into `master` and the follow-up CLI readiness work in progress.
 
-## Source Tree
+## Source tree
 
-```text
-include/core/       Packet, network, and abstract device interfaces
-include/devices/    Router, firewall, server, and workstation interfaces
-src/core/           Packet and network implementation
-src/devices/        Device implementations
-src/main.cpp        Native console demonstration
-tests/              Smoke and GoogleTest coverage
-backend/            Python application, service, repository, and HTTP layers
-index.html          Default browser dashboard entry point
-web/                Legacy static browser assets kept for reference; not the default route
-docs/               Architecture, OOP, and this project guide
-CMakeLists.txt      C++20 targets and test configuration
-```
+- `include/`, `src/`, `tests/`: C++20 simulator, device model, flow aggregation, scenarios, detection, and native tests.
+- `backend/`: Python application composition, repositories, incident services, live sensor, anomaly analysis, Ollama adapter, guided CLI, and loopback HTTP server.
+- `index.html`, `app.js`, `dashboard.css`: primary browser dashboard and its feature controllers.
+- `web/`: legacy browser assets retained for reference.
+- `docs/`: architecture, data contracts, safety boundaries, setup, and milestone tracker.
 
-## Implemented Scope
+## Implemented scope
 
-| Work | Current state |
-| --- | --- |
-| C++20 project, core library, console executable | Implemented |
-| Packet value type and validation | Implemented |
-| Router, firewall, server, workstation | Implemented |
-| Network ownership, lookup, routing, counters | Implemented |
-| Unit and smoke tests | Implemented for the current core |
-| Static browser console | Implemented as an independent simulation |
-| Simulated threat generation and heuristic detection | Implemented (starter rules) |
-| Optional passive IPv4 capture foundation | Implemented (Scapy adapter; host driver/permissions required) |
-| SQLite incident management workspace | Implemented (local-only) |
-| Local threat-intelligence catalog and incident IOC enrichment | Implemented (manual JSON import; exact matches) |
-| Analyst investigation notes and evidence timeline | Implemented (append-only local notes) |
-| Explainable anomaly baseline | Implemented (median/MAD statistical baseline) |
-| Optional Isolation Forest pipeline | Implemented (scikit-learn; local training/scoring; uncalibrated) |
-| Dashboard anomaly scoring | Implemented (configured local model; explicit analyst-triggered scoring) |
-| API network boundary | Implemented (all API reads/writes loopback-only) |
-| OOP backend composition root | Implemented (application owns services; HTTP handler uses dependency injection) |
-| OOP native simulator bridge | Implemented (SimulationBridge encapsulates executable discovery, execution, and JSONL ingestion) |
-| OOP ML inference | Implemented (IsolationForestAnalyzer owns the loaded model and scoring interface) |\n| Guided local CLI | Implemented (interactive menu, setup checks, simulation, incident list/detail/status commands) |
-| Automated defensive response / blocking | Not implemented |
-| Automated external threat-feed polling / TAXII | Not implemented |
-| Calibrated production ML risk scoring | Not implemented |
-| Simulation/scenario engine and stress runner | Not implemented |
-| SFML interface, Docker | Not implemented |
-| Optional local AI incident explanation | Implemented in CLI/API using Ollama; CI validation pending |
-| Autonomous AI investigation or response | Not implemented and out of scope for the initial local release |
-| GitHub Actions baseline CI | Added on the upgrade branch; Linux and Windows checks configured |
-
-The first three development phases are represented by the implemented
-foundation, devices/network ownership, and packet/routing/firewall behavior.
-Testing and the browser console are cross-cutting additions, not completion of
-the planned GoogleTest or SFML phases in their entirety. Detection and incident
-management are implemented as local-first foundations; automated response and
-AI-driven analysis are not implemented.
+| Area | Current state |
+|---|---|
+| C++20 network simulator and device model | Implemented; simulation is in-memory |
+| Flow aggregation and bounded scenarios | Implemented |
+| Explainable deterministic detection rules | Implemented starter heuristics |
+| SQLite incident lifecycle and evidence | Implemented, local-only |
+| Passive IPv4 packet metadata sensor | Optional Scapy adapter; Npcap/libpcap and permissions required |
+| Local IOC catalog and analyst notes | Implemented; explicit imports, exact-match enrichment |
+| Robust anomaly baseline and Isolation Forest | Implemented as experimental local analysis, not calibrated verdicts |
+| Local Ollama incident explanation | Optional, read-only, advisory |
+| Guided CLI | Implemented: doctor, summary, incidents, show, status, simulate, explain |
+| Dashboard | Implemented; simulator UI and C++ engine remain separate state domains |
+| Remote multi-user authentication/authorization | Not implemented |
+| Automatic blocking or response | Not implemented and out of scope for initial local release |
+| Production-calibrated detection | Not implemented |
 
 ## Requirements
 
-- CMake 3.20 or newer
-- A compiler with C++20 support (the commands below use MinGW GCC and the
-  `MinGW Makefiles` generator)
-- Internet access when configuring tests for the first time; CMake fetches
-  GoogleTest 1.14.0 through `FetchContent`
-- Python 3 to serve the dashboard and local incident API
-- Optional live capture: install `requirements-live.txt`, Npcap on Windows or libpcap on Linux, and suitable capture permissions
+- CMake 3.20+
+- A C++20 compiler
+- Python 3.10+ (CI currently validates with Python 3.12)
+- Node.js for the dashboard JavaScript syntax check
+- Optional live capture: `python -m pip install -r requirements-live.txt`, Npcap on Windows or libpcap on Linux, and suitable capture permissions
+- Optional ML tools: `python -m pip install -r requirements-ml.txt`
+- Optional local AI: Ollama plus the configured model (default `llama3.2:3b`)
 
-## Build and Run the Native Program
+## Build on Windows (PowerShell)
 
-Run these commands from the repository root in PowerShell:
-
-```powershell
-cmake -S . -B build -G "MinGW Makefiles" -DCYBERGUARD_BUILD_TESTS=ON
-cmake --build build
-.\build\CyberGuard.exe
-```
-
-The native demo creates a router, firewall, server, and two workstations. The
-server opens ports 80 and 443, and the firewall blocks TCP destination port 23.
-Its demonstration sends three packets: two are delivered and one is blocked.
-
-## Run Tests
+Run from the repository root:
 
 ```powershell
-ctest --test-dir build --output-on-failure
+cmake -S . -B build -DCYBERGUARD_BUILD_TESTS=ON
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
 ```
 
-The earlier verified CI milestone records 32/32 C++ tests passing on both
-Ubuntu and Windows. The OOP backend composition, simulator bridge, and browser controller refactors add new Python coverage and require a fresh confirmed CI run. Coverage includes packet validation, routing, firewall
-decisions, flow aggregation, scenario bounds, threat detection, and regression
-checks for offline devices, IP validation, and stale-route cleanup. The Python
-backend suite records 30/30 tests passing on both platforms. The workflow also
-checks Python syntax, dashboard JavaScript syntax, and the C++-to-SQLite
-integration. The browser application is organized into five OOP controllers for
-the network simulator, incidents, live monitoring, threat intelligence, and
-anomaly-scoring UI. These counts describe the completed CI run for commit
-`0f82a957`; consult the latest Actions run for any later commit.
+If using MinGW, configure with `-G "MinGW Makefiles"` and use the matching build directory consistently.
 
-## Use the Guided CLI\n\nRun the interactive local workspace from the repository root:\n\n```powershell\npython backend/cli.py\n```\n\nAvailable commands include:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --severity high\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI accesses the local SQLite repositories directly and runs the native simulator through the existing process bridge. It does not start an HTTP listener or enable active network response.\n\n## Run the Browser Simulator
+## Run the guided CLI
 
-Start the backend server from the repository root:
+```powershell
+python backend/cli.py
+```
+
+Useful direct commands:
+
+```powershell
+python backend/cli.py doctor
+python backend/cli.py summary
+python backend/cli.py incidents --status new --severity high
+python backend/cli.py show CG-INCIDENTID
+python backend/cli.py status CG-INCIDENTID acknowledged
+python backend/cli.py simulate
+python backend/cli.py explain CG-INCIDENTID
+```
+
+The `doctor` command checks the local SQLite database, native simulator executable, optional Scapy and scikit-learn packages, and the optional Ollama endpoint/model. Missing optional dependencies are reported as not ready; they do not disable the simulator or incident workspace. If Ollama is running but the configured model is missing, doctor prints the corresponding `ollama pull <model>` command.
+
+The CLI talks to local repositories and the native process bridge. It does not start an HTTP listener. The AI explanation command sends bounded incident fields only to a loopback Ollama service and is advisory; it cannot change incident state or take response actions.
+
+## Run the dashboard
 
 ```powershell
 python backend/server.py
 ```
 
-Open `http://localhost:8000/`. The browser app provides manual packet controls,
-an editable block/allow rule list, a deterministic demo sequence, pause/resume,
-reset, summary counters, and an event list. Pausing or resetting cancels any
-remaining scheduled demo packets. The initial rule blocks TCP port
-23; the demo sends TCP packets to ports 80, 443, and 23.
+Open `http://127.0.0.1:8000/`. The server is loopback-only and unauthenticated. Do not expose it to a LAN or the public internet. The browser simulation is independent of the native C++ simulator. Optional live monitoring uses a separate passive Python sensor; see [LIVE_MONITORING.md](LIVE_MONITORING.md).
 
-This UI executes its own JavaScript simulation. It shares neither state nor
-packet-routing calls with the C++ executable. The optional live-monitoring panel
-uses a separate passive Python capture adapter and persists metadata-derived
-detections; see [LIVE_MONITORING.md](LIVE_MONITORING.md). The topology's Internet
-icon remains a visual boundary, not a network device or external connection.
+## Tests and CI
 
-## Development Phases and Next Work
+The GitHub Actions workflow builds and tests the C++ project on Ubuntu and Windows, compiles the Python backend, runs the backend unittest suite, checks dashboard JavaScript syntax, and executes the C++-to-SQLite integration. The latest verified post-merge run is [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340); both operating-system jobs completed successfully. Follow-up branch changes must pass a fresh PR CI run before integration.
 
-| Phase | Scope from project roadmap | State in this repository |
-| --- | --- | --- |
-| 1 | Project foundation | Complete |
-| 2 | Network devices and ownership | Complete |
-| 3 | Packets, routing, firewall rules | Complete |
-| 4 | Simulated threat types | Implemented (bounded scenarios and starter heuristics) |
-| 5 | Detection and alerts | Implemented (starter rules; no calibrated ML risk scoring) |
-| 6 | Incident management | Implemented (local SQLite workflow; no automated response) |
-| 7 | Simulation and scenario engine | Not implemented |
-| 8 | SFML visualization | Not implemented; browser UI is separate |
-| 9 | GoogleTest | Tests cover the current core; future features need tests |
-| 10 | Docker | Not implemented |
-| 11 | GitHub Actions | Baseline Linux/Windows CI added on the upgrade branch |
-| 12 | Documentation and polish | Documentation is being maintained |
+Local checks:
 
-Live monitoring is an optional passive sensor foundation. Further product work
-should focus on capture reliability, richer protocol coverage, calibrated
-thresholds, and safe deployment controls without turning the product into an IPS.
-The OOP refactor milestone covers the Python application composition and the
-five browser feature controllers. It was verified by GitHub Actions on both
-Ubuntu and Windows at code commit `7787c798`: 32/32 C++ tests and 51/51 Python
-tests passed on each platform; Python compilation, `node --check app.js`, and
-the C++-to-SQLite integration also passed.
-For packet flow and class ownership, see [architecture.md](architecture.md)
-and [oop.md](oop.md).
+```powershell
+python -m py_compile backend/*.py
+python -m unittest discover -s backend/tests -v
+node --check app.js
+python backend/run_simulation.py
+```
 
-## Change and Verification Workflow
+The C++ build and CTest commands are listed above. Report checks that cannot be run on the current machine rather than marking them passed.
 
-For a code change, inspect its owning class and callers, make a narrow change,
-add or update tests, build the affected targets, and run the relevant tests.
-Run the complete CTest suite after changes to shared routing or device
-contracts. Update these documents when behavior, commands, or scope changes.
-Report checks that could not run instead of treating them as successful.
+## Known limitations and next work
 
-## Threat Intelligence and Anomaly Baseline
+- Live capture requires a supported adapter, Npcap/libpcap, and suitable host permissions. The actual Windows adapter path still needs owner-PC validation.
+- The live sensor observes limited IPv4 metadata; it does not inspect payloads, process identity, or authentication outcomes.
+- Rule thresholds are starter heuristics. Validate false positives and false negatives using representative, labeled traffic before making operational claims.
+- Isolation Forest scores are not calibrated probabilities.
+- The local AI analyst is optional and depends on Ollama being installed and the selected model being pulled.
+- The API has no authentication/authorization and is not suitable for remote or multi-user use.
+- No automatic blocking, firewall changes, or disruptive response is performed.
 
-See [THREAT_INTELLIGENCE.md](THREAT_INTELLIGENCE.md) for the JSON IOC import contract, incident enrichment, analyst notes API, and robust anomaly baseline trainer. These features remain local-first and perform no automated response. The baseline requires representative trusted CSV data and is not a calibrated probability.
+## Development workflow
 
+1. Start from the latest `master` and create a focused feature branch.
+2. Preserve a dated safety reference before risky integration work.
+3. Make a dependency-aware change and add regression tests.
+4. Run relevant tests locally, then use GitHub Actions on both Ubuntu and Windows.
+5. Update README, architecture/setup docs, and `docs/UPGRADE_PLAN.md` when behavior or status changes.
+6. Open a PR and merge only after reviewing the exact head SHA and green CI.
+7. Keep the pre-change safety reference and feature branch for recovery; never force-push or delete user content.
 
-## Optional Local AI Analyst
-
-Install Ollama locally and pull the configured model (default `llama3.2:3b`).
-Run `python backend/cli.py explain CG-INCIDENTID` or use interactive menu
-option 7. The HTTP API route is `POST /api/analyst/explain`. Configuration,
-loopback restrictions, and safety limitations are documented in
-[LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md). This integration has no additional
-Python package dependency and does not require cloud inference.
+See [architecture.md](architecture.md), [oop.md](oop.md), [LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md), [LIVE_MONITORING.md](LIVE_MONITORING.md), and [UPGRADE_PLAN.md](UPGRADE_PLAN.md).
