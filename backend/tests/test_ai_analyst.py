@@ -18,8 +18,9 @@ class FakeResponse:
     def __exit__(self, *_args):
         return False
 
-    def read(self):
-        return json.dumps(self.payload).encode("utf-8")
+    def read(self, limit=-1):
+        data = json.dumps(self.payload).encode("utf-8")
+        return data if limit < 0 else data[:limit]
 
 
 class OllamaAnalystTests(unittest.TestCase):
@@ -47,6 +48,7 @@ class OllamaAnalystTests(unittest.TestCase):
         user_content = payload["messages"][1]["content"]
         self.assertIn("CG-123", user_content)
         self.assertNotIn("must not be sent", user_content)
+        self.assertEqual(opener.call_args.kwargs["timeout"], 45)
 
     def test_rejects_non_loopback_or_ambiguous_ollama_urls(self):
         for url in (
@@ -59,6 +61,14 @@ class OllamaAnalystTests(unittest.TestCase):
         ):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 OllamaAnalyst(base_url=url)
+
+    def test_rejects_invalid_model_and_timeout_values(self):
+        for model in ("", " " , "x" * 201, []):
+            with self.subTest(model=repr(model)), self.assertRaises(ValueError):
+                OllamaAnalyst(model=model)
+        for timeout in (0, 181, True, float("inf"), float("nan")):
+            with self.subTest(timeout=timeout), self.assertRaises(ValueError):
+                OllamaAnalyst(timeout=timeout)
 
     def test_rejects_missing_incident_id(self):
         with self.assertRaises(ValueError):
@@ -79,9 +89,11 @@ class OllamaAnalystTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "no incident explanation"):
             OllamaAnalyst(opener=opener).explain({"id": "CG-1"})
 
-    def test_rejects_invalid_timeout(self):
-        with self.assertRaises(ValueError):
-            OllamaAnalyst(timeout=0)
+    def test_rejects_oversized_model_response(self):
+        opener = Mock(return_value=FakeResponse({"message": {"content": "x" * 17000}}))
+        with self.assertRaisesRegex(RuntimeError, "16 KB safety limit"):
+            OllamaAnalyst(opener=opener).explain({"id": "CG-1"})
+        self.assertEqual(opener.return_value.read.call_args.args[0], 16385)
 
 
 if __name__ == "__main__":
