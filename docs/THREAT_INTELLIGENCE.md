@@ -33,3 +33,14 @@ python backend/ml_isolation_forest.py path\to\trusted-baseline.csv --output data
 ```
 
 The CSV uses the same five numeric telemetry columns. Training requires at least 50 trusted baseline observations. Python code can use `load_model(path)` and `score_observation(features, model)`. The result includes the Isolation Forest decision value and robust per-feature context. The numeric score is not a calibrated probability. Treat model artifacts as trusted local files because joblib uses Python object serialization. CI installs the optional ML dependency and tests the training/scoring pipeline on Ubuntu and Windows.
+
+## Dashboard Isolation Forest scoring API
+
+After installing `requirements-ml.txt` and training a trusted local model, configure the server before startup:
+
+```powershell
+$env:CYBERGUARD_ANOMALY_MODEL = (Resolve-Path .\data\isolation-forest.joblib).Path
+python backend/server.py
+```
+
+The dashboard's Telemetry Anomaly Scoring panel sends a JSON object containing a `features` object to `POST /api/anomaly/score`. The server loads and caches the configured local model. Restart the server after replacing the model artifact. The endpoint is loopback-only like every other API route. Model files must be trusted; do not load artifacts from untrusted sources. A missing model returns HTTP 503 rather than silently falling back to a different detector.
