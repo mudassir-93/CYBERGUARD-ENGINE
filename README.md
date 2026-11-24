@@ -147,7 +147,7 @@ From the repository root:
 python backend/server.py
 ```
 
-The server binds to `127.0.0.1` by default and should remain loopback-only:
+The server binds to `127.0.0.1` by default and enforces loopback-only access across all API routes (including reads and writes), as defense in depth. It should remain loopback-only:
 the API has no authentication and is not safe to expose to a LAN or the public
 internet. You can change the local port with `CYBERGUARD_PORT=8080` (use the
 port you choose in the browser URL). Do not set `CYBERGUARD_HOST=0.0.0.0` for
