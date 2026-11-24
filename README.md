@@ -267,7 +267,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest fully verified post-merge master commit is `21fb2996125059bf71bb4c439164951bf707068b`; Ubuntu and Windows passed in run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737). README/roadmap refresh has since merged as `6337babefba572d1a10e86c070ee5d864af66f8e`; its post-merge run [45309651274](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45309651274) is queued.
+The latest verified post-merge master commit is `6337babefba572d1a10e86c070ee5d864af66f8e`; Ubuntu and Windows both passed in run [45309651274](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45309651274).
 
 | Check | Verified master baseline |
 | --- | --- |
