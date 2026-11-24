@@ -35,7 +35,7 @@ class CyberGuardApplication:
         self._simulation_runner = simulation_runner
         self._interface_provider = interface_provider or list_capture_interfaces
         self._anomaly_model_path = anomaly_model_path
-        self._anomaly_model = None
+        self._anomaly_analyzer = None
         self._anomaly_model_loaded = False
         self._anomaly_lock = threading.Lock()
 
@@ -54,7 +54,7 @@ class CyberGuardApplication:
                 "Set CYBERGUARD_ANOMALY_MODEL to a trusted local Isolation Forest artifact"
             )
         try:
-            from ml_isolation_forest import load_model, score_observation
+            from ml_isolation_forest import IsolationForestAnalyzer
         except ImportError as error:
             raise ImportError(
                 "Install optional ML dependencies from requirements-ml.txt"
@@ -63,16 +63,16 @@ class CyberGuardApplication:
         try:
             with self._anomaly_lock:
                 if not self._anomaly_model_loaded or self._loaded_model_path != model_path:
-                    self._anomaly_model = load_model(model_path)
+                    self._anomaly_analyzer = IsolationForestAnalyzer.from_file(model_path)
                     self._loaded_model_path = model_path
                     self._anomaly_model_loaded = True
-                model = self._anomaly_model
-            return score_observation(features, model)
+                analyzer = self._anomaly_analyzer
+            return analyzer.score(features)
         except (ValueError, TypeError):
             raise
         except Exception as error:
             with self._anomaly_lock:
-                self._anomaly_model = None
+                self._anomaly_analyzer = None
                 self._anomaly_model_loaded = False
                 self._loaded_model_path = None
             raise RuntimeError(
