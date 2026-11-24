@@ -136,9 +136,11 @@ icon remains a visual boundary, not a network device or external connection.
 Live monitoring is an optional passive sensor foundation. Further product work
 should focus on capture reliability, richer protocol coverage, calibrated
 thresholds, and safe deployment controls without turning the product into an IPS.
-The current OOP refactor milestone covers the Python application composition
-and the browser feature-controller layer; confirm the latest CI before treating
-this refactor as verified.
+The OOP refactor milestone covers the Python application composition and the
+five browser feature controllers. It was verified by GitHub Actions on both
+Ubuntu and Windows at code commit `7787c798`: 32/32 C++ tests and 51/51 Python
+tests passed on each platform; Python compilation, `node --check app.js`, and
+the C++-to-SQLite integration also passed.
 For packet flow and class ownership, see [architecture.md](architecture.md)
 and [oop.md](oop.md).
 
