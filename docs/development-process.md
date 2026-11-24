@@ -86,12 +86,14 @@ ctest --test-dir build --output-on-failure
 ```
 
 The earlier verified CI milestone records 32/32 C++ tests passing on both
-Ubuntu and Windows. The OOP backend composition and simulator-bridge refactor adds new Python tests and awaits a fresh confirmed CI run. Coverage includes packet validation, routing, firewall
+Ubuntu and Windows. The OOP backend composition, simulator bridge, and browser controller refactors add new Python coverage and require a fresh confirmed CI run. Coverage includes packet validation, routing, firewall
 decisions, flow aggregation, scenario bounds, threat detection, and regression
 checks for offline devices, IP validation, and stale-route cleanup. The Python
 backend suite records 30/30 tests passing on both platforms. The workflow also
 checks Python syntax, dashboard JavaScript syntax, and the C++-to-SQLite
-integration. These counts describe the completed CI run for commit
+integration. The browser application is organized into five OOP controllers for
+the network simulator, incidents, live monitoring, threat intelligence, and
+anomaly-scoring UI. These counts describe the completed CI run for commit
 `0f82a957`; consult the latest Actions run for any later commit.
 
 ## Run the Browser Simulator
@@ -131,9 +133,12 @@ icon remains a visual boundary, not a network device or external connection.
 | 11 | GitHub Actions | Baseline Linux/Windows CI added on the upgrade branch |
 | 12 | Documentation and polish | Documentation is being maintained |
 
-Live monitoring is now an optional passive sensor foundation. Next work should
-focus on capture reliability, richer protocol coverage, calibrated thresholds,
-and safe deployment controls without turning the product into an IPS.
+Live monitoring is an optional passive sensor foundation. Further product work
+should focus on capture reliability, richer protocol coverage, calibrated
+thresholds, and safe deployment controls without turning the product into an IPS.
+The current OOP refactor milestone covers the Python application composition
+and the browser feature-controller layer; confirm the latest CI before treating
+this refactor as verified.
 For packet flow and class ownership, see [architecture.md](architecture.md)
 and [oop.md](oop.md).
 
