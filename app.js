@@ -367,7 +367,7 @@ makeIncidentNode(incident) {
   return card;
 }
 
-async this.loadIncidents() {
+async loadIncidents() {
   try {
     const status = this.incidentElements.filter.value;
     const response = await fetch('/api/incidents' + (status ? '?status=' + encodeURIComponent(status) : ''));
@@ -467,7 +467,7 @@ liveMessage(message, isError = false) {
   this.liveElements.message.classList.toggle('error', isError);
 }
 
-async this.refreshLiveInterfaces() {
+async refreshLiveInterfaces() {
   this.liveElements.refresh.disabled = true;
   try {
     const response = await fetch('/api/live/interfaces');
@@ -503,7 +503,7 @@ async this.refreshLiveInterfaces() {
 
 
 
-async this.refreshLiveStatus() {
+async refreshLiveStatus() {
   try {
     const response = await fetch('/api/live/status');
     const result = await response.json();
@@ -562,7 +562,7 @@ this.liveElements.stop.addEventListener('click', async () => {
 });
 
 this.liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
-this.this.refreshLiveInterfaces();
+this.refreshLiveInterfaces();
 window.setInterval(this.refreshLiveStatus, 3000);
   }
 }
