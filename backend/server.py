@@ -58,6 +58,8 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlsplit(self.path)
+        if parsed.path.startswith("/api/") and not self._is_loopback_client():
+            return self._json(403, {"error": "CyberGuard API is restricted to local clients"})
         if parsed.path == "/api/health":
             return self._json(200, {"status": "ok", "service": "cyberguard-local-api"})
         if parsed.path == "/api/live/status":
@@ -96,17 +98,15 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
+        if path.startswith("/api/") and not self._is_loopback_client():
+            return self._json(403, {"error": "CyberGuard API is restricted to local clients"})
         if path == "/api/threat-intel/import":
-            if not self._is_loopback_client():
-                return self._json(403, {"error": "Threat-intelligence imports are restricted to local clients"})
             try:
                 payload = self._body()
                 return self._json(200, THREAT_INTEL.import_indicators(payload.get("indicators")))
             except ValueError as error:
                 return self._json(400, {"error": str(error)})
         if path.startswith("/api/incidents/") and path.endswith("/notes"):
-            if not self._is_loopback_client():
-                return self._json(403, {"error": "Analyst note writes are restricted to local clients"})
             incident_id = path[len("/api/incidents/"):-len("/notes")].strip("/")
             if not incident_id or "/" in incident_id:
                 return self._json(404, {"error": "Incident not found"})
@@ -125,8 +125,6 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(503, {"error": str(error)})
             except (RuntimeError, ValueError) as error:
                 return self._json(500, {"error": str(error)})
-        if path in {"/api/live/start", "/api/live/stop"} and not self._is_loopback_client():
-            return self._json(403, {"error": "Live capture controls are restricted to local clients"})
         if path == "/api/live/start":
             try:
                 payload = self._body()
@@ -149,6 +147,8 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
 
     def do_PATCH(self):
         path = urlsplit(self.path).path
+        if path.startswith("/api/") and not self._is_loopback_client():
+            return self._json(403, {"error": "CyberGuard API is restricted to local clients"})
         prefix, suffix = "/api/incidents/", "/status"
         if not path.startswith(prefix) or not path.endswith(suffix):
             return self._json(404, {"error": "Endpoint not found"})
