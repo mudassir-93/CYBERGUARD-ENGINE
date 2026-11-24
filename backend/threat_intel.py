@@ -1,5 +1,6 @@
 """Local-first IOC catalog and append-only analyst notes."""
 import ipaddress,json,re,sqlite3
+from contextlib import contextmanager
 from datetime import datetime,timezone
 from pathlib import Path
 DOMAIN=re.compile(r"(?=.{1,253}$)(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
@@ -14,7 +15,7 @@ def timestamp(v,name):
 def normalize_indicator(x):
  if not isinstance(x,dict): raise ValueError("Each indicator must be a JSON object")
  kind,value=x.get("type"),x.get("value")
- if kind not in {"ip","domain","md5","sha1","sha256"}: raise ValueError("Invalid indicator type")
+ if not isinstance(kind,str) or kind not in {"ip","domain","md5","sha1","sha256"}: raise ValueError("Invalid indicator type")
  if not isinstance(value,str) or not value.strip() or len(value)>253: raise ValueError("Indicator value must contain 1-253 characters")
  value=value.strip()
  if kind=="ip":
@@ -28,7 +29,7 @@ def normalize_indicator(x):
   if len(value)!=HASH[kind] or not re.fullmatch("[0-9a-f]+",value): raise ValueError(f"{kind} indicator must be {HASH[kind]} hexadecimal characters")
  confidence=x.get("confidence",50); severity=x.get("severity","medium")
  if isinstance(confidence,bool) or not isinstance(confidence,int) or not 0<=confidence<=100: raise ValueError("confidence must be an integer from 0 to 100")
- if severity not in {"low","medium","high","critical"}: raise ValueError("Invalid indicator severity")
+ if not isinstance(severity,str) or severity not in {"low","medium","high","critical"}: raise ValueError("Invalid indicator severity")
  source=x.get("source","manual-import"); desc=x.get("description",""); tags=x.get("tags",[])
  if not isinstance(source,str) or not source.strip() or len(source)>120: raise ValueError("source must contain 1-120 characters")
  if not isinstance(desc,str) or len(desc)>1000: raise ValueError("description too long")
@@ -37,10 +38,21 @@ def normalize_indicator(x):
 class ThreatIntelStore:
  def __init__(self,path):
   self.path=Path(path); self.path.parent.mkdir(parents=True,exist_ok=True)
-  with self.connect() as db:
+  with self.session() as db:
    db.executescript("""CREATE TABLE IF NOT EXISTS threat_indicators(id INTEGER PRIMARY KEY,type TEXT,value TEXT,confidence INTEGER,severity TEXT,source TEXT,description TEXT,tags_json TEXT,first_seen TEXT,last_seen TEXT,expires_at TEXT,created_at TEXT,UNIQUE(type,value,source)); CREATE INDEX IF NOT EXISTS idx_ioc_value ON threat_indicators(type,value); CREATE TABLE IF NOT EXISTS analyst_notes(id INTEGER PRIMARY KEY,incident_id TEXT NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,note TEXT NOT NULL,author TEXT NOT NULL,created_at TEXT NOT NULL); CREATE INDEX IF NOT EXISTS idx_notes_incident ON analyst_notes(incident_id,id);""")
  def connect(self):
   db=sqlite3.connect(self.path,timeout=10); db.row_factory=sqlite3.Row; db.execute("PRAGMA foreign_keys=ON"); return db
+ @contextmanager
+ def session(self):
+  db=self.connect()
+  try:
+   yield db
+   db.commit()
+  except Exception:
+   db.rollback()
+   raise
+  finally:
+   db.close()
  @staticmethod
  def row(r):
   x=dict(r); x["tags"]=json.loads(x.pop("tags_json")); return x
