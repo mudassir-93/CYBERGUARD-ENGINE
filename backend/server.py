@@ -15,6 +15,7 @@ MAX_BODY_BYTES = 1_000_000
 STORE = default_store()
 LIVE_MONITOR = LiveTrafficMonitor(STORE)
 THREAT_INTEL = ThreatIntelStore(STORE.database_path)
+ANOMALY_MODEL_CACHE = {}
 
 
 class CyberGuardHandler(SimpleHTTPRequestHandler):
@@ -100,6 +101,25 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path.startswith("/api/") and not self._is_loopback_client():
             return self._json(403, {"error": "CyberGuard API is restricted to local clients"})
+        if path == "/api/anomaly/score":
+            model_path = os.environ.get("CYBERGUARD_ANOMALY_MODEL")
+            if not model_path:
+                return self._json(503, {"error": "Set CYBERGUARD_ANOMALY_MODEL to a trusted local Isolation Forest artifact"})
+            try:
+                from ml_isolation_forest import load_model, score_observation
+                model = ANOMALY_MODEL_CACHE.get(model_path)
+                if model is None:
+                    model = load_model(model_path)
+                    ANOMALY_MODEL_CACHE[model_path] = model
+                payload = self._body()
+                return self._json(200, {"result": score_observation(payload.get("features"), model)})
+            except ImportError:
+                return self._json(503, {"error": "Install optional ML dependencies from requirements-ml.txt"})
+            except (ValueError, TypeError) as error:
+                return self._json(400, {"error": str(error)})
+            except OSError:
+                ANOMALY_MODEL_CACHE.pop(model_path, None)
+                return self._json(503, {"error": "Unable to load configured anomaly model; verify the trusted local model path"})
         if path == "/api/threat-intel/import":
             try:
                 payload = self._body()
