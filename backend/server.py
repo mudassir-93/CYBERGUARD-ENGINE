@@ -5,22 +5,16 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from incidents import default_store
-from simulation_bridge import run_simulation
-from live_monitor import LiveTrafficMonitor, list_capture_interfaces
-from threat_intel import ThreatIntelStore
+from application import CyberGuardApplication, create_application
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_BODY_BYTES = 1_000_000
-STORE = default_store()
-LIVE_MONITOR = LiveTrafficMonitor(STORE)
-THREAT_INTEL = ThreatIntelStore(STORE.database_path)
-ANOMALY_MODEL_CACHE = {}
 
 
 class CyberGuardHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
+        self.application: CyberGuardApplication = self.server.application
 
     def log_message(self, format, *args):
         return
@@ -64,36 +58,36 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/health":
             return self._json(200, {"status": "ok", "service": "cyberguard-local-api"})
         if parsed.path == "/api/live/status":
-            return self._json(200, LIVE_MONITOR.status())
+            return self._json(200, self.application.live_monitor.status())
         if parsed.path == "/api/live/interfaces":
             try:
-                return self._json(200, {"available": True, "interfaces": list_capture_interfaces()})
+                return self._json(200, {"available": True, "interfaces": self.application.list_interfaces()})
             except RuntimeError as error:
                 return self._json(503, {"available": False, "interfaces": [], "error": str(error)})
         if parsed.path == "/api/threat-intel":
             query = parse_qs(parsed.query)
             try:
-                return self._json(200, {"indicators": THREAT_INTEL.list_indicators(query.get("type", [None])[0], int(query.get("limit", ["100"])[0]))})
+                return self._json(200, {"indicators": self.application.threat_intelligence.list_indicators(query.get("type", [None])[0], int(query.get("limit", ["100"])[0]))})
             except (ValueError, TypeError) as error:
                 return self._json(400, {"error": str(error)})
         if parsed.path == "/api/incidents":
             query = parse_qs(parsed.query)
             try:
-                incidents = STORE.list_incidents(
+                incidents = self.application.incidents.list_incidents(
                     query.get("status", [None])[0],
                     query.get("severity", [None])[0],
                     int(query.get("limit", ["100"])[0]),
                 )
-                return self._json(200, {"incidents": incidents, "summary": STORE.summary()})
+                return self._json(200, {"incidents": incidents, "summary": self.application.incidents.summary()})
             except (ValueError, TypeError) as error:
                 return self._json(400, {"error": str(error)})
         if parsed.path.startswith("/api/incidents/"):
             incident_id = parsed.path.rsplit("/", 1)[-1]
-            incident = STORE.get_incident(incident_id)
+            incident = self.application.incidents.get_incident(incident_id)
             if incident is None:
                 return self._json(404, {"error": "Incident not found"})
-            incident["threat_intel_matches"] = THREAT_INTEL.match_incident(incident)
-            incident["analyst_notes"] = THREAT_INTEL.list_notes(incident_id)
+            incident["threat_intel_matches"] = self.application.threat_intelligence.match_incident(incident)
+            incident["analyst_notes"] = self.application.threat_intelligence.list_notes(incident_id)
             return self._json(200, {"incident": incident})
         return super().do_GET()
 
@@ -102,28 +96,19 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         if path.startswith("/api/") and not self._is_loopback_client():
             return self._json(403, {"error": "CyberGuard API is restricted to local clients"})
         if path == "/api/anomaly/score":
-            model_path = os.environ.get("CYBERGUARD_ANOMALY_MODEL")
-            if not model_path:
-                return self._json(503, {"error": "Set CYBERGUARD_ANOMALY_MODEL to a trusted local Isolation Forest artifact"})
             try:
-                from ml_isolation_forest import load_model, score_observation
-                model = ANOMALY_MODEL_CACHE.get(model_path)
-                if model is None:
-                    model = load_model(model_path)
-                    ANOMALY_MODEL_CACHE[model_path] = model
-                payload = self._body()
-                return self._json(200, {"result": score_observation(payload.get("features"), model)})
-            except ImportError:
-                return self._json(503, {"error": "Install optional ML dependencies from requirements-ml.txt"})
+                features = self._body().get("features")
+                return self._json(200, {"result": self.application.score_anomaly(features)})
+            except ImportError as error:
+                return self._json(503, {"error": str(error)})
+            except RuntimeError as error:
+                return self._json(503, {"error": str(error)})
             except (ValueError, TypeError) as error:
                 return self._json(400, {"error": str(error)})
-            except Exception:
-                ANOMALY_MODEL_CACHE.pop(model_path, None)
-                return self._json(503, {"error": "Unable to load or score with the configured anomaly model; verify the trusted local artifact and restart the server"})
         if path == "/api/threat-intel/import":
             try:
                 payload = self._body()
-                return self._json(200, THREAT_INTEL.import_indicators(payload.get("indicators")))
+                return self._json(200, self.application.threat_intelligence.import_indicators(payload.get("indicators")))
             except ValueError as error:
                 return self._json(400, {"error": str(error)})
         if path.startswith("/api/incidents/") and path.endswith("/notes"):
@@ -132,7 +117,7 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(404, {"error": "Incident not found"})
             try:
                 payload = self._body()
-                note = THREAT_INTEL.add_note(incident_id, payload.get("note"), payload.get("author", "local-analyst"))
+                note = self.application.threat_intelligence.add_note(incident_id, payload.get("note"), payload.get("author", "local-analyst"))
                 if note is None:
                     return self._json(404, {"error": "Incident not found"})
                 return self._json(201, {"note": note})
@@ -140,7 +125,7 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(400, {"error": str(error)})
         if path == "/api/simulate":
             try:
-                return self._json(200, run_simulation(store=STORE))
+                return self._json(200, self.application.run_simulation())
             except FileNotFoundError as error:
                 return self._json(503, {"error": str(error)})
             except (RuntimeError, ValueError) as error:
@@ -148,17 +133,17 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
         if path == "/api/live/start":
             try:
                 payload = self._body()
-                return self._json(200, LIVE_MONITOR.start(payload.get("interface")))
+                return self._json(200, self.application.live_monitor.start(payload.get("interface")))
             except ValueError as error:
                 return self._json(400, {"error": str(error)})
             except RuntimeError as error:
                 return self._json(503, {"error": str(error)})
         if path == "/api/live/stop":
-            return self._json(200, LIVE_MONITOR.stop())
+            return self._json(200, self.application.live_monitor.stop())
         if path != "/api/detections":
             return self._json(404, {"error": "Endpoint not found"})
         try:
-            incident, correlated = STORE.ingest(self._body())
+            incident, correlated = self.application.incidents.ingest(self._body())
             return self._json(200 if correlated else 201, {"incident": incident, "correlated": correlated})
         except ValueError as error:
             return self._json(400, {"error": str(error)})
@@ -177,7 +162,7 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
             return self._json(404, {"error": "Incident not found"})
         try:
             payload = self._body()
-            incident = STORE.update_status(incident_id, payload.get("status"), payload.get("resolution_note"))
+            incident = self.application.incidents.update_status(incident_id, payload.get("status"), payload.get("resolution_note"))
             if incident is None:
                 return self._json(404, {"error": "Incident not found"})
             return self._json(200, {"incident": incident})
@@ -185,6 +170,14 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
             return self._json(400, {"error": str(error)})
         except Exception:
             return self._json(500, {"error": "Unable to update incident"})
+
+
+def create_server(host: str = "127.0.0.1", port: int = 8000,
+                  application: CyberGuardApplication | None = None) -> ThreadingHTTPServer:
+    """Create a server with an explicitly injected application instance."""
+    server = ThreadingHTTPServer((host, port), CyberGuardHandler)
+    server.application = application or create_application()
+    return server
 
 
 if __name__ == "__main__":
@@ -195,7 +188,8 @@ if __name__ == "__main__":
         raise SystemExit("CYBERGUARD_PORT must be an integer between 1 and 65535") from error
     if not 1 <= port <= 65535:
         raise SystemExit("CYBERGUARD_PORT must be an integer between 1 and 65535")
-    server = ThreadingHTTPServer((host, port), CyberGuardHandler)
+    application = create_application()
+    server = create_server(host, port, application)
     print(f"Serving CyberGuard on {host}:{port} (open http://localhost:{port}/ in your browser)")
     try:
         server.serve_forever()
@@ -203,3 +197,4 @@ if __name__ == "__main__":
         print("\nStopping server...")
     finally:
         server.server_close()
+        application.close()
