@@ -114,21 +114,21 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\verify-windows.ps1
 ```
 
-### 2. Build the native C++ project
+### 2. Build the native C++ project manually (optional)
 
-From the repo root in PowerShell:
+The one-command verification script above already configures and builds CyberGuard. If you prefer to build manually with MinGW, use a separate build directory:
 
 ```powershell
-cmake -S . -B build -G "MinGW Makefiles" -DCYBERGUARD_BUILD_TESTS=ON
-cmake --build build
+cmake -S . -B build-mingw -G "MinGW Makefiles" -DCYBERGUARD_BUILD_TESTS=ON
+cmake --build build-mingw --config Release
 ```
 
-If you are using a different compiler or generator, replace the generator command with the one supported by your toolchain.
+Use the generator supported by your installed toolchain and keep the same build directory for subsequent commands.
 
-### 3. Run the tests
+### 3. Run the tests manually (optional)
 
 ```powershell
-ctest --test-dir build --output-on-failure
+ctest --test-dir build-mingw -C Release --output-on-failure
 ```
 
 The native test suite covers packet behavior, routing, firewall decisions, flow aggregation, traffic scenarios, and all current detection heuristics.
@@ -251,7 +251,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified post-merge master commit is `6ff5369a1f174e6f45ac58c8d5caf388a089385e`; both Ubuntu and Windows passed in GitHub Actions run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613).
+The latest verified post-merge master commit is `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`; Ubuntu and Windows both passed in run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131). The latest merge adds the synthetic ML demo dataset at commit `21fb2996125059bf71bb4c439164951bf707068b`; its post-merge CI run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737) is running.
 
 | Check | Verified master baseline |
 | --- | --- |
@@ -262,7 +262,7 @@ The latest verified post-merge master commit is `6ff5369a1f174e6f45ac58c8d5caf38
 | Dashboard JavaScript syntax | Passed on both platforms |
 | C++ to SQLite integration | Passed on both platforms |
 
-The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), and leakage-aware ML evaluation is merged in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3). The Windows one-command verification helper is in development on a separate PR branch.
+The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), leakage-aware ML evaluation in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3), the Windows verification helper in [PR #4](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/4), and the synthetic ML demo dataset in [PR #5](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/5). The Windows script is covered by hosted CI; running it on the owner's PC remains pending.
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
@@ -282,6 +282,7 @@ For deeper technical details, use the docs folder:
 
 - [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md)
 - [docs/ML_EVALUATION.md](docs/ML_EVALUATION.md)
+- [examples/synthetic-flow-demo.csv](examples/synthetic-flow-demo.csv)
 - [docs/development-process.md](docs/development-process.md)
 - [docs/architecture.md](docs/architecture.md)
 - [docs/oop.md](docs/oop.md)
@@ -325,7 +326,7 @@ CyberGuard includes a local SQLite-backed incident workspace. Start it with `pyt
 
 The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. No external feed is fetched and no indicator triggers blocking. The dashboard includes a manual JSON import panel. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
-A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. For labeled CSV evaluation, run `python backend/ml_evaluate.py datasets/flows.csv --group-column capture_id --output reports/isolation-forest-evaluation.json`. The evaluator keeps capture/session groups disjoint between training and test data and reports false positives, false negatives, F1, balanced accuracy, and inference latency. See [docs/ML_EVALUATION.md](docs/ML_EVALUATION.md) for the CSV contract and limitations. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
+A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. For labeled CSV evaluation, run `python backend/ml_evaluate.py examples/synthetic-flow-demo.csv --group-column capture_id --output reports/demo-evaluation.json`. The bundled 144-row sample is synthetic demonstration data, not a benchmark. The evaluator keeps capture/session groups disjoint between training and test data and reports false positives, false negatives, F1, balanced accuracy, and inference latency. See [docs/ML_EVALUATION.md](docs/ML_EVALUATION.md) for the CSV contract and limitations. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
 
 
 ## Application architecture
