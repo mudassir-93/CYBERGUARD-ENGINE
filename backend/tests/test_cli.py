@@ -91,6 +91,24 @@ class CyberGuardCLITests(unittest.TestCase):
         self.assertTrue(any("Incident not found" in line for line in self.output))
         self.analyst.explain.assert_not_called()
 
+    def test_doctor_reports_local_ai_model_readiness(self):
+        self.analyst.diagnose.return_value = (True, "model llama3.2:3b is installed and ready")
+        self.assertEqual(self.cli.run(["doctor"]), 0)
+        self.assertTrue(any(
+            "Local AI analyst (Ollama)" in line and "installed and ready" in line
+            for line in self.output
+        ))
+
+    def test_doctor_keeps_missing_ollama_optional(self):
+        self.analyst.diagnose.return_value = (
+            False, "Ollama is not responding on the configured loopback address"
+        )
+        self.assertEqual(self.cli.run(["doctor"]), 0)
+        self.assertTrue(any(
+            "Local AI analyst (Ollama)" in line and "not responding" in line
+            for line in self.output
+        ))
+
     def test_interactive_menu_can_exit(self):
         self.assertEqual(self.cli.run([]), 0)
         self.assertTrue(any("session closed" in line for line in self.output))
