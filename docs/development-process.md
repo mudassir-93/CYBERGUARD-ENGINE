@@ -9,6 +9,7 @@ This guide reflects the implementation currently merged into `master` and the fo
 - `index.html`, `app.js`, `dashboard.css`: primary browser dashboard and its feature controllers.
 - `web/`: legacy browser assets retained for reference.
 - `docs/`: architecture, data contracts, safety boundaries, setup, and milestone tracker.
+- `scripts/`: owner-run local verification helpers; scripts never enable capture or active response by default.
 
 ## Implemented scope
 
@@ -49,6 +50,10 @@ ctest --test-dir build -C Release --output-on-failure
 ```
 
 If using MinGW, configure with `-G "MinGW Makefiles"` and use the matching build directory consistently.
+
+## Verify the Windows installation
+
+From PowerShell in the repository root, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` followed by ` .\\scripts\\verify-windows.ps1`. This builds the native project, runs C++ and Python tests, checks dashboard syntax when Node.js is installed, executes the simulator-to-SQLite integration in a temporary data directory, and runs the local doctor report. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md).
 
 ## Run the guided CLI
 
@@ -115,4 +120,4 @@ The C++ build and CTest commands are listed above. Report checks that cannot be 
 6. Open a PR and merge only after reviewing the exact head SHA and green CI.
 7. Keep the pre-change safety reference and feature branch for recovery; never force-push or delete user content.
 
-See [architecture.md](architecture.md), [oop.md](oop.md), [LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md), [LIVE_MONITORING.md](LIVE_MONITORING.md), and [UPGRADE_PLAN.md](UPGRADE_PLAN.md).
+See [architecture.md](architecture.md), [oop.md](oop.md), [WINDOWS_SETUP.md](WINDOWS_SETUP.md), [LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md), [LIVE_MONITORING.md](LIVE_MONITORING.md), and [UPGRADE_PLAN.md](UPGRADE_PLAN.md).
