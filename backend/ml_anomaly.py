@@ -3,6 +3,7 @@ import argparse,csv,json,math
 from pathlib import Path
 FEATURES=("packet_rate","distinct_ports","failed_attempts","bytes_per_second","destination_fanout")
 def _number(value,name):
+ if isinstance(value,bool): raise ValueError(f"{name} must be numeric")
  try: result=float(value)
  except (TypeError,ValueError) as exc: raise ValueError(f"{name} must be numeric") from exc
  if not math.isfinite(result) or result<0: raise ValueError(f"{name} must be finite and non-negative")
