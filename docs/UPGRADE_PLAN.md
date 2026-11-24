@@ -1,10 +1,10 @@
 # CyberGuard Engine — Upgrade Plan
 
-**Status:** The initial platform foundations are merged through PR #1 (merge commit `022b310a110794005a1b6cf5e71a6a452c5d9328`). CLI/Ollama readiness is merged through PR #2 (merge commit `34b7fa200526759fa6e1c49d381b433cc5b1e50a`); its post-merge Ubuntu/Windows CI passed in run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). Leakage-aware ML evaluation is merged through PR #3 (merge commit `6ff5369a1f174e6f45ac58c8d5caf388a089385e`); post-merge Ubuntu/Windows CI passed in run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613). Windows owner verification is merged through PR #4 (merge commit `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`); post-merge Ubuntu/Windows CI passed in run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131). The synthetic ML demo dataset is merged through PR #5 (merge commit `21fb2996125059bf71bb4c439164951bf707068b`); post-merge Ubuntu/Windows CI passed in run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737). Documentation refresh is on `feature/readme-roadmap-refresh`.  
+**Status:** The initial platform foundations are merged through PR #1 (merge commit `022b310a110794005a1b6cf5e71a6a452c5d9328`). CLI/Ollama readiness is merged through PR #2 (merge commit `34b7fa200526759fa6e1c49d381b433cc5b1e50a`); its post-merge Ubuntu/Windows CI passed in run [45307030414](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307030414). Leakage-aware ML evaluation is merged through PR #3 (merge commit `6ff5369a1f174e6f45ac58c8d5caf388a089385e`); post-merge Ubuntu/Windows CI passed in run [45307730613](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45307730613). Windows owner verification is merged through PR #4 (merge commit `e4b75c6ca5c3dedf73c3145ad8fad09292aa7591`); post-merge Ubuntu/Windows CI passed in run [45308607131](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308607131). The synthetic ML demo dataset is merged through PR #5 (merge commit `21fb2996125059bf71bb4c439164951bf707068b`); post-merge Ubuntu/Windows CI passed in run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737). README/roadmap refresh is merged through PR #6 (merge commit `6337babefba572d1a10e86c070ee5d864af66f8e`); post-merge Ubuntu/Windows CI passed in run [45309651274](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45309651274). CLI dashboard launch is being implemented on `feature/cli-dashboard-launch`.  
 **Product direction:** AI-powered network security platform.  
 **Initial environment:** Local network simulator and safe, reproducible attack scenarios.  
 **Baseline branch:** `master`  
-**Current implementation branch:** `feature/readme-roadmap-refresh`
+**Current implementation branch:** `feature/cli-dashboard-launch`
 
 ## 1. Product vision
 
@@ -444,3 +444,12 @@ Added a safe, repeatable PowerShell entry point for validating CyberGuard on Win
 - The dataset is explicitly synthetic demonstration material, not a benchmark or evidence of real-world detection quality.
 
 **Validation:** PR CI run [45308466127](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308466127) passed on Ubuntu and Windows, including 84 Python tests on each platform. Merge commit: `21fb2996125059bf71bb4c439164951bf707068b`. Post-merge run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737) is running.
+## 23. Guided CLI dashboard launch (implementation in progress)
+
+- Add an explicit `dashboard` CLI command with a configurable local port.
+- Bind the dashboard server to `127.0.0.1` only; do not expose a remote listener or start the server implicitly.
+- Add an interactive-menu option so a user can launch the local dashboard without remembering a separate server command.
+- Shut down the HTTP server and its application resources cleanly on Ctrl+C.
+- Cover loopback binding, port validation, and shutdown with automated tests; update README and developer guidance.
+
+**Validation gate:** full Python suite, Windows verification script, Ubuntu/Windows CI, and an explicit test that the CLI binds only to loopback.

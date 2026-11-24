@@ -1,8 +1,8 @@
 """Guided command-line workspace for CyberGuard's local operations.
 
 Run with: python backend/cli.py
-The CLI talks directly to the local SQLite repositories and simulator bridge;
-it does not start a network listener or expose the API.
+The CLI talks directly to the local SQLite repositories and simulator bridge.
+The network listener starts only when the user explicitly runs `dashboard`, and it binds to loopback.
 """
 from __future__ import annotations
 
@@ -67,6 +67,9 @@ class CyberGuardCLI:
 
         simulate = commands.add_parser("simulate", help="Run local C++ scenarios and ingest detections")
         simulate.add_argument("--executable", help="Path to the compiled CyberGuard executable")
+
+        dashboard = commands.add_parser("dashboard", help="Start the local dashboard (loopback only)")
+        dashboard.add_argument("--port", type=int, default=8000, help="Local port to bind (default: 8000)")
         return parser
 
     def _show_summary(self) -> None:
@@ -149,12 +152,31 @@ class CyberGuardCLI:
         self.output(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
 
+    def _run_dashboard(self, port: int = 8000) -> int:
+        if isinstance(port, bool) or not 1 <= port <= 65535:
+            raise ValueError("port must be between 1 and 65535")
+        from server import create_server
+
+        server = create_server(host="127.0.0.1", port=port)
+        actual_port = server.server_address[1]
+        self.output(f"CyberGuard dashboard: http://127.0.0.1:{actual_port}/")
+        self.output("Dashboard is local-only. Press Ctrl+C to stop.")
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            self.output("Stopping CyberGuard dashboard...")
+        finally:
+            server.server_close()
+            server.application.close()
+        return 0
+
     def _interactive(self) -> int:
         actions = {
             "1": ("Incident summary", self._show_summary),
             "2": ("List incidents", self._list_incidents),
             "3": ("Run local C++ simulation", self._run_simulation),
             "4": ("Check local setup", self._doctor),
+            "8": ("Launch local dashboard", self._run_dashboard),
         }
         while True:
             self.output("\nCyberGuard — Local Security Workspace")
@@ -165,6 +187,7 @@ class CyberGuardCLI:
             self.output("  5. Show incident details")
             self.output("  6. Update incident status")
             self.output("  7. Explain incident with local AI")
+            self.output("  8. Launch local dashboard")
             self.output("  0. Exit")
             choice = self.input("Select an option: ").strip()
             if choice == "0":
@@ -224,6 +247,8 @@ class CyberGuardCLI:
                 self._explain_incident(args.incident_id)
             elif args.command == "simulate":
                 return self._run_simulation(args.executable)
+            elif args.command == "dashboard":
+                return self._run_dashboard(args.port)
         except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as error:
             self.output(f"Error: {error}")
             return 1

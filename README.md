@@ -177,6 +177,8 @@ You can also run individual commands:
 
 ```powershell
 python backend/cli.py doctor
+python backend/cli.py dashboard
+python backend/cli.py dashboard --port 8080
 python backend/cli.py summary
 python backend/cli.py incidents --status new --limit 20
 python backend/cli.py show CG-INCIDENTID
@@ -185,7 +187,7 @@ python backend/cli.py simulate
 python backend/cli.py explain CG-INCIDENTID
 ```
 
-The CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. Start with the setup check:
+The CLI works directly with the local SQLite store and native simulator bridge. It starts the dashboard server only when you explicitly run `dashboard`; that server binds to `127.0.0.1` and is not exposed to your LAN. Start with the setup check:
 
 ```powershell
 python backend/cli.py doctor
@@ -265,7 +267,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified post-merge master commit is `21fb2996125059bf71bb4c439164951bf707068b`; Ubuntu and Windows both passed in run [45308851737](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45308851737).
+The latest verified post-merge master commit is `6337babefba572d1a10e86c070ee5d864af66f8e`; Ubuntu and Windows both passed in run [45309651274](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45309651274).
 
 | Check | Verified master baseline |
 | --- | --- |
@@ -276,7 +278,7 @@ The latest verified post-merge master commit is `21fb2996125059bf71bb4c439164951
 | Dashboard JavaScript syntax | Passed on both platforms |
 | C++ to SQLite integration | Passed on both platforms |
 
-The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), leakage-aware ML evaluation in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3), the Windows verification helper in [PR #4](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/4), and the synthetic ML demo dataset in [PR #5](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/5). The Windows script is covered by hosted CI; running it on the owner's PC remains pending.
+The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), leakage-aware ML evaluation in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3), the Windows verification helper in [PR #4](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/4), and the synthetic ML demo dataset in [PR #5](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/5). The Windows script is covered by hosted CI; running it on the owner's PC remains pending. The guided CLI dashboard-launch enhancement is under development in [PR #7](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/7).
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 

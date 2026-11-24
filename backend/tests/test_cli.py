@@ -3,7 +3,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cli import CyberGuardCLI
@@ -111,6 +111,21 @@ class CyberGuardCLITests(unittest.TestCase):
             "Local AI analyst (Ollama)" in line and "not responding" in line
             for line in self.output
         ))
+
+    def test_dashboard_command_binds_loopback_and_closes_cleanly(self):
+        fake_server = Mock()
+        fake_server.server_address = ("127.0.0.1", 8123)
+        fake_server.serve_forever.side_effect = KeyboardInterrupt
+        with patch("server.create_server", return_value=fake_server) as create_server:
+            self.assertEqual(self.cli.run(["dashboard", "--port", "8123"]), 0)
+        create_server.assert_called_once_with(host="127.0.0.1", port=8123)
+        fake_server.server_close.assert_called_once()
+        fake_server.application.close.assert_called_once()
+        self.assertTrue(any("http://127.0.0.1:8123/" in line for line in self.output))
+
+    def test_dashboard_rejects_invalid_port(self):
+        self.assertEqual(self.cli.run(["dashboard", "--port", "70000"]), 1)
+        self.assertTrue(any("port must be between 1 and 65535" in line for line in self.output))
 
     def test_interactive_menu_can_exit(self):
         self.assertEqual(self.cli.run([]), 0)
