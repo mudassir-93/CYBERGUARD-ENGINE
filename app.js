@@ -559,3 +559,30 @@ if (threatIntelImport) {
     }
   });
 }
+
+const anomalyFeaturesInput = document.querySelector('#anomalyFeaturesInput');
+const anomalyScoreButton = document.querySelector('#scoreAnomaly');
+const anomalyMessage = document.querySelector('#anomalyMessage');
+const anomalyResult = document.querySelector('#anomalyResult');
+if (anomalyScoreButton) {
+  anomalyScoreButton.addEventListener('click', async () => {
+    anomalyScoreButton.disabled = true;
+    anomalyMessage.textContent = 'Scoring locally…';
+    try {
+      const payload = JSON.parse(anomalyFeaturesInput.value);
+      const response = await fetch('/api/anomaly/score', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Anomaly scoring failed');
+      anomalyResult.textContent = JSON.stringify(result.result, null, 2);
+      anomalyMessage.textContent = result.result.anomalous ? 'Unusual telemetry flagged for analyst review.' : 'No anomaly flagged by this model.';
+    } catch (error) {
+      anomalyMessage.textContent = error instanceof SyntaxError ? 'Enter valid JSON before scoring.' : error.message;
+      anomalyResult.textContent = 'No score available.';
+    } finally {
+      anomalyScoreButton.disabled = false;
+    }
+  });
+}
