@@ -64,34 +64,48 @@ def load_labeled_rows(path: str | Path, label_column: str, group_column: str,
 def split_by_group(rows: list[dict], test_fraction: float = 0.25,
                    seed: int = 42, attempts: int = 2000) -> tuple[list[dict], list[dict]]:
     """Find a deterministic group-disjoint split with both classes on each side."""
-    if not 0.1 <= float(test_fraction) <= 0.5:
+    try:
+        test_fraction = float(test_fraction)
+    except (TypeError, ValueError) as error:
+        raise ValueError("test_fraction must be numeric") from error
+    if not math.isfinite(test_fraction) or not 0.1 <= test_fraction <= 0.5:
         raise ValueError("test_fraction must be between 0.10 and 0.50")
-    groups: dict[str, list[dict]] = {}
+    group_stats: dict[str, dict] = {}
     for row in rows:
-        groups.setdefault(row["group"], []).append(row)
-    group_names = list(groups)
+        group = row["group"]
+        stats = group_stats.setdefault(group, {"labels": set(), "benign_rows": 0})
+        stats["labels"].add(row["label"])
+        stats["benign_rows"] += row["label"] == "benign"
+    group_names = list(group_stats)
     if len(group_names) < 4:
         raise ValueError("At least four distinct capture/session groups are required for a holdout split")
     target = max(1, min(len(group_names) - 1, round(len(group_names) * test_fraction)))
     rng = random.Random(seed)
+    selected_groups = None
     for _ in range(attempts):
         shuffled = group_names[:]
         rng.shuffle(shuffled)
-        test_groups = set(shuffled[:target])
-        train = [row for row in rows if row["group"] not in test_groups]
-        test = [row for row in rows if row["group"] in test_groups]
-        if len(train) < 50:
-            continue
-        if sum(row["label"] == "benign" for row in train) < 50:
-            continue
-        if {row["label"] for row in train} == {"benign", "malicious"} and {row["label"] for row in test} == {"benign", "malicious"}:
-            if {row["group"] for row in train}.isdisjoint({row["group"] for row in test}):
-                return train, test
-    raise ValueError(
-        "Unable to create a valid group-disjoint split with both classes in train/test "
-        "and at least 50 benign training rows. Add more independent capture/session groups."
-    )
-
+        candidate = set(shuffled[:target])
+        test_labels = set()
+        train_labels = set()
+        train_benign = 0
+        for group, stats in group_stats.items():
+            if group in candidate:
+                test_labels.update(stats["labels"])
+            else:
+                train_labels.update(stats["labels"])
+                train_benign += stats["benign_rows"]
+        if train_benign >= 50 and train_labels == {"benign", "malicious"} and test_labels == {"benign", "malicious"}:
+            selected_groups = candidate
+            break
+    if selected_groups is None:
+        raise ValueError(
+            "Unable to create a valid group-disjoint split with both classes in train/test "
+            "and at least 50 benign training rows. Add more independent capture/session groups."
+        )
+    train = [row for row in rows if row["group"] not in selected_groups]
+    test = [row for row in rows if row["group"] in selected_groups]
+    return train, test
 
 def _metrics(actual: list[str], predicted: list[str]) -> dict:
     tp = sum(a == "malicious" and p == "malicious" for a, p in zip(actual, predicted))
@@ -128,6 +142,11 @@ def evaluate_rows(rows: list[dict], *, test_fraction: float = 0.25, seed: int = 
     except ImportError as error:
         raise ImportError("Install optional ML dependencies from requirements-ml.txt") from error
     train, test = split_by_group(rows, test_fraction, seed)
+    train_groups = {row["group"] for row in train}
+    test_groups = {row["group"] for row in test}
+    group_overlap = len(train_groups.intersection(test_groups))
+    if group_overlap:
+        raise RuntimeError("Capture/session group leakage detected in evaluation split")
     train_benign = [row["features"] for row in train if row["label"] == "benign"]
     if len(train_benign) < 50:
         raise ValueError("At least 50 benign training observations are required")
@@ -149,9 +168,9 @@ def evaluate_rows(rows: list[dict], *, test_fraction: float = 0.25, seed: int = 
             "method": "deterministic_group_holdout",
             "seed": seed,
             "test_fraction_target": test_fraction,
-            "train_groups": len({row["group"] for row in train}),
-            "test_groups": len({row["group"] for row in test}),
-            "group_overlap": 0,
+            "train_groups": len(train_groups),
+            "test_groups": len(test_groups),
+            "group_overlap": group_overlap,
             "train_rows": len(train),
             "test_rows": len(test),
             "train_benign_rows": len(train_benign),
