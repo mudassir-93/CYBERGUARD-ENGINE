@@ -127,6 +127,7 @@ create_server()
             |       +-- DetectionWindowEngine
             +-- SimulationBridge
             +-- local anomaly model lifecycle/cache
+            +-- optional OllamaAnalyst (read-only incident explanation)
 ```
 
 The application object is the composition root: it creates or receives dependencies,
@@ -151,3 +152,14 @@ app.js
 ```
 
 The JavaScript controllers own their feature-specific UI state, DOM references, event handlers, and async API interactions. The live-monitor and threat-intelligence controllers receive the incident controller as a dependency when they need to refresh the incident view. The browser simulator remains an independent presentation simulation; it does not call the native C++ network engine.
+
+
+## Optional Local AI Analyst
+
+The Python application composition root owns an `OllamaAnalyst` adapter. The
+adapter uses Python's standard library to call Ollama's local `/api/chat`
+endpoint, with a loopback-only URL guard, bounded incident context, a request
+timeout, and a strict advisory system prompt. The CLI and loopback-only HTTP API
+invoke the same read-only explanation behavior. It does not become an
+authoritative detector, write incident state, run shell commands, or perform
+network response. See [LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md).
