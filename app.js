@@ -418,9 +418,9 @@ async generateIncidentDemo() {
 }
 
   initialize() {
-this.incidentElements.refresh.addEventListener('click', loadIncidents);
-this.incidentElements.filter.addEventListener('change', loadIncidents);
-this.incidentElements.demo.addEventListener('click', generateIncidentDemo);
+this.incidentElements.refresh.addEventListener('click', this.loadIncidents);
+this.incidentElements.filter.addEventListener('change', this.loadIncidents);
+this.incidentElements.demo.addEventListener('click', this.generateIncidentDemo);
 this.incidentElements.simulate.addEventListener('click', async () => {
   this.incidentElements.simulate.disabled = true;
   this.setIncidentMessage('Running native C++ simulator and importing detections…');
@@ -561,7 +561,7 @@ this.liveElements.stop.addEventListener('click', async () => {
   }
 });
 
-this.liveElements.refresh.addEventListener('click', refreshLiveInterfaces);
+this.liveElements.refresh.addEventListener('click', this.refreshLiveInterfaces);
 this.refreshLiveInterfaces();
 window.setInterval(this.refreshLiveStatus, 3000);
   }
