@@ -117,9 +117,9 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(503, {"error": "Install optional ML dependencies from requirements-ml.txt"})
             except (ValueError, TypeError) as error:
                 return self._json(400, {"error": str(error)})
-            except OSError:
+            except Exception:
                 ANOMALY_MODEL_CACHE.pop(model_path, None)
-                return self._json(503, {"error": "Unable to load configured anomaly model; verify the trusted local model path"})
+                return self._json(503, {"error": "Unable to load or score with the configured anomaly model; verify the trusted local artifact and restart the server"})
         if path == "/api/threat-intel/import":
             try:
                 payload = self._body()
