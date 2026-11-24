@@ -71,6 +71,7 @@ try {
     Invoke-CheckedCommand -Executable "cmake" -Arguments @("--build", $BuildDirectory, "--config", $Configuration, "--parallel") -Description "Build CyberGuard"
     Invoke-CheckedCommand -Executable "ctest" -Arguments @("--test-dir", $BuildDirectory, "-C", $Configuration, "--output-on-failure") -Description "Run C++ tests"
 
+    $env:CYBERGUARD_DATA_DIR = $VerificationDataDirectory
     Invoke-CheckedCommand -Executable "python" -Arguments @("-m", "compileall", "-q", "backend") -Description "Compile Python backend and tests"
     Invoke-CheckedCommand -Executable "python" -Arguments @("-m", "unittest", "discover", "-s", "backend/tests", "-v") -Description "Run Python backend tests"
 
@@ -81,7 +82,6 @@ try {
         Write-Warning "Node.js is not installed; dashboard JavaScript syntax check was skipped. Install Node.js to run this check."
     }
 
-    $env:CYBERGUARD_DATA_DIR = $VerificationDataDirectory
     Invoke-CheckedCommand -Executable "python" -Arguments @("backend/run_simulation.py") -Description "Run C++ to SQLite integration"
     Invoke-CheckedCommand -Executable "python" -Arguments @("backend/cli.py", "doctor") -Description "Check local CyberGuard readiness"
 
