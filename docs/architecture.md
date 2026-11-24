@@ -2,8 +2,11 @@
 
 CyberGuard is a C++20 educational simulation. The native application models
 packets and devices in memory; it does not open sockets or send network traffic.
+Live capture is a separate optional Python component, not part of the C++ simulator.
 The browser console is a separate JavaScript simulation and does not call the
-C++ library.
+C++ library. The optional Python live sensor uses Scapy to passively observe IPv4
+packet metadata from one selected interface and sends heuristic detections to
+the same SQLite incident store.
 
 ## Components
 
@@ -23,15 +26,16 @@ CyberGuard executable (src/main.cpp)
                                +-- Workstation
 
 CyberGuardTests and CyberGuardSmokeTest also link to CyberGuardCore.
-The default browser app is served from the repository root via backend/server.py.
+The default browser app is served from the repository root via `backend/server.py`. The Python runtime is composed by `backend/application.py`; the HTTP handler receives a `CyberGuardApplication` instance through dependency injection. The application owns the incident repository, IOC repository, live monitor, anomaly model lifecycle, and native simulator bridge.
 Legacy files under web/ are kept as reference assets and are not the main entry route.
 ```
 
 `Network` owns devices in a `std::vector<std::unique_ptr<NetworkDevice>>`.
 Device identifiers are looked up by name or IP address. Adding a null device
 or a device with an identifier already present throws `std::invalid_argument`.
-Removal accepts either identifier and refreshes the router's synthetic route
-entries.
+Device IP addresses are validated as IPv4 when a device is constructed.
+Removal accepts either identifier, removes the removed device's route from each
+router, and refreshes the remaining router entries.
 
 ## Native Packet Flow
 
@@ -39,7 +43,8 @@ entries.
 
 1. Increment the network's created-packet counter.
 2. Find a source and destination by packet IP address. If either is missing,
-   mark the packet `DROPPED` and increment the dropped counter.
+   or the source device is offline, mark the packet `DROPPED` and increment
+   the dropped counter.
 3. Set the packet to `ROUTING`. If a router exists, call its receive and
    forwarding operations. A failed router step drops the packet.
 4. If a firewall exists, inspect the packet. A blocked packet increments the
@@ -63,11 +68,11 @@ CREATED
 ```
 
 The network uses the first router and first firewall found in its device list.
-When devices are added or removed, `Network` calls its route-refresh routine,
-which adds direct entries whose next hop is the destination IP itself. It does
-not clear entries for removed devices. Routing is a simple in-memory model,
-not a topology-aware routing protocol; `Network` separately rejects unknown
-destinations before consulting the router.
+When devices are added or removed, `Network` refreshes router entries for
+currently registered destinations. Removing a device also removes its stale
+route from each router before refreshing the remaining entries. Routing is a
+simple in-memory model, not a topology-aware routing protocol; `Network`
+separately rejects unknown destinations before consulting the router.
 
 ## Device Responsibilities
 
@@ -84,12 +89,13 @@ destinations before consulting the router.
 
 `Packet` stores an ID, source/destination IPv4 addresses, source/destination
 ports, protocol (`TCP`, `UDP`, or `ICMP`), size, timestamp, and mutable status.
-Construction rejects malformed IPv4 addresses, ports above 65535, and a zero
-packet size. Port zero is representable by the C++ model.
+Construction rejects malformed IPv4 addresses (including empty trailing
+octets), ports above 65535, and a zero packet size. Device constructors use
+the same IPv4 validation. Port zero is representable by the C++ model.
 
 ## Boundaries and Limitations
 
-- No component sends, receives, or captures real network traffic.
+- The C++ simulator and browser demo do not send real network traffic. The optional Python live sensor passively captures packet metadata when explicitly started and supported by the host.
 - The native C++ simulator and the browser simulator maintain separate state and
   separate logic; browser changes do not update the C++ process.
 - The browser topology is a presentation model. Its Internet symbol is not a
@@ -97,9 +103,63 @@ packet size. Port zero is representable by the C++ model.
 - The project serves the browser UI from the repository root on
   `http://localhost:8000/` through the backend server, while the legacy `web/`
   folder remains non-primary reference content.
-- The current project has no threat generator, detection engine, incident
-  manager, response engine, scenario engine, SFML UI, Docker setup, or AI.
+- Detection rules and incident management are implemented as local-first
+  foundations; automated response, calibrated ML risk scoring, SFML, Docker,
+  and AI automation remain out of scope.
 
 See [oop.md](oop.md) for class design and ownership details, and
 [development-process.md](development-process.md) for build, test, and browser
 instructions.
+
+## Python Application Object Graph
+
+```text
+create_server()
+    |
+    +-- CyberGuardHandler
+    |       |
+    |       +-- injected CyberGuardApplication
+    |
+    +-- CyberGuardApplication
+            +-- IncidentStore (SQLite repository)
+            +-- ThreatIntelStore (SQLite IOC/notes repository)
+            +-- LiveTrafficMonitor
+            |       +-- DetectionWindowEngine
+            +-- SimulationBridge
+            +-- local anomaly model lifecycle/cache
+            +-- optional OllamaAnalyst (read-only incident explanation)
+```
+
+The application object is the composition root: it creates or receives dependencies,
+owns their lifecycle, and exposes use-case operations to the HTTP layer. This keeps
+the request handler from constructing repositories or relying on module-level
+mutable service globals. The native simulator bridge is an object with injectable
+process execution, allowing its orchestration to be tested without launching a
+real executable.
+
+
+## Browser Application Object Graph
+
+```text
+app.js
+  +-- NetworkSimulatorController
+  +-- IncidentDashboardController
+  +-- LiveMonitorController
+  |      +-- IncidentDashboardController (injected)
+  +-- ThreatIntelController
+  |      +-- IncidentDashboardController (injected)
+  +-- AnomalyDashboardController
+```
+
+The JavaScript controllers own their feature-specific UI state, DOM references, event handlers, and async API interactions. The live-monitor and threat-intelligence controllers receive the incident controller as a dependency when they need to refresh the incident view. The browser simulator remains an independent presentation simulation; it does not call the native C++ network engine.
+
+
+## Optional Local AI Analyst
+
+The Python application composition root owns an `OllamaAnalyst` adapter. The
+adapter uses Python's standard library to call Ollama's local `/api/chat`
+endpoint, with a loopback-only URL guard, bounded incident context, a request
+timeout, and a strict advisory system prompt. The CLI and loopback-only HTTP API
+invoke the same read-only explanation behavior. It does not become an
+authoritative detector, write incident state, run shell commands, or perform
+network response. See [LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md).

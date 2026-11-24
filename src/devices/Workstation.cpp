@@ -14,12 +14,7 @@ Packet Workstation::createPacket(std::uint64_t id,
                                  std::uint32_t size,
                                  std::uint64_t timestamp,
                                  std::uint16_t sourcePort) {
-    if (!isOnline()) {
-        ++packetsDropped_;
-    }
-
-    ++packetsSent_;
-    return Packet(id,
+    Packet packet(id,
                   getIpAddress(),
                   std::move(destinationIp),
                   sourcePort,
@@ -27,6 +22,15 @@ Packet Workstation::createPacket(std::uint64_t id,
                   protocol,
                   size,
                   timestamp);
+
+    if (!isOnline()) {
+        ++packetsDropped_;
+        packet.setStatus(PacketStatus::DROPPED);
+        return packet;
+    }
+
+    ++packetsSent_;
+    return packet;
 }
 
 std::size_t Workstation::getPacketsSent() const noexcept {

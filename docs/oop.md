@@ -230,4 +230,58 @@ If you need to explain it in a few sentences, say:
 
 This OOP design intentionally stays within the implemented project scope. It models networking behavior, rule evaluation, and packet flow, but does not include the unrelated detection, incident-management, or AI modules that were explicitly excluded from the project phase plan.
 
-The actual code structure lives in the `include/` and `src/` folders, and the browser UI in `web/` is a separate visual layer rather than part of the C++ object model.
+The C++ object model is only one layer of the application. The Python backend also uses service and repository objects; it must not be described as entirely procedural or as entirely OOP without qualification. The browser layer uses JavaScript objects/classes where they improve state ownership and behavior organization. HTML, CSS, JSON, YAML, and build configuration remain declarative formats and are not converted into artificial classes.
+
+## 7. Backend Application Composition and Dependency Injection
+
+The backend now has an explicit composition root in `backend/application.py`:
+
+- `CyberGuardApplication` owns the incident repository, threat-intelligence repository, live-monitor service, simulation runner, and interface provider.
+- `create_application()` constructs the default runtime object graph or an isolated test instance.
+- `create_server()` injects one application instance into the HTTP server.
+- `CyberGuardHandler` delegates application work through that injected instance instead of accessing module-level global service objects.
+- The application owns lifecycle cleanup and the cached local anomaly model.
+
+This is composition and dependency injection: services can be replaced with test doubles without changing the HTTP handler. It also avoids hidden process-wide mutable service state.
+
+## 8. OOP Refactoring Standard for Future Work
+
+New application logic should follow these rules:
+
+1. Give each class one cohesive responsibility; avoid giant manager classes.
+2. Keep state private or behind a narrow public interface.
+3. Inject repositories, external adapters, clocks, and model loaders when they need to be replaceable in tests.
+4. Keep domain rules separate from HTTP, SQLite, Scapy, filesystem, and model-library details.
+5. Prefer composition over inheritance unless a genuine substitutable "is-a" relationship exists.
+6. Use small pure functions for stateless validation, normalization, and mathematical calculations. OOP does not require wrapping every helper in a class.
+7. Do not create classes for HTML, CSS, JSON, YAML, or CI configuration.
+8. Add tests around class behavior, object lifecycle, and dependency boundaries.
+
+The backend refactor is incremental. Existing repositories and sensor components already contain classes; small stateless validation, normalization, and mathematical helpers remain pure functions where a class would add no value.
+
+The browser application is now organized into five feature controllers:
+- `NetworkSimulatorController` owns simulator state, firewall rules, packet routing, counters, and demo-sequence lifecycle.
+- `IncidentDashboardController` owns incident rendering, filtering, status updates, evidence inspection, and analyst-note workflows.
+- `LiveMonitorController` owns capture-interface selection, start/stop controls, status polling, and incident refresh coordination through an injected incident controller.
+- `ThreatIntelController` owns IOC import and delegates incident refresh to the incident controller.
+- `AnomalyDashboardController` owns the analyst-triggered local anomaly-scoring interaction.
+
+Each controller owns its DOM references and event wiring; callbacks are bound to their controller instance. The page-level composition at the end of `app.js` constructs the controllers and injects cross-feature dependencies. HTML and CSS remain declarative presentation assets.
+
+The actual C++ code structure lives in the `include/` and `src/` folders; backend application composition lives in `backend/application.py`; the browser UI is a separate presentation layer.
+
+## 9. Browser Controller Object Graph
+
+```text
+app.js composition root
+  +-- NetworkSimulatorController
+  +-- IncidentDashboardController
+  |      +-- incident list / status / evidence / notes
+  +-- LiveMonitorController
+  |      +-- injected IncidentDashboardController
+  +-- ThreatIntelController
+  |      +-- injected IncidentDashboardController
+  +-- AnomalyDashboardController
+```
+
+The browser controllers own feature state and event lifecycle. They call the existing local HTTP API for persistence and monitoring; they do not duplicate backend repositories or ML logic.

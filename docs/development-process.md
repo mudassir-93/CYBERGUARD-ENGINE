@@ -12,7 +12,7 @@ src/core/           Packet and network implementation
 src/devices/        Device implementations
 src/main.cpp        Native console demonstration
 tests/              Smoke and GoogleTest coverage
-backend/            Python server that hosts the browser app from the repo root
+backend/            Python application, service, repository, and HTTP layers
 index.html          Default browser dashboard entry point
 web/                Legacy static browser assets kept for reference; not the default route
 docs/               Architecture, OOP, and this project guide
@@ -29,16 +29,33 @@ CMakeLists.txt      C++20 targets and test configuration
 | Network ownership, lookup, routing, counters | Implemented |
 | Unit and smoke tests | Implemented for the current core |
 | Static browser console | Implemented as an independent simulation |
-| Threat generation and threat detection | Not implemented |
-| Incident management and defensive response | Not implemented |
+| Simulated threat generation and heuristic detection | Implemented (starter rules) |
+| Optional passive IPv4 capture foundation | Implemented (Scapy adapter; host driver/permissions required) |
+| SQLite incident management workspace | Implemented (local-only) |
+| Local threat-intelligence catalog and incident IOC enrichment | Implemented (manual JSON import; exact matches) |
+| Analyst investigation notes and evidence timeline | Implemented (append-only local notes) |
+| Explainable anomaly baseline | Implemented (median/MAD statistical baseline) |
+| Optional Isolation Forest pipeline | Implemented (scikit-learn; local training/scoring; uncalibrated) |
+| Dashboard anomaly scoring | Implemented (configured local model; explicit analyst-triggered scoring) |
+| API network boundary | Implemented (all API reads/writes loopback-only) |
+| OOP backend composition root | Implemented (application owns services; HTTP handler uses dependency injection) |
+| OOP native simulator bridge | Implemented (SimulationBridge encapsulates executable discovery, execution, and JSONL ingestion) |
+| OOP ML inference | Implemented (IsolationForestAnalyzer owns the loaded model and scoring interface) |\n| Guided local CLI | Implemented (interactive menu, setup checks, simulation, incident list/detail/status commands) |
+| Automated defensive response / blocking | Not implemented |
+| Automated external threat-feed polling / TAXII | Not implemented |
+| Calibrated production ML risk scoring | Not implemented |
 | Simulation/scenario engine and stress runner | Not implemented |
-| SFML interface, Docker, GitHub Actions, AI | Not implemented |
+| SFML interface, Docker | Not implemented |
+| Optional local AI incident explanation | Implemented in CLI/API using Ollama; CI validation pending |
+| Autonomous AI investigation or response | Not implemented and out of scope for the initial local release |
+| GitHub Actions baseline CI | Added on the upgrade branch; Linux and Windows checks configured |
 
 The first three development phases are represented by the implemented
 foundation, devices/network ownership, and packet/routing/firewall behavior.
 Testing and the browser console are cross-cutting additions, not completion of
-the planned GoogleTest or SFML phases in their entirety. No placeholder threat,
-detection, incident, response, Docker, or AI code is present.
+the planned GoogleTest or SFML phases in their entirety. Detection and incident
+management are implemented as local-first foundations; automated response and
+AI-driven analysis are not implemented.
 
 ## Requirements
 
@@ -47,7 +64,8 @@ detection, incident, response, Docker, or AI code is present.
   `MinGW Makefiles` generator)
 - Internet access when configuring tests for the first time; CMake fetches
   GoogleTest 1.14.0 through `FetchContent`
-- Python 3 to serve the static browser files
+- Python 3 to serve the dashboard and local incident API
+- Optional live capture: install `requirements-live.txt`, Npcap on Windows or libpcap on Linux, and suitable capture permissions
 
 ## Build and Run the Native Program
 
@@ -69,13 +87,18 @@ Its demonstration sends three packets: two are delivered and one is blocked.
 ctest --test-dir build --output-on-failure
 ```
 
-The registered suite contains 12 tests: a smoke test plus GoogleTest cases
-covering packet properties and validation, router forwarding, first-match and
-disabled firewall rules, server service acceptance, and network routing,
-duplicate identifiers, removal, and online-device counts. The recorded
-verified run passed all 12 tests.
+The earlier verified CI milestone records 32/32 C++ tests passing on both
+Ubuntu and Windows. The OOP backend composition, simulator bridge, and browser controller refactors add new Python coverage and require a fresh confirmed CI run. Coverage includes packet validation, routing, firewall
+decisions, flow aggregation, scenario bounds, threat detection, and regression
+checks for offline devices, IP validation, and stale-route cleanup. The Python
+backend suite records 30/30 tests passing on both platforms. The workflow also
+checks Python syntax, dashboard JavaScript syntax, and the C++-to-SQLite
+integration. The browser application is organized into five OOP controllers for
+the network simulator, incidents, live monitoring, threat intelligence, and
+anomaly-scoring UI. These counts describe the completed CI run for commit
+`0f82a957`; consult the latest Actions run for any later commit.
 
-## Run the Browser Simulator
+## Use the Guided CLI\n\nRun the interactive local workspace from the repository root:\n\n```powershell\npython backend/cli.py\n```\n\nAvailable commands include:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --severity high\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI accesses the local SQLite repositories directly and runs the native simulator through the existing process bridge. It does not start an HTTP listener or enable active network response.\n\n## Run the Browser Simulator
 
 Start the backend server from the repository root:
 
@@ -85,12 +108,15 @@ python backend/server.py
 
 Open `http://localhost:8000/`. The browser app provides manual packet controls,
 an editable block/allow rule list, a deterministic demo sequence, pause/resume,
-reset, summary counters, and an event list. The initial rule blocks TCP port
+reset, summary counters, and an event list. Pausing or resetting cancels any
+remaining scheduled demo packets. The initial rule blocks TCP port
 23; the demo sends TCP packets to ports 80, 443, and 23.
 
 This UI executes its own JavaScript simulation. It shares neither state nor
-packet-routing calls with the C++ executable. The topology's Internet icon is a
-visual boundary, not a network device or an external connection.
+packet-routing calls with the C++ executable. The optional live-monitoring panel
+uses a separate passive Python capture adapter and persists metadata-derived
+detections; see [LIVE_MONITORING.md](LIVE_MONITORING.md). The topology's Internet
+icon remains a visual boundary, not a network device or external connection.
 
 ## Development Phases and Next Work
 
@@ -99,18 +125,24 @@ visual boundary, not a network device or an external connection.
 | 1 | Project foundation | Complete |
 | 2 | Network devices and ownership | Complete |
 | 3 | Packets, routing, firewall rules | Complete |
-| 4 | Simulated threat types | Not implemented |
-| 5 | Detection, risk scoring, alerts | Not implemented |
-| 6 | Incidents and response | Not implemented |
+| 4 | Simulated threat types | Implemented (bounded scenarios and starter heuristics) |
+| 5 | Detection and alerts | Implemented (starter rules; no calibrated ML risk scoring) |
+| 6 | Incident management | Implemented (local SQLite workflow; no automated response) |
 | 7 | Simulation and scenario engine | Not implemented |
 | 8 | SFML visualization | Not implemented; browser UI is separate |
 | 9 | GoogleTest | Tests cover the current core; future features need tests |
 | 10 | Docker | Not implemented |
-| 11 | GitHub Actions | Not implemented |
+| 11 | GitHub Actions | Baseline Linux/Windows CI added on the upgrade branch |
 | 12 | Documentation and polish | Documentation is being maintained |
 
-The next feature phase should be selected explicitly before implementation.
-Keep all traffic and threat behavior simulated and internal to the application.
+Live monitoring is an optional passive sensor foundation. Further product work
+should focus on capture reliability, richer protocol coverage, calibrated
+thresholds, and safe deployment controls without turning the product into an IPS.
+The OOP refactor milestone covers the Python application composition and the
+five browser feature controllers. It was verified by GitHub Actions on both
+Ubuntu and Windows at code commit `7787c798`: 32/32 C++ tests and 51/51 Python
+tests passed on each platform; Python compilation, `node --check app.js`, and
+the C++-to-SQLite integration also passed.
 For packet flow and class ownership, see [architecture.md](architecture.md)
 and [oop.md](oop.md).
 
@@ -121,3 +153,17 @@ add or update tests, build the affected targets, and run the relevant tests.
 Run the complete CTest suite after changes to shared routing or device
 contracts. Update these documents when behavior, commands, or scope changes.
 Report checks that could not run instead of treating them as successful.
+
+## Threat Intelligence and Anomaly Baseline
+
+See [THREAT_INTELLIGENCE.md](THREAT_INTELLIGENCE.md) for the JSON IOC import contract, incident enrichment, analyst notes API, and robust anomaly baseline trainer. These features remain local-first and perform no automated response. The baseline requires representative trusted CSV data and is not a calibrated probability.
+
+
+## Optional Local AI Analyst
+
+Install Ollama locally and pull the configured model (default `llama3.2:3b`).
+Run `python backend/cli.py explain CG-INCIDENTID` or use interactive menu
+option 7. The HTTP API route is `POST /api/analyst/explain`. Configuration,
+loopback restrictions, and safety limitations are documented in
+[LOCAL_AI_ANALYST.md](LOCAL_AI_ANALYST.md). This integration has no additional
+Python package dependency and does not require cloud inference.

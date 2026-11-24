@@ -23,13 +23,14 @@
         <a class="nav-item" href="#topology"><span class="nav-icon">02</span>Topology</a>
         <a class="nav-item" href="#firewall"><span class="nav-icon">03</span>Firewall rules</a>
         <a class="nav-item" href="#events"><span class="nav-icon">04</span>Event stream</a>
+        <a class="nav-item" href="#live-monitoring"><span class="nav-icon">05</span>Live monitoring</a>
       </nav>
 
       <div class="sidebar-footer">
         <span class="status-dot" aria-hidden="true"></span>
         <div>
-          <strong>Local simulation</strong>
-          <small>No external traffic</small>
+          <strong>Local security workspace</strong>
+          <small>Passive capture is optional</small>
         </div>
       </div>
     </aside>
@@ -217,6 +218,80 @@
           <p class="form-note"><span class="info-mark">i</span>Traffic stays inside this browser simulation.</p>
         </section>
       </div>
+
+
+      <section class="panel incidents-panel" id="incidents">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Investigation workspace</span><h3>Incident management</h3></div>
+          <span class="incident-summary-count" id="incidentSummary">Connecting to local API…</span>
+        </div>
+        <div class="incident-toolbar">
+          <p>Correlated detections, preserved evidence, and analyst-controlled status.</p>
+          <div class="incident-actions">
+            <select id="incidentStatusFilter" aria-label="Filter incidents by status">
+              <option value="">All statuses</option><option value="new">New</option>
+              <option value="acknowledged">Acknowledged</option><option value="investigating">Investigating</option>
+              <option value="resolved">Resolved</option><option value="false_positive">False positive</option>
+            </select>
+            <button class="button button-outline" id="refreshIncidents" type="button">Refresh</button>
+            <button class="button button-outline" id="runCppSimulation" type="button">Run C++ simulation</button>
+            <button class="button button-primary" id="generateIncidentDemo" type="button">Generate demo incidents</button>
+          </div>
+        </div>
+        <p class="incident-message" id="incidentMessage" role="status">Connecting…</p>
+        <div class="incident-list" id="incidentList" aria-live="polite"></div>
+      </section>
+
+      <section class="panel threat-intel-panel" id="threat-intelligence">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Local intelligence</span><h3>Threat indicator catalog</h3></div>
+          <span class="incident-summary-count">Manual JSON import · no external calls</span>
+        </div>
+        <p>Import trusted IP, domain, MD5, SHA-1, or SHA-256 indicators. Matches enrich incident evidence; they never trigger automatic blocking.</p>
+        <label for="threatIntelInput">Indicator feed JSON</label>
+        <textarea id="threatIntelInput" rows="6" spellcheck="false" placeholder='{"indicators":[{"type":"ip","value":"203.0.113.77","source":"local-lab","confidence":80,"severity":"high"}]}'></textarea>
+        <div class="incident-actions"><button class="button button-primary" id="importThreatIntel" type="button">Import indicators</button><span id="threatIntelMessage" role="status"></span></div>
+      </section>
+
+
+      <section class="panel threat-intel-panel" id="anomaly-analysis">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Local ML analysis</span><h3>Telemetry anomaly scoring</h3></div>
+          <span class="incident-summary-count">Optional Isolation Forest model</span>
+        </div>
+        <p>Score a telemetry sample against your configured local model. This is an analyst aid, not an automatic incident verdict.</p>
+        <label for="anomalyFeaturesInput">Telemetry features JSON</label>
+        <textarea id="anomalyFeaturesInput" rows="6" spellcheck="false" placeholder='{"features":{"packet_rate":12,"distinct_ports":2,"failed_attempts":0,"bytes_per_second":2048,"destination_fanout":1}}'></textarea>
+        <div class="incident-actions"><button class="button button-primary" id="scoreAnomaly" type="button">Score telemetry</button><span id="anomalyMessage" role="status"></span></div>
+        <pre class="anomaly-result" id="anomalyResult" aria-live="polite">Configure CYBERGUARD_ANOMALY_MODEL to enable scoring.</pre>
+      </section>
+
+      <section class="panel live-monitor-panel" id="live-monitoring">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Passive network sensor</span><h3>Live network monitoring</h3></div>
+          <span class="live-capture-state" id="liveCaptureState">Checking capture support…</span>
+        </div>
+        <div class="live-monitor-layout">
+          <div class="live-monitor-controls">
+            <label for="liveInterfaceSelect">Network interface</label>
+            <select id="liveInterfaceSelect" disabled>
+              <option value="">Checking available interfaces…</option>
+            </select>
+            <div class="live-monitor-actions">
+              <button class="button button-primary" id="startLiveCapture" type="button" disabled>Start capture</button>
+              <button class="button button-outline" id="stopLiveCapture" type="button" disabled>Stop capture</button>
+              <button class="button button-quiet" id="refreshLiveCapture" type="button">Refresh</button>
+            </div>
+            <p class="live-monitor-message" id="liveMonitorMessage" role="status">Live capture is optional and requires Scapy plus a supported capture driver.</p>
+          </div>
+          <div class="live-monitor-stats" aria-live="polite">
+            <div><span>IPv4 packets observed</span><strong id="livePacketsSeen">0</strong></div>
+            <div><span>Detections stored</span><strong id="liveDetectionsCreated">0</strong></div>
+            <div><span>Capture errors</span><strong id="liveCaptureErrors">0</strong></div>
+          </div>
+        </div>
+        <p class="live-monitor-note">Metadata only: IPv4 addresses, protocol, ports, TCP SYN flag, and packet size. No payload storage, automatic blocking, or live brute-force inference.</p>
+      </section>
 
       <div class="lower-grid">
         <section class="panel firewall-panel" id="firewall">

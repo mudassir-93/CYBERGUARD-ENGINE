@@ -6,18 +6,21 @@
 [![Status](https://img.shields.io/badge/Status-Local%20Simulation-success.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 [![License](https://img.shields.io/badge/License-Project%20Educational-lightgrey.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 
-CyberGuard Engine is a small, educational network-security simulation project built in C++ and designed to model packet flow, routing decisions, and firewall rule enforcement in a safe, local-only environment.
+CyberGuard Engine is an educational, local-first network-security workspace built around a C++20 network simulator. It models packet routing and firewall enforcement, aggregates network flows, generates bounded threat scenarios, and runs explainable detection heuristics. An optional Python sensor can passively capture IPv4 packet metadata from a selected local interface.
 
-This project is intended for learning, demonstration, and academic review. It does not send real traffic, it does not connect to external services, and it is designed to run fully on a local machine.
+This project is intended for learning, demonstration, and academic review. The simulator does not send real traffic. Optional live monitoring passively reads packet metadata from a selected interface; it does not modify or block traffic. The application is designed to run locally.
 
 ## Overview
 
-CyberGuard combines two separate simulation layers:
+The local application is composed of these components:
 
-- A native C++ simulation for the actual network model, packet logic, and device behavior
-- A browser dashboard for a visual presentation of the simulated network, counters, firewall rules, and traffic flow
+- A native C++ simulation for the network model, packet logic, and device behavior
+- A browser dashboard for simulated topology, counters, firewall rules, and incident investigation
+- A guided Python CLI for local setup checks, simulation runs, and incident workflows
+- An object-oriented Python application layer that composes repositories, monitoring, simulation, and anomaly-analysis services
+- An optional Python packet sensor for passive IPv4 metadata capture
 
-The browser app is independent from the C++ engine and is meant to behave like a visual interface for the simulation, not a live network service.
+The browser dashboard is served by a local Python API. It can display persisted incidents, invoke the native C++ simulator through a structured local process bridge, and optionally capture passive packet metadata from a selected local interface.
 
 ## What the project does
 
@@ -27,28 +30,41 @@ The browser app is independent from the C++ engine and is meant to behave like a
 - Tracks packet states such as created, routing, blocked, delivered, and dropped
 - Uses ordered firewall rules to allow or deny traffic based on protocol and port
 - Shows a live-style topology dashboard in the browser
+- Aggregates packets into bidirectional five-tuple network flows
+- Generates local-only normal, port-scan, brute-force, DoS-like, and internal host-sweep scenarios
+- Detects port scans, repeated failed connections, high-volume traffic, and unusual internal host fan-out
+- Optionally captures live IPv4 packet metadata and correlates conservative rolling-window detections into incidents
 - Provides automated C++ tests for the implemented core logic
 
 ## Current project status
 
-The implemented scope covers the core foundation, device model, packet flow, firewall rules, and the browser dashboard.
+The implemented scope includes the C++ network simulator, flow aggregation, deterministic normal/suspicious traffic scenarios, first-generation detection rules, and the browser dashboard.
 
-Completed phases include:
+Completed foundations include:
 
-- Project foundation
-- Device model and ownership
-- Packet creation and routing
-- Firewall rule evaluation
-- Browser console for demonstration and manual testing
+- Project foundation, device model, packet routing, and firewall rule evaluation
+- Flow aggregation, bounded threat scenarios, and explainable simulator detections
+- SQLite incident management and native simulator-to-incident integration
+- Optional passive IPv4 metadata monitoring with a dashboard capture workflow
+- Local IOC catalog with explicit JSON import, incident enrichment, and append-only analyst notes
+- Dependency-free median/MAD anomaly baseline and optional scikit-learn Isolation Forest training/scoring
+- Manual dashboard anomaly scoring through a loopback-only API endpoint
+- Optional local Ollama incident explanations through the guided CLI and loopback-only API
+- Loopback-only enforcement for all API reads and writes
 
 Not implemented yet:
 
-- threat generation and detection
-- incident response systems
-- scenario engine
+- production-grade network telemetry, calibrated detections, and IPv6/VLAN coverage
+- analyst authentication, authorization, multi-tenant operations, and production deployment hardening
+- calibrated ML risk scoring and validation against representative labeled traffic
+- automated response or blocking actions
 - SFML interface
 - Docker deployment
-- AI-based automation
+- autonomous AI investigation or response
+
+Detection rules are starter heuristics, not proof of compromise. Live capture inspects TCP SYN metadata but does not inspect authentication events, packet payloads, or process identity. See [docs/TRAFFIC_DETECTION.md](docs/TRAFFIC_DETECTION.md) for simulator thresholds and [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for optional capture setup, detection limits, and permissions.
+
+Object-oriented design, application composition, and dependency-injection conventions are documented in [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md). The C++ simulator uses domain classes; the Python backend uses repositories, services, a composition root, and a guided CLI controller; the JavaScript dashboard uses five feature controllers. Declarative formats such as HTML/CSS/YAML remain declarative.
 
 Detailed project status and roadmap notes are available in [docs/development-process.md](docs/development-process.md), [docs/architecture.md](docs/architecture.md), and [docs/oop.md](docs/oop.md).
 
@@ -109,7 +125,7 @@ If you are using a different compiler or generator, replace the generator comman
 ctest --test-dir build --output-on-failure
 ```
 
-This project currently verifies the native core logic through a test suite that covers packet behavior, routing, firewall decisions, and device handling.
+The native test suite covers packet behavior, routing, firewall decisions, flow aggregation, traffic scenarios, and all current detection heuristics.
 
 ### 4. Run the native demo
 
@@ -117,9 +133,41 @@ This project currently verifies the native core logic through a test suite that 
 .\build\CyberGuard.exe
 ```
 
-The console demo simulates packet routing and shows how traffic is either delivered or blocked by the firewall rule set.
+The console demo runs normal, port-scan, brute-force-pattern, DoS-like, and internal host-sweep scenarios. It aggregates packet outcomes into flows and prints explainable alerts. It never sends real network traffic.
 
-### 5. Open the browser dashboard
+### 5. Run the native-to-incident integration
+
+After building the C++ executable, run the simulator and automatically import its actual detection output into SQLite:
+
+```powershell
+python backend/run_simulation.py
+```
+
+The dashboard also provides a **Run C++ simulation** action. It executes the local native binary, receives structured JSON Lines detections, and persists incidents. Set `CYBERGUARD_EXECUTABLE` if the executable is outside the standard build folders.
+
+### 6. Use the guided CLI (optional)
+
+From the repository root, open the interactive local workspace:
+
+```powershell
+python backend/cli.py
+```
+
+You can also run individual commands:
+
+```powershell
+python backend/cli.py doctor
+python backend/cli.py summary
+python backend/cli.py incidents --status new --limit 20
+python backend/cli.py show CG-INCIDENTID
+python backend/cli.py status CG-INCIDENTID acknowledged
+python backend/cli.py simulate
+python backend/cli.py explain CG-INCIDENTID
+```
+
+The CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.
+
+### 7. Open the browser dashboard
 
 From the repository root:
 
@@ -127,13 +175,19 @@ From the repository root:
 python backend/server.py
 ```
 
+The server binds to `127.0.0.1` by default and enforces loopback-only access across all API routes (including reads and writes), as defense in depth. It should remain loopback-only:
+the API has no authentication and is not safe to expose to a LAN or the public
+internet. You can change the local port with `CYBERGUARD_PORT=8080` (use the
+port you choose in the browser URL). Do not set `CYBERGUARD_HOST=0.0.0.0` for
+normal use.
+
 Then open this in your browser:
 
 ```text
 http://localhost:8000/
 ```
 
-The browser app shows a visual topology, statistics cards, rule controls, and a demo sequence. By default, it blocks TCP destination port 23.
+The browser app shows a visual topology, statistics cards, rule controls, a demo sequence, incident management, and optional live network monitoring. Live capture requires the optional Scapy dependency plus Npcap/libpcap and suitable permissions; see [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md). The browser's simulated firewall blocks TCP destination port 23 only inside the demo model.
 
 ## How to use the simulator
 
@@ -166,21 +220,25 @@ This is the project’s core implementation layer.
 ## Important notes
 
 - The app is intended for local, educational use only.
-- No real network traffic is generated.
-- The browser simulation does not share state with the C++ program.
+- The C++ and browser simulators do not generate real network traffic. The optional live sensor passively observes metadata from an explicitly selected real network interface.
+- The browser simulation does not share packet-routing state with the C++ program. The optional live sensor is a separate passive Python capture path and stores only metadata-derived detections.
 - The project root URL is the default browser route.
 - The legacy [web](web) folder is kept as reference material and is not the main entry point.
 
 ## Verification
 
-The native validation run for the implemented core passed its recorded test set, and the console demo produced the expected local behavior:
+The latest verified cross-platform CI run for commit `f9b0436495bf3cf751535c6a1335ccd776e0ca5b` completed successfully on both Ubuntu and Windows (GitHub Actions run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562)). It built the C++ project, ran C++ and Python tests, checked Python and dashboard JavaScript syntax, and ran the C++-to-SQLite integration, including the latest CLI and local AI analyst changes.
 
-```text
-Packets Created:   3
-Delivered:         2
-Blocked:           1
-Dropped:           0
-```
+| Check | Earlier verified milestone |
+| --- | --- |
+| C++ automated tests | 32/32 on Ubuntu and Windows |
+| Python backend tests | 30/30 on Ubuntu and Windows |
+| C++ build and CTest | Passed on Ubuntu and Windows |
+| Python syntax | Passed |
+| Dashboard JavaScript syntax | Passed |
+| C++ to SQLite integration | Passed |
+
+Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
 ## Screenshots
 
@@ -224,3 +282,29 @@ For deeper technical details, use the docs folder:
 ## Summary
 
 CyberGuard Engine is a clean, local-first simulation project for learning how routing, packet flow, and firewall decisions work in a basic network model. It is organized so a user can clone the repository, build the C++ engine, run tests, and open the browser visualization with minimal setup.
+
+
+## Live network monitoring foundation
+
+Optional passive IPv4 capture is available through the Live network monitoring dashboard panel. It detects TCP SYN port-scan patterns, high packet rates, and internal private-host fan-out using rolling windows. It deliberately does not infer failed logins from packet metadata. Install `requirements-live.txt` and follow [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) for Npcap/libpcap and permissions.
+
+## Incident management milestone
+
+CyberGuard includes a local SQLite-backed incident workspace. Start it with `python backend/server.py`, then open `http://127.0.0.1:8000`. The dashboard can generate local demo detections, correlate repeated signals, preserve evidence, filter incidents, and manage analyst statuses. See [docs/INCIDENT_MANAGEMENT.md](docs/INCIDENT_MANAGEMENT.md) for API contracts and limitations.
+
+
+## Threat intelligence and investigation
+
+The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. No external feed is fetched and no indicator triggers blocking. The dashboard includes a manual JSON import panel. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
+
+A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
+
+
+## Application architecture
+
+The application uses object-oriented components across the native and service layers. The Python backend is composed through `CyberGuardApplication`, with repository and adapter objects injected into the HTTP server. The browser dashboard uses feature controllers: `NetworkSimulatorController`, `IncidentDashboardController`, `LiveMonitorController`, `ThreatIntelController`, and `AnomalyDashboardController`. Stateless validation and calculation helpers remain pure functions where that is simpler and clearer. See [docs/oop.md](docs/oop.md) and [docs/architecture.md](docs/architecture.md).
+
+
+## Optional local AI incident analyst
+
+CyberGuard can explain a persisted incident using a local Ollama model without a cloud API key. Install Ollama and pull a model (default: `llama3.2:3b`), then use `python backend/cli.py explain CG-INCIDENTID` or the interactive menu's option 7. The loopback-only API also exposes `POST /api/analyst/explain`. This feature is advisory only: it cannot change incident state, run commands, or block traffic. See [docs/LOCAL_AI_ANALYST.md](docs/LOCAL_AI_ANALYST.md) for setup, configuration, and limitations.

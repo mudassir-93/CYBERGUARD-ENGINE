@@ -11,6 +11,10 @@ void Router::addRoute(std::string destinationIp, std::string nextHop) {
     routingTable_[std::move(destinationIp)] = std::move(nextHop);
 }
 
+void Router::removeRoute(const std::string& destinationIp) {
+    routingTable_.erase(destinationIp);
+}
+
 bool Router::hasRoute(const std::string& destinationIp) const {
     return routingTable_.contains(destinationIp);
 }

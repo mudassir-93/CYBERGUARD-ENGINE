@@ -13,6 +13,7 @@ public:
     Router(std::string name, std::string ipAddress);
 
     void addRoute(std::string destinationIp, std::string nextHop);
+    void removeRoute(const std::string& destinationIp);
     [[nodiscard]] bool hasRoute(const std::string& destinationIp) const;
     [[nodiscard]] bool forwardPacket(const Packet& packet);
 
