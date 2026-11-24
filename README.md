@@ -4,7 +4,7 @@
 [![CMake](https://img.shields.io/badge/CMake-3.20%2B-064F8C.svg)](https://cmake.org/)
 [![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/Status-Local%20Simulation-success.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
-[![License](https://img.shields.io/badge/License-Project%20Educational-lightgrey.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
+[![License](https://img.shields.io/badge/License-Not%20specified-lightgrey.svg)](https://github.com/mudassir-93/CYBERGUARD-ENGINE)
 
 CyberGuard Engine is an educational, local-first network-security workspace built around a C++20 network simulator. It models packet routing and firewall enforcement, aggregates network flows, generates bounded threat scenarios, and runs explainable detection heuristics. An optional Python sensor can passively capture IPv4 packet metadata from a selected local interface.
 
@@ -48,6 +48,7 @@ Completed foundations include:
 - Optional passive IPv4 metadata monitoring with a dashboard capture workflow
 - Local IOC catalog with explicit JSON import, incident enrichment, and append-only analyst notes
 - Dependency-free median/MAD anomaly baseline and optional scikit-learn Isolation Forest training/scoring
+- Leakage-aware, capture/session-grouped evaluation with precision, recall, F1, false-positive/negative rates, confusion matrix, and latency report
 - Manual dashboard anomaly scoring through a loopback-only API endpoint
 - Optional local Ollama incident explanations through the guided CLI and loopback-only API
 - Loopback-only enforcement for all API reads and writes
@@ -256,7 +257,7 @@ The latest verified post-merge cross-platform baseline is master commit `022b310
 | Dashboard JavaScript syntax | Passed on both platforms |
 | C++ to SQLite integration | Passed on both platforms |
 
-The follow-up CLI/Ollama readiness changes are under review in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2). Its Ubuntu PR job has passed; its Windows job must also finish successfully before merge. Do not interpret the master baseline above as validation of unmerged PR changes.
+The follow-up CLI/Ollama readiness changes are under review in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2). The leakage-aware ML evaluation workflow is being developed separately in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3) and requires fresh cross-platform CI. Do not interpret the master baseline above as validation of unmerged PR changes.
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
@@ -317,7 +318,7 @@ CyberGuard includes a local SQLite-backed incident workspace. Start it with `pyt
 
 The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. No external feed is fetched and no indicator triggers blocking. The dashboard includes a manual JSON import panel. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
-A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
+A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. For labeled CSV evaluation, run `python backend/ml_evaluate.py datasets/flows.csv --group-column capture_id --output reports/isolation-forest-evaluation.json`. The evaluator keeps capture/session groups disjoint between training and test data and reports false positives, false negatives, F1, balanced accuracy, and inference latency. See [docs/ML_EVALUATION.md](docs/ML_EVALUATION.md) for the CSV contract and limitations. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
 
 
 ## Application architecture
