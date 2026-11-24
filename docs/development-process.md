@@ -1,6 +1,6 @@
 # CyberGuard Development and Verification
 
-This guide reflects the current `master` baseline after PRs #1 through #6. The Windows one-command verification helper is merged and passes hosted Windows CI; running it on the owner's PC remains pending. The guided dashboard-launch CLI command is in progress.
+This guide reflects the current `master` baseline after PRs #1 through #6. The Windows one-command verification helper is merged and passes hosted Windows CI; running it on the owner's PC remains pending. The guided dashboard-launch CLI command is merged through PR #7 and binds only to loopback.
 
 ## Source tree
 

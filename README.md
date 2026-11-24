@@ -267,7 +267,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified post-merge master commit is `6337babefba572d1a10e86c070ee5d864af66f8e`; Ubuntu and Windows both passed in run [45309651274](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45309651274).
+The latest fully verified post-merge master commit is `6337babefba572d1a10e86c070ee5d864af66f8e`; Ubuntu and Windows both passed in run [45309651274](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45309651274). PR #7 has since merged as `d9c4d9508d87030fa849765dafb3cf078269277e`; its post-merge CI run [45310558781](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45310558781) is queued.
 
 | Check | Verified master baseline |
 | --- | --- |
@@ -278,7 +278,7 @@ The latest verified post-merge master commit is `6337babefba572d1a10e86c070ee5d8
 | Dashboard JavaScript syntax | Passed on both platforms |
 | C++ to SQLite integration | Passed on both platforms |
 
-The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), leakage-aware ML evaluation in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3), the Windows verification helper in [PR #4](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/4), and the synthetic ML demo dataset in [PR #5](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/5). The Windows script is covered by hosted CI; running it on the owner's PC remains pending. The guided CLI dashboard-launch enhancement is under development in [PR #7](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/7).
+The CLI/Ollama readiness milestone is merged in [PR #2](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/2), leakage-aware ML evaluation in [PR #3](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/3), the Windows verification helper in [PR #4](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/4), and the synthetic ML demo dataset in [PR #5](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/5). The Windows script is covered by hosted CI; running it on the owner's PC remains pending. The guided CLI dashboard-launch command is merged in [PR #7](https://github.com/mudassir-93/CYBERGUARD-ENGINE/pull/7); it binds only to loopback and starts only on explicit user request.
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
