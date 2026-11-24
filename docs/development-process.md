@@ -12,7 +12,7 @@ src/core/           Packet and network implementation
 src/devices/        Device implementations
 src/main.cpp        Native console demonstration
 tests/              Smoke and GoogleTest coverage
-backend/            Python server that hosts the browser app from the repo root
+backend/            Python application, service, repository, and HTTP layers
 index.html          Default browser dashboard entry point
 web/                Legacy static browser assets kept for reference; not the default route
 docs/               Architecture, OOP, and this project guide
@@ -35,6 +35,8 @@ CMakeLists.txt      C++20 targets and test configuration
 | Local threat-intelligence catalog and incident IOC enrichment | Implemented (manual JSON import; exact matches) |
 | Analyst investigation notes and evidence timeline | Implemented (append-only local notes) |
 | Explainable anomaly baseline | Implemented (median/MAD statistical baseline) |\n| Optional Isolation Forest pipeline | Implemented (scikit-learn; local training/scoring; uncalibrated) |\n| Dashboard anomaly scoring | Implemented (configured local model; explicit analyst-triggered scoring) |\n| API network boundary | Implemented (all API reads/writes loopback-only) |
+| OOP backend composition root | Implemented (application owns services; HTTP handler uses dependency injection) |
+| OOP native simulator bridge | Implemented (SimulationBridge encapsulates executable discovery, execution, and JSONL ingestion) |
 | Automated defensive response / blocking | Not implemented |
 | Automated external threat-feed polling / TAXII | Not implemented |
 | Calibrated production ML risk scoring | Not implemented |
@@ -79,8 +81,8 @@ Its demonstration sends three packets: two are delivered and one is blocked.
 ctest --test-dir build --output-on-failure
 ```
 
-The current upgrade-branch CI run records 32/32 C++ tests passing on both
-Ubuntu and Windows. Coverage includes packet validation, routing, firewall
+The earlier verified CI milestone records 32/32 C++ tests passing on both
+Ubuntu and Windows. The OOP backend composition and simulator-bridge refactor adds new Python tests and awaits a fresh confirmed CI run. Coverage includes packet validation, routing, firewall
 decisions, flow aggregation, scenario bounds, threat detection, and regression
 checks for offline devices, IP validation, and stale-route cleanup. The Python
 backend suite records 30/30 tests passing on both platforms. The workflow also
