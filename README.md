@@ -229,14 +229,14 @@ This is the project’s core implementation layer.
 
 The latest verified post-merge cross-platform CI run for master commit `022b310a110794005a1b6cf5e71a6a452c5d9328` completed successfully on both Ubuntu and Windows (GitHub Actions run [45304372340](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45304372340)). Both jobs passed the C++ build/tests, Python syntax/tests, dashboard JavaScript syntax, and C++-to-SQLite integration.
 
-| Check | Earlier verified milestone |
+| Check | Post-merge result |
 | --- | --- |
-| C++ automated tests | 32/32 on Ubuntu and Windows |
-| Python backend tests | 30/30 on Ubuntu and Windows |
-| C++ build and CTest | Passed on Ubuntu and Windows |
-| Python syntax | Passed |
-| Dashboard JavaScript syntax | Passed |
-| C++ to SQLite integration | Passed |
+| Windows CI job | Passed |
+| Ubuntu CI job | Passed |
+| C++ build and tests | Passed on both platforms |
+| Python syntax and backend tests | Passed on both platforms |
+| Dashboard JavaScript syntax | Passed on both platforms |
+| C++ to SQLite integration | Passed on both platforms |
 
 Physical packet capture still requires host-specific Npcap/libpcap, a supported adapter, and suitable permissions. The optional ML model also requires evaluation against representative, trusted traffic before operational use. See [docs/LIVE_MONITORING.md](docs/LIVE_MONITORING.md) and [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
