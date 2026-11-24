@@ -17,7 +17,6 @@ from pathlib import Path
 from statistics import mean
 
 from ml_anomaly import FEATURES
-from ml_isolation_forest import train_model, score_observation
 
 
 def load_labeled_rows(path: str | Path, label_column: str, group_column: str,
@@ -124,6 +123,10 @@ def _metrics(actual: list[str], predicted: list[str]) -> dict:
 def evaluate_rows(rows: list[dict], *, test_fraction: float = 0.25, seed: int = 42,
                   contamination: float = 0.03, n_estimators: int = 200) -> dict:
     """Train only on benign training groups and evaluate once on held-out groups."""
+    try:
+        from ml_isolation_forest import train_model, score_observation
+    except ImportError as error:
+        raise ImportError("Install optional ML dependencies from requirements-ml.txt") from error
     train, test = split_by_group(rows, test_fraction, seed)
     train_benign = [row["features"] for row in train if row["label"] == "benign"]
     if len(train_benign) < 50:
