@@ -99,4 +99,4 @@ class ThreatIntelStore:
    cur=db.execute("INSERT INTO analyst_notes(incident_id,note,author,created_at) VALUES(?,?,?,?)",(incident_id,note.strip(),author.strip(),now))
    return {"id":cur.lastrowid,"incident_id":incident_id,"note":note.strip(),"author":author.strip(),"created_at":now}
  def list_notes(self,incident_id):
-  with self.session() as db return [dict(r) for r in db.execute("SELECT id,incident_id,note,author,created_at FROM analyst_notes WHERE incident_id=? ORDER BY id",(incident_id,)).fetchall()]
+  with self.session() as db: return [dict(r) for r in db.execute("SELECT id,incident_id,note,author,created_at FROM analyst_notes WHERE incident_id=? ORDER BY id",(incident_id,)).fetchall()]
