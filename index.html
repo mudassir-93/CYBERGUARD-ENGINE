@@ -253,6 +253,19 @@
         <div class="incident-actions"><button class="button button-primary" id="importThreatIntel" type="button">Import indicators</button><span id="threatIntelMessage" role="status"></span></div>
       </section>
 
+
+      <section class="panel threat-intel-panel" id="anomaly-analysis">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Local ML analysis</span><h3>Telemetry anomaly scoring</h3></div>
+          <span class="incident-summary-count">Optional Isolation Forest model</span>
+        </div>
+        <p>Score a telemetry sample against your configured local model. This is an analyst aid, not an automatic incident verdict.</p>
+        <label for="anomalyFeaturesInput">Telemetry features JSON</label>
+        <textarea id="anomalyFeaturesInput" rows="6" spellcheck="false" placeholder='{"features":{"packet_rate":12,"distinct_ports":2,"failed_attempts":0,"bytes_per_second":2048,"destination_fanout":1}}'></textarea>
+        <div class="incident-actions"><button class="button button-primary" id="scoreAnomaly" type="button">Score telemetry</button><span id="anomalyMessage" role="status"></span></div>
+        <pre class="anomaly-result" id="anomalyResult" aria-live="polite">Configure CYBERGUARD_ANOMALY_MODEL to enable scoring.</pre>
+      </section>
+
       <section class="panel live-monitor-panel" id="live-monitoring">
         <div class="panel-heading">
           <div><span class="section-kicker">Passive network sensor</span><h3>Live network monitoring</h3></div>
