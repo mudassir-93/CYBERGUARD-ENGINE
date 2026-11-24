@@ -63,6 +63,26 @@ def score_observation(observation,model):
             "reasons":reasons[:5],
             "disclaimer":"Model score is not a calibrated probability; validate false positives on representative labeled traffic."}
 
+
+class IsolationForestAnalyzer:
+    """Encapsulates a trusted local Isolation Forest artifact and its scoring API."""
+
+    def __init__(self, model):
+        if not isinstance(model, dict) or model.get("algorithm") != "IsolationForest":
+            raise ValueError("Unsupported Isolation Forest model")
+        self._model = model
+
+    @classmethod
+    def from_file(cls, path):
+        return cls(load_model(path))
+
+    def score(self, observation):
+        return score_observation(observation, self._model)
+
+    @property
+    def training_samples(self):
+        return self._model["training_samples"]
+
 def main():
     parser=argparse.ArgumentParser(description="Train CyberGuard Isolation Forest from trusted telemetry CSV")
     parser.add_argument("csv_file"); parser.add_argument("--output",default="data/isolation-forest.joblib")
