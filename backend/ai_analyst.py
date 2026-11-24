@@ -5,10 +5,12 @@ or treats captured evidence as instructions.
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import os
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -33,8 +35,17 @@ class OllamaAnalyst:
         )
         self._opener = opener
 
-        if not self.base_url.startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")):
-            raise ValueError("Ollama must use a local loopback URL")
+        parsed = urlsplit(self.base_url)
+        try:
+            is_loopback = parsed.hostname == "localhost" or (
+                parsed.hostname is not None and ipaddress.ip_address(parsed.hostname).is_loopback
+            )
+        except ValueError:
+            is_loopback = False
+        if (parsed.scheme != "http" or not is_loopback or parsed.username
+                or parsed.password or parsed.path not in ("", "/")
+                or parsed.query or parsed.fragment):
+            raise ValueError("Ollama must use an HTTP loopback URL without credentials or a path")
         if not self.model.strip():
             raise ValueError("Ollama model name cannot be empty")
         if not 1 <= self.timeout <= 180:
@@ -45,8 +56,6 @@ class OllamaAnalyst:
         if not isinstance(incident, dict) or not incident.get("id"):
             raise ValueError("A persisted incident with an ID is required")
 
-        # Evidence fields may contain attacker-controlled text. Keep them inside
-        # a clearly delimited JSON data object and explicitly reject instructions.
         evidence = {
             key: incident.get(key)
             for key in (
