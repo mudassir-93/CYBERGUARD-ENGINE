@@ -37,6 +37,7 @@ CMakeLists.txt      C++20 targets and test configuration
 | Explainable anomaly baseline | Implemented (median/MAD statistical baseline) |\n| Optional Isolation Forest pipeline | Implemented (scikit-learn; local training/scoring; uncalibrated) |\n| Dashboard anomaly scoring | Implemented (configured local model; explicit analyst-triggered scoring) |\n| API network boundary | Implemented (all API reads/writes loopback-only) |
 | OOP backend composition root | Implemented (application owns services; HTTP handler uses dependency injection) |
 | OOP native simulator bridge | Implemented (SimulationBridge encapsulates executable discovery, execution, and JSONL ingestion) |
+| OOP ML inference | Implemented (IsolationForestAnalyzer owns the loaded model and scoring interface) |
 | Automated defensive response / blocking | Not implemented |
 | Automated external threat-feed polling / TAXII | Not implemented |
 | Calibrated production ML risk scoring | Not implemented |
