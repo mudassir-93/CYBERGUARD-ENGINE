@@ -145,7 +145,29 @@ python backend/run_simulation.py
 
 The dashboard also provides a **Run C++ simulation** action. It executes the local native binary, receives structured JSON Lines detections, and persists incidents. Set `CYBERGUARD_EXECUTABLE` if the executable is outside the standard build folders.
 
-### 6. Use the guided CLI (optional)\n\nFrom the repository root, open the interactive local workspace:\n\n```powershell\npython backend/cli.py\n```\n\nYou can also run individual commands:\n\n```powershell\npython backend/cli.py doctor\npython backend/cli.py summary\npython backend/cli.py incidents --status new --limit 20\npython backend/cli.py show CG-INCIDENTID\npython backend/cli.py status CG-INCIDENTID acknowledged\npython backend/cli.py simulate\n```\n\nThe CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.\n\n### 7. Open the browser dashboard
+### 6. Use the guided CLI (optional)
+
+From the repository root, open the interactive local workspace:
+
+```powershell
+python backend/cli.py
+```
+
+You can also run individual commands:
+
+```powershell
+python backend/cli.py doctor
+python backend/cli.py summary
+python backend/cli.py incidents --status new --limit 20
+python backend/cli.py show CG-INCIDENTID
+python backend/cli.py status CG-INCIDENTID acknowledged
+python backend/cli.py simulate
+python backend/cli.py explain CG-INCIDENTID
+```
+
+The CLI works directly with the local SQLite store and native simulator bridge. It does not expose a network listener. The optional `explain` command sends bounded incident evidence only to a configured loopback Ollama service; it is read-only and advisory. Live packet capture remains a separate, optional dashboard workflow.
+
+### 7. Open the browser dashboard
 
 From the repository root:
 
@@ -205,7 +227,7 @@ This is the project’s core implementation layer.
 
 ## Verification
 
-The latest verified cross-platform CI run for branch commit `7eec0cd0` completed successfully on both Ubuntu and Windows (GitHub Actions run [45301469257](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45301469257)). It built the C++ project, ran all C++ and Python tests, checked Python and dashboard JavaScript syntax, and ran the C++-to-SQLite integration. The CLI syntax check was added after that run and will be verified by the next CI run.
+The latest verified cross-platform CI run for commit `f9b0436495bf3cf751535c6a1335ccd776e0ca5b` completed successfully on both Ubuntu and Windows (GitHub Actions run [45303756562](https://github.com/mudassir-93/CYBERGUARD-ENGINE/actions/runs/45303756562)). It built the C++ project, ran C++ and Python tests, checked Python and dashboard JavaScript syntax, and ran the C++-to-SQLite integration, including the latest CLI and local AI analyst changes.
 
 | Check | Earlier verified milestone |
 | --- | --- |
