@@ -248,3 +248,5 @@ button, select { cursor: pointer; }
 .incident-note-form input { min-width:0; flex:1; padding:8px 9px; border:1px solid var(--line); background:#06121a; color:var(--ink); font:10px 'DM Mono',monospace; }
 .incident-note-form button { padding:7px 10px; border:1px solid var(--line); color:var(--cyan); font-size:10px; }
 .incident-note-form button:disabled { opacity:.5; cursor:wait; }
+
+.anomaly-result { margin-top:10px; max-height:260px; overflow:auto; padding:12px; border:1px solid var(--line); background:#06121a; color:var(--ink); white-space:pre-wrap; overflow-wrap:anywhere; font:10px 'DM Mono',monospace; line-height:1.55; }
