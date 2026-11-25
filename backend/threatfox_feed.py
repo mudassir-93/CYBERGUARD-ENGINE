@@ -8,7 +8,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -89,6 +89,12 @@ class ThreatFoxFeed:
         reference = row.get("reference")
         if isinstance(reference, str) and reference.startswith(("https://", "http://")):
             description_parts.append("Reference: " + reference[:500])
+        first_seen = ThreatFoxFeed._feed_timestamp(
+            row.get("first_seen_utc") or row.get("first_seen")
+        ) or datetime.now(timezone.utc).isoformat(timespec="seconds")
+        expires_at = (
+            datetime.fromisoformat(first_seen) + timedelta(days=180)
+        ).isoformat(timespec="seconds")
         try:
             normalized = normalize_indicator({
                 "type": kind,
@@ -101,9 +107,8 @@ class ThreatFoxFeed:
                     if isinstance(part, str) and part.strip()
                 )[:1000],
                 "tags": tags,
-                "first_seen": ThreatFoxFeed._feed_timestamp(
-                    row.get("first_seen_utc") or row.get("first_seen")
-                ),
+                "first_seen": first_seen,
+                "expires_at": expires_at,
                 "last_seen": ThreatFoxFeed._feed_timestamp(
                     row.get("last_seen_utc") or row.get("last_seen")
                 ),
