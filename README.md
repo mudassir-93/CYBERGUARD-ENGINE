@@ -47,7 +47,7 @@ Completed foundations include:
 - Flow aggregation, bounded threat scenarios, and explainable simulator detections
 - SQLite incident management and native simulator-to-incident integration
 - Optional passive IPv4 metadata monitoring with a dashboard capture workflow
-- Local IOC catalog with explicit JSON import, incident enrichment, and append-only analyst notes
+- Local IOC catalog with explicit JSON import and manual ThreatFox sync, incident enrichment, and append-only analyst notes
 - Dependency-free median/MAD anomaly baseline and optional scikit-learn Isolation Forest training/scoring
 - Leakage-aware, capture/session-grouped evaluation with precision, recall, F1, false-positive/negative rates, confusion matrix, and latency report
 - Manual dashboard anomaly scoring through a loopback-only API endpoint
@@ -340,7 +340,7 @@ CyberGuard includes a local SQLite-backed incident workspace. Start it with `pyt
 
 ## Threat intelligence and investigation
 
-The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. No external feed is fetched and no indicator triggers blocking. The dashboard includes a manual JSON import panel. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
+The local SQLite workspace supports explicit imports of IP/domain/file-hash indicators with source attribution, confidence, severity, tags, and expiry. Incident detail includes exact-match IOC enrichment and append-only analyst notes. The dashboard can manually sync recent ThreatFox community IOCs after `CYBERGUARD_THREATFOX_API_KEY` is configured; no background polling occurs and no indicator triggers blocking. See [docs/THREAT_INTELLIGENCE.md](docs/THREAT_INTELLIGENCE.md).
 
 A dependency-free robust median/MAD anomaly baseline is available with `python backend/ml_anomaly.py`. An optional scikit-learn Isolation Forest can be trained locally after `python -m pip install -r requirements-ml.txt` using `python backend/ml_isolation_forest.py path/to/trusted-baseline.csv`. For labeled CSV evaluation, run `python backend/ml_evaluate.py examples/synthetic-flow-demo.csv --group-column capture_id --output reports/demo-evaluation.json`. The bundled 144-row sample is synthetic demonstration data, not a benchmark. The evaluator keeps capture/session groups disjoint between training and test data and reports false positives, false negatives, F1, balanced accuracy, and inference latency. See [docs/ML_EVALUATION.md](docs/ML_EVALUATION.md) for the CSV contract and limitations. Set `CYBERGUARD_ANOMALY_MODEL` before starting the server to enable the dashboard's local telemetry scoring panel. Both models provide explainable context, not calibrated probabilities or production verdicts.
 

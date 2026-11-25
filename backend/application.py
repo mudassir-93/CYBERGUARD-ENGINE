@@ -51,6 +51,17 @@ class CyberGuardApplication:
             return self._simulation_runner(store=self.incidents)
         return self._simulation_bridge.run(store=self.incidents)
 
+    def sync_threatfox(self, days: int = 3) -> dict[str, Any]:
+        """Fetch recent public ThreatFox indicators and persist normalized IOCs."""
+        from threatfox_feed import ThreatFoxFeed
+
+        result = ThreatFoxFeed().fetch(days=days)
+        imported = (
+            self.threat_intelligence.import_indicators(result["indicators"])
+            if result["indicators"] else {"inserted": 0, "updated": 0, "total_processed": 0}
+        )
+        return {**result, **imported}
+
     def explain_incident(self, incident_id: str) -> dict[str, str]:
         """Generate a read-only local AI explanation for a persisted incident."""
         incident = self.incidents.get_incident(incident_id)

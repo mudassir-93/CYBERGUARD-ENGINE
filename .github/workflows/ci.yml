@@ -64,7 +64,7 @@ jobs:
 
       - name: Validate Python backend syntax
         if: runner.os == 'Linux'
-        run: python -m py_compile backend/ai_analyst.py backend/incidents.py backend/cli.py backend/application.py backend/server.py backend/simulation_bridge.py backend/live_monitor.py backend/threat_intel.py backend/ml_anomaly.py backend/ml_isolation_forest.py backend/ml_evaluate.py
+        run: python -m py_compile backend/ai_analyst.py backend/incidents.py backend/cli.py backend/application.py backend/server.py backend/simulation_bridge.py backend/live_monitor.py backend/threat_intel.py backend/threatfox_feed.py backend/ml_anomaly.py backend/ml_isolation_forest.py backend/ml_evaluate.py
 
       - name: Run Python backend tests
         if: runner.os == 'Linux'

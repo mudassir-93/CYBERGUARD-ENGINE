@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from application import CyberGuardApplication, create_application
+from threatfox_feed import ThreatFoxError
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_BODY_BYTES = 1_000_000
@@ -123,6 +124,16 @@ class CyberGuardHandler(SimpleHTTPRequestHandler):
                 return self._json(503, {"error": str(error)})
             except (ValueError, TypeError) as error:
                 return self._json(400, {"error": str(error)})
+        if path == "/api/threat-intel/sync":
+            try:
+                payload = self._body()
+                days = payload.get("days", 3)
+                result = self.application.sync_threatfox(days)
+                return self._json(200, result)
+            except ValueError as error:
+                return self._json(400, {"error": str(error)})
+            except ThreatFoxError as error:
+                return self._json(503, {"error": str(error)})
         if path == "/api/threat-intel/import":
             try:
                 payload = self._body()

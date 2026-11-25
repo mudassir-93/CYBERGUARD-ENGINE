@@ -34,6 +34,25 @@ class ApplicationCompositionTests(unittest.TestCase):
             application.close()
             live_monitor.stop.assert_called_once_with()
 
+    def test_threatfox_sync_persists_normalized_indicators(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            application = create_application(directory)
+            feed_result = {
+                "indicators": [{"type": "domain", "value": "feed.example", "source": "ThreatFox",
+                                "confidence": 90, "severity": "high", "description": "",
+                                "tags": [], "first_seen": "2026-11-20T12:00:00+00:00",
+                                "last_seen": None, "expires_at": None}],
+                "received": 1, "accepted": 1, "skipped": 0,
+            }
+            with patch("threatfox_feed.ThreatFoxFeed") as feed:
+                feed.return_value.fetch.return_value = feed_result
+                result = application.sync_threatfox(days=2)
+            self.assertEqual((result["inserted"], result["total_processed"]), (1, 1))
+            self.assertEqual(application.threat_intelligence.list_indicators()[0]["value"], "feed.example")
+            feed.return_value.fetch.assert_called_once_with(days=2)
+            application.close()
+
     def test_factory_creates_isolated_application_database(self):
         with tempfile.TemporaryDirectory() as directory:
             application = create_application(directory)
