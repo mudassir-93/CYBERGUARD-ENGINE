@@ -35,7 +35,7 @@ class ThreatFoxFeedTests(unittest.TestCase):
                  "threat_type_desc": "C2", "first_seen": "2026-11-20 12:00:00 UTC",
                  "tags": ["botnet"]},
                 {"ioc_type": "domain", "ioc": "MALWARE.Example", "confidence_level": 85,
-                 "malware_printable": "Example malware", "tags": ["test"]},
+                 "malware_printable": "Example malware", "tags": None, "reference": "https://example.test/report"},
                 {"ioc_type": "url", "ioc": "https://bad.example/path"},
                 {"ioc_type": "ip", "ioc": "192.168.1.1", "confidence_level": 99},
                 {"ioc_type": "domain", "ioc": "not a domain"},
