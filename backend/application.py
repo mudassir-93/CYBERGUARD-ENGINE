@@ -51,7 +51,7 @@ class CyberGuardApplication:
             return self._simulation_runner(store=self.incidents)
         return self._simulation_bridge.run(store=self.incidents)
 
-    def sync_threatfox(self, days: int = 3) -> dict[str, int]:
+    def sync_threatfox(self, days: int = 3) -> dict[str, Any]:
         """Fetch recent public ThreatFox indicators and persist normalized IOCs."""
         from threatfox_feed import ThreatFoxFeed
 
