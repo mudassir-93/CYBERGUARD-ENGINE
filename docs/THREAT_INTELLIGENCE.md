@@ -1,14 +1,14 @@
 # Threat Intelligence and Incident Investigation
 
-CyberGuard includes a local SQLite indicator catalog. Import IP, domain, MD5, SHA-1, and SHA-256 indicators explicitly as JSON. Each item supports source attribution, confidence (0-100), severity, description, tags, first/last-seen timestamps, and optional expiry. Imports are idempotent per type/value/source. Expired indicators are excluded. The application does not fetch feeds, resolve domains, or call paid reputation services.
+CyberGuard includes a local SQLite indicator catalog. Import IP, domain, MD5, SHA-1, and SHA-256 indicators explicitly as JSON. Each item supports source attribution, confidence (0-100), severity, description, tags, first/last-seen timestamps, and optional expiry. Imports are idempotent per type/value/source. Expired indicators are excluded. The application does not resolve domains or call paid reputation services. An explicit, read-only ThreatFox community-feed sync is available; no feed polling or background network activity occurs unless an operator invokes it.
 
 API:
 - `POST /api/threat-intel/import` — JSON body `{ "indicators": [...] }`, up to 5,000 records.
-- `GET /api/threat-intel?type=ip&limit=100` — list active indicators.
+- `GET /api/threat-intel?type=ip&limit=100` — list active indicators.\n- `POST /api/threat-intel/sync` — explicitly fetch recent ThreatFox IOCs and import supported public IP/domain records. JSON body: `{ "days": 3 }` (1–7).
 - `GET /api/incidents/{id}` — incident evidence, timeline, exact-match `threat_intel_matches`, and `analyst_notes`.
 - `POST /api/incidents/{id}/notes` — append `{ "note": "...", "author": "..." }`.
 
-Matches compare source/destination IPs and explicit domain/hash fields in evidence. A match is enrichment, not proof of compromise. No match triggers blocking. All API routes (reads and writes) reject non-loopback clients, even if the server is accidentally bound to a public interface. This is a local-use boundary, not user authentication.
+Set `CYBERGUARD_THREATFOX_API_KEY` to an Auth-Key obtained from the [ThreatFox authentication portal](https://auth.abuse.ch/) before calling the sync endpoint. The adapter uses the documented `get_iocs` API, enforces a 20-second timeout and 5 MB response cap, accepts at most 5,000 rows, keeps only normalized public IP/domain indicators, and skips unsupported or malformed records. Sync is manual, local-loopback-only, and idempotent through the existing `(type, value, source)` database key. No indicator triggers blocking. ThreatFox community access follows its fair-use policy; commercial use may require the enhanced API. See the [ThreatFox API documentation](https://threatfox.abuse.ch/api/).\n\nMatches compare source/destination IPs and explicit domain/hash fields in evidence. A match is enrichment, not proof of compromise. No match triggers blocking. All API routes (reads and writes) reject non-loopback clients, even if the server is accidentally bound to a public interface. This is a local-use boundary, not user authentication.
 
 ## Explainable anomaly baseline
 
