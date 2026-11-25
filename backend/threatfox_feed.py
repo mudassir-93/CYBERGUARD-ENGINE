@@ -11,7 +11,7 @@ import os
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from threat_intel import normalize_indicator
+from datetime import datetime, timezone\n\nfrom threat_intel import normalize_indicator
 
 API_URL = "https://threatfox-api.abuse.ch/api/v1/"
 MAX_RESPONSE_BYTES = 5 * 1024 * 1024
