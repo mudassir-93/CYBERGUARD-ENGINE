@@ -49,7 +49,8 @@ class ThreatFoxFeedTests(unittest.TestCase):
         self.assertEqual(result["indicators"][1]["value"], "malware.example")
         self.assertEqual(result["indicators"][0]["first_seen"], "2026-11-20T12:00:00+00:00")
         self.assertIn("Reference: ", result["indicators"][1]["description"])
-        request, timeout = mocked.call_args.args
+        request = mocked.call_args.args[0]
+        timeout = mocked.call_args.kwargs["timeout"]
         self.assertEqual(request.full_url, API_URL)
         self.assertEqual(request.get_header("Auth-key"), "secret")
         self.assertEqual(json.loads(request.data), {"query": "get_iocs", "days": 2})
