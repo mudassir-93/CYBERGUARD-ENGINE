@@ -48,6 +48,7 @@ class ThreatFoxFeedTests(unittest.TestCase):
         self.assertEqual(result["indicators"][0]["severity"], "critical")
         self.assertEqual(result["indicators"][1]["value"], "malware.example")
         self.assertEqual(result["indicators"][0]["first_seen"], "2026-11-20T12:00:00+00:00")
+        self.assertEqual(result["indicators"][0]["expires_at"], "2027-05-19T12:00:00+00:00")
         self.assertIn("Reference: ", result["indicators"][1]["description"])
         request = mocked.call_args.args[0]
         timeout = mocked.call_args.kwargs["timeout"]
