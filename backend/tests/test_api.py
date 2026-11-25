@@ -102,6 +102,30 @@ class IncidentApiTests(unittest.TestCase):
                 self.request_json("/api/live/start", "POST", {"interface": "test0"})
         self.assertEqual(caught.exception.code, 403)
 
+    def test_threatfox_sync_endpoint_uses_application_service(self):
+        from unittest.mock import patch
+        expected = {"received": 3, "accepted": 2, "skipped": 1,
+                    "indicators": [], "inserted": 2, "updated": 0, "total_processed": 2}
+        with patch.object(self.application, "sync_threatfox", return_value=expected) as sync:
+            status, body = self.request_json("/api/threat-intel/sync", "POST", {"days": 2})
+        self.assertEqual(status, 200)
+        self.assertEqual(body, expected)
+        sync.assert_called_once_with(2)
+
+    def test_threatfox_sync_endpoint_validates_days(self):
+        from unittest.mock import patch
+        with patch.object(self.application, "sync_threatfox", side_effect=ValueError("days must be an integer from 1 to 7")):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/threat-intel/sync", "POST", {"days": 99})
+        self.assertEqual(caught.exception.code, 400)
+
+    def test_threatfox_sync_endpoint_rejects_non_loopback_clients(self):
+        from unittest.mock import patch
+        with patch.object(api_server.CyberGuardHandler, "_is_loopback_client", return_value=False):
+            with self.assertRaises(HTTPError) as caught:
+                self.request_json("/api/threat-intel/sync", "POST", {"days": 1})
+        self.assertEqual(caught.exception.code, 403)
+
     def test_threat_intel_import_and_incident_enrichment_and_notes(self):
         from unittest.mock import patch
         detection = {"type": "port_scan", "source_ip": "203.0.113.88",
