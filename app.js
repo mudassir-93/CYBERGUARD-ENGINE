@@ -572,13 +572,39 @@ class ThreatIntelController {
     this.incidentController = incidentController;
     this.input = document.querySelector('#threatIntelInput');
     this.importButton = document.querySelector('#importThreatIntel');
+    this.syncButton = document.querySelector('#syncThreatFox');
+    this.syncDays = document.querySelector('#threatFoxDays');
     this.message = document.querySelector('#threatIntelMessage');
     this.initialize();
   }
 
   initialize() {
-    if (!this.importButton) return;
-    this.importButton.addEventListener('click', () => this.importIndicators());
+    if (this.importButton) this.importButton.addEventListener('click', () => this.importIndicators());
+    if (this.syncButton) this.syncButton.addEventListener('click', () => this.syncThreatFox());
+  }
+
+  async syncThreatFox() {
+    const days = Number(this.syncDays?.value || 3);
+    if (!Number.isInteger(days) || days < 1 || days > 7) {
+      this.message.textContent = 'Choose a recent window from 1 to 7 days.';
+      return;
+    }
+    this.syncButton.disabled = true;
+    this.message.textContent = 'Fetching ThreatFox community indicators…';
+    try {
+      const response = await fetch('/api/threat-intel/sync', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'ThreatFox sync failed');
+      this.message.textContent = `ThreatFox: ${result.inserted} new, ${result.updated} updated, ${result.skipped} skipped.`;
+      await this.incidentController.loadIncidents();
+    } catch (error) {
+      this.message.textContent = error.message;
+    } finally {
+      this.syncButton.disabled = false;
+    }
   }
 
   async importIndicators() {
